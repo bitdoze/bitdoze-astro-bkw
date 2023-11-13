@@ -8,10 +8,7 @@
       "name": "About",
       "url": "/about"
     },
-    {
-      "name": "Contact",
-      "url": "/contact"
-    },
+
     {
       "name": "Pages",
       "url": "",
@@ -19,43 +16,43 @@
       "children": [
         {
           "name": "Authors",
-          "url": "/authors"
+          "url": "/authors/"
         },
         {
           "name": "Categories",
-          "url": "/categories"
+          "url": "/categories/"
         },
         {
           "name": "Tags",
-          "url": "/tags"
+          "url": "/tags/"
         },
         {
-          "name": "Elements",
-          "url": "/elements"
+          "name": "About",
+          "url": "/about/"
         },
         {
           "name": "Privacy Policy",
-          "url": "/privacy-policy"
+          "url": "/privacy/"
         }
       ]
+    },
+    {
+      "name": "Contact",
+      "url": "/contact/"
     }
   ],
   "footer": [
     {
       "name": "About",
-      "url": "/about"
+      "url": "/about/"
     },
     {
       "name": "Contact",
-      "url": "/contact"
-    },
-    {
-      "name": "Elements",
-      "url": "/elements"
+      "url": "/contact/"
     },
     {
       "name": "Privacy Policy",
-      "url": "/privacy-policy"
+      "url": "/privacy/"
     }
   ]
 }

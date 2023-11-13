@@ -1,0 +1,114 @@
+---
+date: 2023-09-28T5:00:00Z
+title: "How To Install Docker & Docker-compose for Ubuntu ARM Systems"
+description: "Learn how to install docker and docker compose on Ubuntu ARM system to host your own apps"
+image: "../../assets/images/23/10/install-docker-ubuntu-arm.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["docker"]
+canonical: https://www.bitdoze.com/install-docker-ubuntu-arm/
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+
+Docker has revolutionized the way we think about software development and deployment. With Docker, you can package your application and its dependencies into a container, making it easier to move and manage. Docker-Compose further simplifies multi-container Docker applications. In this guide, we'll walk you through how to install Docker and Docker-Compose on Ubuntu ARM systems.
+
+ARM and x86 are two major types of CPU architectures that have been ruling different domains of computing. ARM, which stands for Advanced RISC Machine, is known for its power efficiency and is predominantly used in mobile devices, IoT gadgets, and increasingly in servers. On the other hand, x86 architecture, developed by Intel, has long been the standard for desktop and server computing.
+
+The key difference lies in their design philosophy. ARM relies on a simpler set of instructions, allowing for lower power consumption, which is crucial for battery-powered devices. x86 architectures offer a broad set of instructions, optimized for high performance in complex computing tasks. Both have their pros and cons, but with ARM's growing presence in the server and desktop markets, it's becoming more important to understand how to work with both.
+
+The [ARM vs x86: A Benchmark Comparison You Need to See](https://www.wpdoze.com/arm-vs-x86-vps-server-benchmarks/) article will provide more details about the benchmarks and where you can create an ARM VPS.
+
+<Button link="https://go.bitdoze.com/hetzner" text="Get an ARM Server" />
+
+## Steps to Install Docker & Docker-compose for Ubuntu ARM Systems
+
+### Step 1: Update Package List
+
+Start by updating the package list to make sure you have the latest version of the packages.
+
+```bash
+sudo apt-get update
+```
+
+- **sudo:** Run the command as a superuser.
+- **apt-get:** Ubuntu package management utility.
+- **update:** Fetches the package list from the repository.
+
+### Step 2: Install Required Packages
+
+Before installing Docker, you'll need to install some essential packages.
+
+```bash
+sudo apt-get install ca-certificates curl gnupg lsb-release
+```
+
+- **ca-certificates:** For secure web communication.
+- **curl:** Command-line tool for transferring data.
+- **gnupg:** For key management.
+- **lsb-release:** Provides info about the Linux distribution.
+
+### Step 3: Create Keyring Directory
+
+Create a directory to store the Docker GPG key.
+
+```bash
+sudo mkdir -p /etc/apt/keyrings
+```
+
+- **mkdir:** Make directory command.
+- **"-p":** Create parent directories as needed.
+
+### Step 4: Add Docker GPG Key
+
+Download and add the Docker GPG key to the keyring directory.
+
+```bash
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+```
+
+### Step 5: Add Docker Repository
+
+Add the Docker repository to your sources list.
+
+```bash
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  jammy stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+- **"dpkg --print-architecture":** Prints the system architecture.
+- **tee:** Reads from standard input and writes to standard output and files.
+
+### Step 6: Update Package List Again
+
+Run an update again to fetch packages from the newly added Docker repository.
+
+```bash
+sudo apt-get update
+```
+
+### Step 7: Install Docker and Docker-Compose
+
+Finally, install Docker and Docker-Compose.
+
+```bash
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose
+```
+
+- **docker-ce:** Docker Community Edition.
+- **docker-ce-cli:** Docker CLI.
+- **containerd.io:** Container runtime.
+- **docker-compose-plugin:** Compose CLI plugin.
+- **docker-compose:** To define and run multi-container Docker applications.
+
+In case you are interested to have a web panel that can help you manage your applications and be used as a reverse proxy you can check the bellow course:
+
+<Button
+  link="https://webdoze.net/courses/cloudpanel-setup/"
+  text="CloudPanel Setup Course"
+/>
+
+## Conclusion
+
+And there you have it! You've successfully installed Docker and Docker-Compose on your Ubuntu ARM system. With these tools at your disposal, you're now ready to begin containerizing applications and taking full advantage of what Docker has to offer. Happy Docking!

@@ -1,35 +1,35 @@
 {
   "site": {
-    "title": "BitDoze",
+    "title": "Bit Doze Website",
     "base_url": "https://www.bitdoze.com",
     "base_path": "/",
     "trailing_slash": true,
-    "favicon": "/images/favicon.png",
-    "logo": "/images/logo.png",
+    "favicon": "/favicon.ico",
+    "logo": "/bitdoze_logo_better.svg",
     "logo_width": "200",
     "logo_height": "34",
-    "logo_text": "Bookworm Light"
+    "logo_text": "bitdoze logo"
   },
 
   "settings": {
-    "pagination": 5,
+    "pagination": 10,
     "summary_length": 100
   },
 
   "metadata": {
-    "meta_author": "Themefisher",
+    "meta_author": "Dragos",
     "meta_image": "/images/og-image.png",
-    "meta_description": "Bookworm Light Astro Blog Template"
+    "meta_description": "An Website about Linux, blogging, CMS and other internet news.."
   },
 
   "params": {
     "contact_form_action": "#",
-    "copyright": "Copyright © 2023 a theme by [Themefisher](https://themefisher.com)"
+    "copyright": "Copyright © 2023"
   },
 
   "contactinfo": {
-    "address": "355 S Grand Ave <br/> Los Angeles, CA 90071",
-    "email": "info@bookworm.org",
-    "phone": "+800 567 1234"
+    "address": "Romania, Joita, Giurgiu",
+    "email": "dragos@bitdoze.com",
+    "phone": "+400 567 1234"
   }
 }

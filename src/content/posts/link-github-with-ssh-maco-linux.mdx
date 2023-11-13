@@ -1,0 +1,153 @@
+---
+date: 2022-10-07T00:00:00Z
+title: "Link GitHub with A SSH Key to MacOS or Linux"
+description: "A tutorial that you can follow to create your first GitHub repo and link it via SSH to your laptop."
+image: "../../assets/images/2210/link-github-with-ssh.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["git", "tutorials"]
+canonical: https://www.bitdoze.com/link-github-with-ssh-maco-linux/
+---
+
+import { Picture } from "astro:assets";
+import githubssh1 from "../../assets/images/2210/github_ssh_key.jpeg";
+import githubssh2 from "../../assets/images/2210/github_add_ssh_key.jpeg";
+import githubssh3 from "../../assets/images/2210/create_repo.jpeg";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+
+[GitHub](https://github.com/) is a public repository where you can store your git projects. Most of the services offer integrations with GitHub and you can use it to store your projects or to store your static websites like Gatsy or Astro.
+
+In this article, we will see how you can create a private repo on GitHub and connect it to your laptop with an SSH key.
+
+## Link GitHub with A SSH Key to MacOS or Linux
+
+The first thing should be to have a GitHub account, to do that you just register to them. After we can go and proceed with the SSH key creation and add it to GitHub.
+
+### Generate an SSH Key on Mac or Linux
+
+In this step we are going to generate the Key the below command should work on all systems:
+
+```bash
+ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+```
+
+When you will get the prompts just hit enter to place the key into the default ~/.ssh directory. I will not set up a passphrase.
+
+### Get The Public Key and add it to GitHub
+
+Now that the key is created we need to get the public key and add it to GitHub.
+
+```bash
+cat ~/.ssh/id_rsa.pub
+```
+
+### Add the SSH Key to GitHub
+
+The output of the above command should be added to GitHub under **Profile - Settings - SSH and GPG Keys - New SSH key**
+
+<Picture
+  src={githubssh1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="GitHub Profile add Key"
+/>
+
+There you set a Title and under Key, you add the output from above.
+
+<Picture
+  src={githubssh2}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="GitHub Profile add Key 2"
+/>
+
+Now your GitHub account should be linked to the laptop and you can
+
+## Youtube Video With Details
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/aGWACCA2Kcg"
+  label="Link GitHub with A SSH Key to MacOS or Linux"
+/>
+
+## Create A GitHub Repo and Push From Your Laptop
+
+Now what remains to do is to create our GitHub repo and push it to GitHub. From your profile on the left side hit the **New Repo** and choose the below details:
+
+- **Repository name** - add the name you like your repo to have, I have used test-repo
+- **Description** - set a description for your repo, this is optional
+- **Private or Public** - chose if the repo should be only for you.
+
+And that's about it after you just hit the **Create repository**
+
+<Picture
+  src={githubssh3}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="GitHub create repo"
+/>
+
+After we should go into our laptop and create a directory where the repo should be and initiate it.
+
+Create the directory:
+
+```bash
+mkdir test-repo
+```
+
+Go and initiate it, install git if you don,t have it:
+
+```bash
+#mac install
+brew install git
+#Ubuntu install
+sudo apt install git
+#go into the folder
+cd test-repo
+#initiate the repo
+git init
+```
+
+Add a file to the repo"
+
+```bash
+echo "# test-repo for Bit Doze" >> README.md
+```
+
+After a file is added you need to add it to the repo with, the below command:
+
+```bash
+git add .
+```
+
+Commit the change:
+
+```bash
+git commit -m "added read me file"
+```
+
+Set the branch to main:
+
+```bash
+git branch -M main
+```
+
+Link the folder with the GitHub repo:
+
+```bash
+git remote add origin git@github.com:bitdoze/test-repo.git
+```
+
+Push the changes:
+
+```bash
+git push -u origin main
+```
+
+In case you want to fetch an existing repo you can do it with:
+
+```bash
+git clone git@github.com:<repo>
+```
+
+After you can do your modifications and push it back after.

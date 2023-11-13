@@ -1,0 +1,59 @@
+---
+date: 2023-08-18T06:00:00Z
+title: "How To Add A Contact Form To Astro"
+description: "See how you can easily add a contact form to an astro website or any static website and get notified via email with no spam."
+image: "../../assets/images/23/08/astro-add-contact-form.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["astro", "tutorials"]
+canonical: "https://www.bitdoze.com/add-contact-form-astro/"
+---
+
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import { Picture } from "astro:assets";
+import img1 from "../../assets/images/23/08/opnform-settings.jpeg";
+
+In this tutorial I will show you how you can easily add a contact form to your Astro website, you can use the tutorial to add a contact form to any static website like NextJS or Nuxt,etc, but in this tutorial, we are going to use Astro.
+
+With static websites is more difficult to integrate a contact form that is sending emails and most of the time you need something external. We are going to use [OpnForms](https://www.bitdoze.com/opnform-open-source/) to create our form and add it to Astro contact page.
+
+You don't need any special skils to do this, get notified via email and not receive spam.
+
+## How To Add A Contact Form To Astro
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/EhE6H9nCm8U"
+  label="OpnForm - Add A Contact Form To Astro Free"
+/>
+
+### 1. Create a form in OpnForm
+
+If you don't have an account you just need to go to [OpnForm](https://opnform.com/) and create a free account. After you should go and create a new form.
+OpnForm allows you to add a basic form easily and change the structure and make files as required, in the video you will have all the details.
+You can change the colours for your button and add a logo if you want, change the message and enable the notification via EMAIL or slack/discord.
+In Security and privacy activate the Captcha.
+
+<Picture
+  src={img1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="OpnForm settings"
+/>
+
+### 2. Get The enbed Code and Insert it to Astro
+
+I am using a [free Astro theme](https://astro.build/themes/details/bookworm-light/) for this demonstration as a contact page with a form that does not send any email. I will go into form share and grab the embed code and just add it there, it will be under _src/\_pages/contact.astro_ :
+
+```html
+<iframe
+  style="border:none;width:100%;"
+  height="410px"
+  src="https://opnform.com/forms/contact-form-test-vmak0b"
+></iframe>
+```
+
+You can alter the height to look nicer in the function of the theme. In the video, you have the details.
+
+## Conclusions
+
+And that's about it with these simple steps you have a contact form added to your Astro static website in 2 minutes and ready to receive notifications. Hope you enjoy the article, if you have something to say just go to the video and drop a comment.

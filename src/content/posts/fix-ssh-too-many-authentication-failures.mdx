@@ -1,0 +1,68 @@
+---
+date: 2023-08-03T6:00:00Z
+title: "Fix - Received disconnect from UNKNOWN port 65535:2: Too Many Authentication Failures"
+description: "Fix 'Received disconnect from UNKNOWN port 65535:2' in SSH with our guide. Learn to activate SSH agent, use options, and modify settings"
+image: "../../assets/images/23/08/too_many_authentication_failures.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["linux"]
+canonical: https://www.bitdoze.com/fix-ssh-too-many-authentication-failures/
+---
+
+Let's face it, the world of servers and hosting can be as exciting as it is frustrating. Just when you think you have everything running smoothly, an error like "Received disconnect from UNKNOWN port 65535:2: Too Many Authentication Failures" pops up and you're left scratching your head. This usually happens for me because I need to switch between servers with different keys and SSH configs.
+
+Sound familiar? Don't fret! We've all been there. And I'm here to walk you through a solution, that can help you fix the error, they helped me.
+
+## What's the Issue?
+
+This particular error is often linked to SSH (Secure Shell) connections. SSH is a network protocol that allows users to manage their servers remotely, and it's a powerful tool that many of us rely on daily. However, it can occasionally throw a curveball like this one.
+
+The error message essentially means that there have been too many failed attempts to authenticate the SSH connection. The server gets suspicious and shuts down the connection for security reasons. Makes sense, right? But what's the fix?
+
+## The Fixes
+
+### **1. Activate SSH Agent**
+
+The first thing to do is to activate the SSH agent. This is like a manager for your SSH keys, and it can help streamline the authentication process. Just run:
+
+```bash
+eval `ssh-agent`
+```
+
+This command will initialize the SSH agent in the background, and you're good to go.
+
+### **2. Use the -o IdentitiesOnly=yes Option (if not using an SSH key)**
+
+If you're not using an SSH key, then this option can be a lifesaver. It tells the SSH client to only use the authentication identity files that are configured in the SSH configuration files or passed on the command line. Run:
+
+```bash
+ssh -o IdentitiesOnly=yes user@host
+```
+
+This way, you're narrowing down the authentication methods, and that can clear up the issue.
+
+### **3. Increase MaxAuthTries in /etc/ssh/sshd_config**
+
+Sometimes, the issue is that the server's threshold for failed attempts is just too low. You can fix this by increasing the MaxAuthTries value in the SSH daemon configuration file. Here's how:
+
+```bash
+sudo nano /etc/ssh/sshd_config
+```
+
+Find the line that says MaxAuthTries and increase the value. If it doesn't exist, add:
+
+```bash
+MaxAuthTries 10
+```
+
+Don't forget to restart the SSH service:
+
+```bash
+sudo systemctl restart sshd
+```
+
+## Conclusion
+
+These steps should help you tackle the "Received disconnect from UNKNOWN port 65535:2: Too Many Authentication Failures" error.It's all about understanding what's happening under the hood and applying the right solution.
+
+Remember, servers can be quirky, but they don't have to be a mystery. Happy hosting!

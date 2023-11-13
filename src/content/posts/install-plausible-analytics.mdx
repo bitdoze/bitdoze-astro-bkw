@@ -1,0 +1,129 @@
+---
+date: 2023-03-17T07:00:00Z
+title: "How To Install Plausible  With One Click"
+description: "Learn how to install Plausible Analytics with 1 click in docker via Coolify on your own server."
+image: "../../assets/images/23/03/plausible-install.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["coolify", "tutorials"]
+canonical: https://www.bitdoze.com/install-plausible-analytics/
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import img1 from "../../assets/images/23/03/01createservice.png";
+import img2 from "../../assets/images/23/03/choose_plausible_analytics.jpeg";
+import img3 from "../../assets/images/23/03/plausible-configs.png";
+import img4 from "../../assets/images/23/03/plausible-secrets.jpeg";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+
+[Plausible Analytics](https://www.bitdoze.com/plausible-tool/) can help you take control of your analytics and stop relying on Google Analytics. In this tutorial, we will see everything that needs to be done to deploy Plausible in Docker via Coolify on your own server. The process is easy to do and will help you to have your own analytics and not share the details with other providers like Google Analytics.
+
+If you don't know, Coolify is a self-hosted Heroku or Netlify alternative that also allows you to deploy various Docker apps. For more details you can check out: [Coolify Install A Free Heroku and Netlify Self-Hosted Alternative](https://www.bitdoze.com/coolify-install-heroku-alternative/) where we go into more detail.
+
+Plausible is using a config file to enable some variables, you can do that in the Coolify interface in the secrets area, so in case you want to add an SMTP server or integrate it with Google Web Console if you want, we will take a look at that part when we reach the step for that.
+
+## 1. Deploy A VPS server
+
+To host Plausible in a Docker container you need a VPS server, there are a lot of services that can help you with this, the most known are [DigitalOcean](https://go.bitdoze.com/do), [Vultr](https://go.bitdoze.com/vultr), [Hetzner](https://go.bitdoze.com/hetzner), I also wrote an article and made a video with the benchmarks here: [DigitalOcean vs Vultr vs Hetzner](https://www.wpdoze.com/digitalocean-vs-vultr-vs-hetzner/) you can check it out.
+
+In this tutorial we are going to use Hetzner for this where we have the VPS created and we can ssh to it to have Coolify installed and then deploy Plausible Analitycs.
+
+<Button link="https://go.bitdoze.com/do" text="DigitalOcean $100 Free" />
+<Button link="https://go.bitdoze.com/vultr" text="Vultr $100 Free" />
+<Button link="https://go.bitdoze.com/hetzner" text="Hetzner €⁠20 Free" />
+
+## 2. Installing Coolify
+
+Coolify can be installed with a simple command, you can also check my tutorial for complete steps including the SSL certificate: [Coolify Install](https://www.bitdoze.com/coolify-install-heroku-alternative/)
+
+We will install Coolify on a Ubuntu 22.04 server. To do this, you just need to SSH to the VPS server and run the following command
+
+```bash
+wget -q https://get.coollabs.io/coolify/install.sh \
+-O install.sh; sudo bash ./install.sh
+```
+
+If you are interested in how to monitor your CPU and have an automatic email sent when the load is too high, you should have a look at [Monitor CPU Usage and Send Email Alerts in Linux](https://www.bitdoze.com/monitor-cpu-usage-and-send-email-alerts-in-linux/)
+
+## 🎥 Plausible Install Video
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/RNnuXCUhHF4"
+  label="How To Install Plausible  With One Click"
+/>
+
+## 3. Deploy the Plausible service with Coolify
+
+### 3.1 Point Domain or Subdomain to VPS
+
+We need a domain or subdomain that we can use to access Plausible, in this tutorial we are going to use CloudFlare and point a subdomain to the VPS server where we have Coolify installed. We will not be using the CloudFlare proxy and will leave it disabled. All you need to do is add an A record and point it to the server IP.
+
+### 3.2 Create a service
+
+You need to go to Create New Resource and select **Service**. From there select the **Plausible Analytics** service as shown in the images below:
+
+<Picture
+  src={img1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Coolify service create"
+/>
+<Picture
+  src={img2}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Coolify choose Plausible Analytics"
+/>
+
+### 3.3 Configure Coolify Plausible Analytics
+
+The next thing on the list is to configure the Coolify service, in there you need to add the below:
+
+- **Name** - here you add the name of your deployment
+- **Version / Tag** - you choose the Plausible Analytics version you want to install
+- **URL (FQDN)** - you ad the domain or sudomain that you want to use
+- **Admin Email Address** - enter the admin email address
+- **Admin User Name** - enter admin user name
+- **Authentication** - should be enabled if you choose to have it internet facing and more secure.
+- **Registration** - you can allow them or not allow registration in function of needs. the secure way is to not allow them or invite only.
+
+<Picture
+  src={img3}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Coolify Plausible Configs"
+/>
+
+After what needs to be done is to hit Save to save all the configs.
+
+### 3.4 Add Extra Configs in Secrets
+
+Plausible has various configs that can be activated, for the list check [Plausible Config](https://plausible.io/docs/self-hosting-configuration). For instance with the secrets you can change the passwords and add SMTP details if you want to link Plausible to an email server. Below are the configs for adding the smtp server with an image.
+
+```bash
+SMTP_USER_PWD=<smtp pass>
+SMTP_USER_NAME=<smtp user>
+SMTP_HOST_PORT=<smtp port>
+SMTP_HOST_ADDR=<smtp server>
+MAILER_EMAIL=<from email>
+```
+
+<Picture
+  src={img4}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Plausible Secrets"
+/>
+
+After you just need to hit Deploy and Coolify will start deploy the docker containers.
+
+### 3.5 Access Plausible Analytics
+
+After deploy is finished you should go and access Plausible dashboard with the URL you have added in the configs. The first time you will be prompted to create a user and a password.
+
+After you create the account you can add your websites. The configs will be stored on the disks with docker volumes and in case you redeploy it you will not lose any data.
+
+## Conclusions
+
+This is how you can easily deploy Plausible with the help of Coolify, the config has everything that it needs and you can access it securely with an SSL certificate. In case you want to update it you can do it easily from Coolify interface.

@@ -1,0 +1,170 @@
+---
+date: 2023-05-11T5:00:00Z
+title: "How To Update A Container With Docker Compose"
+description: " How To Update A Container With Docker Compose is a tutorial that shows you how to use Docker Compose to update a container image and configuration without losing any data or settings."
+image: "../../assets/images/23/05/docker-compose-update-containers.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["docker"]
+canonical: https://www.bitdoze.com/updating-container-docker-compose/
+---
+
+import { Picture } from "astro:assets";
+import dockerpull from "../../assets/images/23/05/docker-pull.png";
+import dockerup from "../../assets/images/23/05/docker-up.jpeg";
+
+Docker Compose is a tool that lets you define and run multiple containers as a single service. It's great for developing and testing applications that have multiple components, such as a web server, a database, and a cache. I'll show you how to update a container with Docker Compose in a few simple steps. You'll learn how to modify the Dockerfile, rebuild the image, and restart the container with the new configuration.
+
+I am having a [Plausible](https://plausible.io/) installation done with docker-compose that has been almost 1 year since I updated, it was built following the tutorial: [Install Plausible Google Analytics](https://www.wpdoze.com/how-to-install-plausible/) and it has the bellow docker compose file:
+
+```yaml
+version: "3.3"
+services:
+  mail:
+    image: bytemark/smtp
+    restart: always
+
+  plausible_db:
+    image: postgres:12
+    restart: always
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+
+  plausible_events_db:
+    image: yandex/clickhouse-server:21.3.2.5
+    restart: always
+    volumes:
+      - event-data:/var/lib/clickhouse
+      - ./clickhouse/clickhouse-config.xml:/etc/clickhouse-server/config.d/logging.xml:ro
+      - ./clickhouse/clickhouse-user-config.xml:/etc/clickhouse-server/users.d/logging.xml:ro
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
+  plausible:
+    image: plausible/analytics:latest
+    restart: always
+    command: sh -c "sleep 10 && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh db init-admin && /entrypoint.sh run"
+    depends_on:
+      - plausible_db
+      - plausible_events_db
+      - mail
+    ports:
+      - 8000:8000
+    env_file:
+      - plausible-conf.env
+
+volumes:
+  db-data:
+    driver: local
+  event-data:
+    driver: local
+  geoip:
+    driver: local
+```
+
+## Docker Compose Plausible Explination
+
+This is a Docker Compose file written in YAML format, which describes a multi-container application consisting of plausible services: mail, plausible_db, plausible_events_db, and plausible.
+
+The mail service uses the bytemark/smtp image to provide a Simple Mail Transfer Protocol (SMTP) server for sending emails.
+
+The plausible_db service uses the postgres:12 image to provide a PostgreSQL database server. It stores its data in a named Docker volume db-data, and sets the POSTGRES_PASSWORD environment variable to "postgres" for authentication.
+
+The plausible_events_db service uses the yandex/clickhouse-server:21.3.2.5 image to provide a ClickHouse database server for storing event data. It stores its data in a named Docker volume event-data, and mounts two configuration files from the local file system. It also sets the nofile ulimit to allow for a higher number of open files.
+
+The plausible service uses the plausible/analytics:latest image to provide a web analytics platform. It depends on the plausible_db, plausible_events_db, and mail services, and exposes port 8000 to the host. It also uses an environment file plausible-conf.env to set certain configuration variables. Finally, it runs a command to initialize the database, run migrations, create an admin user, and start the application.
+
+The file defines three named Docker volumes, db-data, event-data, and geoip, which can be used to persist data across container restarts.
+
+All services have the restart option set to always, which ensures that they are automatically restarted if they fail or if the Docker daemon is restarted.
+
+## What Will be Updated
+
+If I leave the Docker Compose file untouched, the only container that will receive an update is the plausible service, which runs the latest version of the plausible/analytics image. This is precisely what I've been eagerly awaiting - a chance to unlock the full potential of the latest features and enhancements.
+
+Of course, if you'd like to update the other containers as well, you're more than welcome to do so! Just make sure that you pull the latest image with the latest tag or specify the exact version for the **_postgres:12_** and **_yandex/clickhouse-server:21.3.2.5_** images. Luckily, in my case, these images are already set to a specific version, so the Docker command will pull the exact image I need to ensure that everything runs smoothly.
+
+## What will Happen with the Data
+
+The data for plausible analytics is helled in volumes, so if you check the yml file you see:
+
+```yaml
+volumes:
+      - db-data:/var/lib/postgresql/data
+volumes:
+      - event-data:/var/lib/clickhouse
+      - ./clickhouse/clickhouse-config.xml:/etc/clickhouse-server/config.d/logging.xml:ro
+      - ./clickhouse/clickhouse-user-config.xml:/etc/clickhouse-server/users.d/logging.xml:ro
+```
+
+The actual data is not in the docker image but on the actual VM, so it will just be picked up.
+
+## Running The Update Commands
+
+### Pull The Latest Docker Images
+
+In function of what you modified you need to run:
+
+```bash
+ docker compose pull
+```
+
+This command will pul the images that is in docker compose besed on the tags in my case will only update the **plausible/analytics:latest**
+
+Bellow is the actual output:
+
+<Picture
+  src={dockerpull}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Docker Pull Output"
+/>
+
+### Recreate Docker Images
+
+Now that you have the latest docker images downloaded is just a matter of recreating them to use the latest things. To do so you just run:
+
+```bash
+docker compose up -d
+```
+
+When you run docker-compose up -d, Docker Compose will create and start the containers for all the services defined in the docker-compose.yml file. It will also create any needed networks and volumes if they are defined in the file.
+
+The -d flag tells Docker Compose to run the containers in a detached mode, which means that the containers will run in the background and will not be attached to the terminal. This allows you to continue using the terminal for other tasks while the containers are running.
+
+The output will be:
+
+<Picture
+  src={dockerup}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Docker Up Output"
+/>
+
+### Verify that Containers are Up
+
+Once the containers are started, you can use the docker-compose ps command to check the status of the containers and verify that they are running as expected. You can also use other Docker commands, such as docker logs and docker exec, to interact with the containers and troubleshoot any issues that may arise.
+
+```bash
+docker-compose ps
+```
+
+Output:
+
+```
+docker-compose ps
+             Name                            Command               State                    Ports
+-------------------------------------------------------------------------------------------------------------------
+plausible-mail-1                  docker-entrypoint.sh exim  ...   Up      25/tcp
+plausible-plausible-1             /entrypoint.sh sh -c sleep ...   Up      0.0.0.0:8000->8000/tcp,:::8000->8000/tcp
+plausible-plausible_db-1          docker-entrypoint.sh postgres    Up      5432/tcp
+plausible-plausible_events_db-1   /entrypoint.sh                   Up      8123/tcp, 9000/tcp, 9009/tcp
+```
+
+## Conclusions
+
+That's all you need to do to have your docker-compose containers updated to the version you need, to be as safe as possible you can do a server backup in case something happens to be able to do a rollback.

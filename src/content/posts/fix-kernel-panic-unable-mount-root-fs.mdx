@@ -1,0 +1,139 @@
+---
+date: 2023-05-11T6:00:00Z
+title: "Fix Kernel Panic - Not Syncing: VFS: Unable to Mount Root FS on Unknown-Block(0,0)"
+description: "Learn how to fix the common Ubuntu error Kernel Panic - Not Syncing: VFS: Unable to Mount Root FS on Unknown-Block(0,0) with our step-by-step guide."
+image: "../../assets/images/23/05/fix-kernel-panic.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["linux"]
+canonical: https://www.bitdoze.com/fix-kernel-panic-unable-mount-root-fs/
+---
+
+import { Picture } from "astro:assets";
+import ubuntukernal from "../../assets/images/23/05/ubuntu-boot.jpeg";
+import dockerup from "../../assets/images/23/05/docker-up.jpeg";
+
+I have an Ubuntu 22.04 on an [Hetzner VPS](https://go.bitdoze.com/hetzner) and I have an update of the packages to the latest version. During the update the Ubuntu Kernal updated also to the latest version which was: **_5.15.0-71-generic_**
+
+All went good and I have rebooted the server but it never went up. I have logged in to the console and I have seen that it was getting stuck during boot at the error:
+
+```
+Kernel Panic - Not Syncing: VFS: Unable to Mount Root FS on Unknown-Block(0,0)
+```
+
+Kernel Panic - Not Syncing: VFS: Unable to Mount Root FS on Unknown-Block(0,0) is a common error that can occur in Ubuntu when the system is unable to mount the root file system during boot. This error message indicates that the kernel is unable to find the root file system, which is necessary for the operating system to start up properly.
+
+## How to Fix Kernel Panic on Ubuntu
+
+The steps below helped me move past the error and achieve a clean boot in the end. I will detail the steps so that you can follow along and effectively resolve your issue.
+
+### Login to Console and Choose Advanced Options For Ubuntu
+
+If you are not on a laptop and you are using a VPS server the provider needs to have a console that will allow you to see what is happening during boot and choose the **Advanced Options For Ubuntu** in there you will have the latest Kernels to choose from and you need not to choose the latest one like in bellow picture:
+
+<Picture
+  src={ubuntukernal}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Ubuntu Boot Options"
+/>
+
+This will allow your system to boot.
+
+### Check The File System
+
+Login to your VPS and runn the bellow command:
+
+```bash
+sudo fdisk -l
+```
+
+Output:
+
+```bash
+sudo fdisk -l
+Disk /dev/sda: 76.3 GiB, 81923145728 bytes, 160006144 sectors
+Disk model: QEMU HARDDISK
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 6288F8C3-0B08-4091-9A39-F8940D8E5D62
+
+Device      Start       End   Sectors  Size Type
+/dev/sda1  528384 160006110 159477727   76G Linux filesystem
+/dev/sda14   2048      4095      2048    1M BIOS boot
+/dev/sda15   4096    528383    524288  256M EFI System
+
+Partition table entries are not in disk order.
+```
+
+In here you will see the device for Linux filesystem in my case is **_/dev/sda1_**
+
+### Update the root FS
+
+Next you need to mount and update the FS:
+
+```bash
+sudo mount /dev/sda1 /mnt
+sudo mount --bind /dev /mnt/dev
+sudo mount --bind /dev/pts /mnt/dev/pts
+sudo mount --bind /proc /mnt/proc
+sudo mount --bind /sys /mnt/sys
+sudo chroot /mnt
+```
+
+### Update The Temporary File System
+
+Next run the bellow command:
+
+```bash
+root@cloud:/# update-initramfs -u -k 5.15.0-71-generic
+output:
+update-initramfs: Generating /boot/initrd.img-5.15.0-71-generic
+```
+
+In my case the problem was on **_5.15.0-71-generic_** Kernal that was installed with the upgrade, you need to use your kernal, which should be in the Ubuntu Advanced options.
+
+The command update-initramfs -u -k 5.15.0-71-generic is used to update the initial RAM file system (initramfs) for the kernel version 5.15.0-71-generic in Ubuntu.
+
+The initramfs is a temporary file system that is loaded into memory during the boot process before the root file system is mounted. It contains the necessary files and drivers to initialize the hardware and load the root file system.
+
+By running this command, you are updating the initramfs for the specified kernel version and ensuring that the necessary files and drivers are available during the boot process. This can be useful if you have recently installed new hardware or made changes to the system that require updated drivers.
+
+The -u option tells the command to update the initramfs, and the -k option specifies the kernel version to update. The 5.15.0-71-generic part of the command specifies the specific kernel version to update.
+
+### Update Your GRUB
+
+Next run:
+
+```sh
+root@cloud:/# update-grub
+
+Output:
+Sourcing file `/etc/default/grub'
+Sourcing file `/etc/default/grub.d/init-select.cfg'
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-5.15.0-71-generic
+Found initrd image: /boot/initrd.img-5.15.0-71-generic
+Found linux image: /boot/vmlinuz-5.15.0-56-generic
+Found initrd image: /boot/initrd.img-5.15.0-56-generic
+Found linux image: /boot/vmlinuz-5.15.0-53-generic
+Found initrd image: /boot/initrd.img-5.15.0-53-generic
+Found linux image: /boot/vmlinuz-5.15.0-46-generic
+Found initrd image: /boot/initrd.img-5.15.0-46-generic
+Found linux image: /boot/vmlinuz-5.15.0-41-generic
+Found initrd image: /boot/initrd.img-5.15.0-41-generic
+Warning: os-prober will not be executed to detect other bootable partitions.
+Systems on them will not be added to the GRUB boot configuration.
+Check GRUB_DISABLE_OS_PROBER documentation entry.
+done
+```
+
+The command update-grub is used to update the GRUB bootloader configuration in Ubuntu.
+
+GRUB (Grand Unified Bootloader) is a bootloader that is used to load the Linux kernel and start the boot process for Ubuntu. The GRUB configuration file is located at /boot/grub/grub.cfg and contains information about the available kernels and boot options.
+
+When you run the update-grub command, it scans your system and detects any changes to the available kernels and boot options. It then updates the GRUB configuration file with the new information.
+
+Now you can reboot your server and should start successfully.

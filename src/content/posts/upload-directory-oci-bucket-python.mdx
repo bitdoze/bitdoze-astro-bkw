@@ -1,0 +1,161 @@
+---
+date: 2023-04-26T5:00:00Z
+title: "Easy File Upload to Oracle Cloud (OCI) Bucket: Python Script"
+description: " Python script makes it easy to upload files to Oracle Cloud Infrastructure Object Storage.  Checking bucket existence, creating new buckets, and uploading files from a specified directory."
+image: "../../assets/images/23/04/upload-files-oci-sm.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["oci", "python"]
+canonical: https://www.bitdoze.com/upload-directory-oci-bucket-python/
+---
+
+This Python script is designed for beginners who want to upload files from their computers to Oracle Cloud Infrastructure Object Storage. The script uses the OCI library to connect to the cloud and upload files to a bucket. It includes functions for checking if a bucket exists, creating a new bucket if necessary, and uploading files from a specified directory to the cloud.
+The script is easy to use and can be run with a simple command in a command prompt or terminal window. This makes it a great tool for anyone who wants a simple and efficient way to store and access files in the OCI cloud.
+
+## What The Script is Doing
+
+### Libraries
+
+The program uses some built-in Python libraries to work with files and directories, as well as a library called "oci" which lets the program talk to the Oracle Cloud.
+
+### Creating an Object Storage client
+
+The program starts by creating an "Object Storage client" object. This object is like a special tool that helps the program talk to the Oracle Cloud and do things like storing files.
+
+### Checking if a bucket exists
+
+The program checks if a "bucket" already exists in the Oracle Cloud. A bucket is like a special folder in the cloud where files can be stored. If the bucket already exists, the program won't create a new one.
+
+### Creating a bucket
+
+If the bucket doesn't exist, the program creates it. This is like creating a new folder in the cloud to store files. The program also sets some rules to make sure that nobody can see the files in the bucket without permission.
+
+### Uploading files to the bucket
+
+The program then looks for files in a directory on your computer. It uploads each file to the bucket in the cloud. This is like putting your toys in a box and sending the box to the cloud, so you can play with your toys from anywhere in the world.
+
+### Putting it all together
+
+The program puts all of these steps together into a "main" function, which is like a big recipe for the computer to follow. It also uses some special commands to let you choose which directory on your computer to upload files from, and which bucket in the cloud to upload files to.
+
+## Python Script to Upload The Directory to OCI Object Storage Bucket
+
+```python
+import oci
+import os
+import sys
+import argparse
+
+
+
+
+# Check if bucket exists
+def create_bucket_if_not_exists(object_storage, namespace, compartment_id, bucket_name):
+    try:
+        object_storage.get_bucket(namespace, bucket_name)
+        print(f"Bucket {bucket_name} already exists")
+    except oci.exceptions.ServiceError as e:
+        if e.status == 404:
+            # Create bucket if it doesn't exist
+            print(f"Creating bucket {bucket_name}")
+            create_bucket_details = oci.object_storage.models.CreateBucketDetails(
+                name=bucket_name,
+                compartment_id=compartment_id,
+                public_access_type="NoPublicAccess"
+            )
+            object_storage.create_bucket(namespace, create_bucket_details)
+        else:
+            raise
+
+# Upload contents of directory
+def upload_directory_contents(bucket_name, object_storage, namespace, directory_path):
+    # Create Upload Manager
+    upload_manager = oci.object_storage.UploadManager(object_storage, max_parallel_uploads=10)
+    for root, dirs, files in os.walk(directory_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            print(f"Uploading {file_path}")
+            upload_manager.upload_file(namespace, bucket_name, file, file_path)
+
+def main():
+
+    # Create Object Storage client
+    config = oci.config.from_file("~/.oci/config", "DEFAULT")
+    object_storage = oci.object_storage.ObjectStorageClient(config)
+    # Set up compartment and bucket details
+    compartment_id = "<compartment_id>"
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dir', required=True)
+    parser.add_argument('--bucket_name', required=True)
+    args = parser.parse_args()
+    bucket_name = args.bucket_name
+    directory_path = args.dir
+
+    namespace = object_storage.get_namespace().data
+    create_bucket_if_not_exists(object_storage, namespace, compartment_id, bucket_name)
+    upload_directory_contents(bucket_name, object_storage, namespace, directory_path)
+
+if __name__ == "__main__":
+    main()
+```
+
+In the script you need to replace **compartment_id** with your compartment_id where the bucket will be stored.
+
+## Set Everything To Run The Script
+
+### Installation of OCI
+
+Python should be already installed on your PC, I will not cover that. First, we need to install the oci tool. To do this, open a command prompt or terminal and type the following command:
+
+```bash
+pip install oci
+```
+
+This command will install oci so that our Python script can use it.
+
+Other option is to install with Yum, for Linux 7 is:
+
+```bash
+sudo yum install python36-oci-cli
+```
+
+More on [Working With CLI](https://docs.public.oneportal.content.oci.oraclecloud.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm)
+
+### Creating the Configuration File
+
+Next, we need a secret file called config that tells the script how to access our toy box in OCI. The file should look like this:
+
+```ini
+[DEFAULT]
+user=ocid1.user...
+fingerprint=...
+key_file=path/to/your/oci_api_key.pem
+tenancy=ocid1.tenancy...
+region=us-ashburn-1
+```
+
+The script will look for this file when it runs. You should configure the file with your details, the OCI documentation will help you do that. The files is checked in the script under the line:
+
+```python
+config = oci.config.from_file("~/.oci/config", "DEFAULT")
+```
+
+### Running the Script
+
+To run the script,open a command prompt or terminal and type the following command:
+
+```bash
+python script.py --dir /path/to/your/folder --bucket_name your_bucket_name
+```
+
+Replace /path/to/your/folder with the path to the folder with the toys (files) you want to store, and your_bucket_name with the name you want to give to your toy box (bucket).
+
+### What Happens When the Script Runs
+
+When the script runs, it does the following things:
+
+- It reads the secret config file.
+- It checks if our tbucket exists or creates a new one if needed.
+- It takes all files from the folder we chose and puts them into our bucket in OCI.
+
+That's it! Now you know how the script works and how to use it to store your files safely in OCI.

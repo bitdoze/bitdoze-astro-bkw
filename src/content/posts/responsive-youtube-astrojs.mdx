@@ -1,0 +1,78 @@
+---
+date: 2022-10-20T00:00:00Z
+title: "Add Responsive YouTube Videos to Astro.JS MDX"
+description: "Lets see how easy is to add a responsive YouTube video to Astro.js"
+image: "../../assets/images/2210/responsive-youtube-astro-blog.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["astro", "tutorials"]
+canonical: https://www.bitdoze.com/responsive-youtube-astrojs/
+---
+
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/2210/video-speed-score.jpeg";
+
+I am using [Astro.js](https://astro.build/) to host this blog on Cloudflare Pages and an important part of the blog is to be responsive and be able to add YouTube videos to the posts.
+
+In case you want to deploy your blog on Astro.js and Cloudflare Pages you can check this tutorial:[How To Deploy An Astro.JS Blog On Cloudflare](https://www.bitdoze.com/deploy-astrojs-cloudflare/)
+
+With the new MDX move done by Astro you can easily embed YouTube videos to MDX files by installing an extension, here we will see exactly how. We are going to use [astro-embed](https://www.npmjs.com/package/astro-embed) extension for this.
+With it, you can not only embed YouTube videos but you will also be able to embed Vimeo or Twitter.
+
+## Add Responsive YouTube Videos to Astro.JS MDX
+
+### 1. Install astro-embed
+
+In case you don't have it installed in your project you can install it with:
+
+```bash
+npm i astro-embed
+```
+
+### 2. Call astro-embed in MDX
+
+With it installed you can now call it not only in the MDX files for your blog but you can call it also on the .astro files by adding the below in the files:
+
+```bash
+import { Tweet, Vimeo, YouTube } from 'astro-embed';
+```
+
+If you only have YouTube in the MDX file you can call only YouTube. The Row needs to be added under the MDX header like the below example:
+
+```mdx
+---
+publishDate: "Sep 14 2022"
+title: "Monitor CPU Usage and Send Email Alerts in Linux"
+description: "Let's see how we can monitor CPU usage on a server and receive emails."
+excerpt: "Let's see how we can monitor CPU usage on a server and receive emails."
+image: "~/assets/images/cpu_monitoring.jpeg"
+category: "vps"
+tags: [linux, tutorials]
+---
+
+import { YouTube } from "astro-embed";
+
+;
+```
+
+### 3. Add the video to the body
+
+Now you should be able to use the video where you want in your MDX file. To add it you just add the link to it below:
+
+```js
+<YouTube id="https://youtu.be/NkShQ1wwiCg" />
+```
+
+And it will look like below where you can follow the tutorial for this article:
+
+## Conclusions
+
+The embed is responsive and fast as it will not use the iframe for this. Usually, when you add an iframe video from youtube to the article the speed score is going down a lot because of the scripts that need to be loaded. With this embed, it will not load all the YouTube scripts and will do so only on click. Below is the score:
+
+<Picture
+  src={imag1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="YouTube Speed score"
+/>

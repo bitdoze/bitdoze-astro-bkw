@@ -1,0 +1,91 @@
+---
+date: 2022-09-20T00:00:00Z
+title: "How To Embed Youtube Videos to Gatsby "
+description: "See how you can Embed Youtube Videos to Gatsby easily"
+image: "../../assets/images/How_To_Embed_Youtube Videos_to_Gatsby.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["gatsby", "tutorials"]
+canonical: https://www.bitdoze.com/embed-youtube-videos-to-gatsby/
+---
+
+Gatsby, it’s fast and built on React, I have started using it on this website moving from WordPress where everything was very easy. You can check this article if you are new to Gatsby and what to see the [best Gatsby online courses](https://www.bitdoze.com/gatsby-js-online-courses/).
+
+With Gatsby, I have learned that everything we take for granted in other CMS systems needs some work to function properly here. Being new to Gatsby I have searched online to see how you can easily embed YouTube videos and there were different approaches that confused me at the beginning. In this article, we will see exactly what you need to do to easily embed videos from YouTube and Vimeo in your blog posts or pages.
+
+This technique works with Contentful CMS or other Headless CMS systems that exist out there. Currently, I am using it with Contentful and I can say is the easiest way that you can use to have your videos embedded.
+
+**All this will work only if the Contentful is as markdown and not rich text.**
+
+## How To Embed YouTube Videos to Gatsby
+
+Iframes are not a default thing for React so you can’t just go and insert your iframe with the video. This needs to be wrapped in React code to work.
+
+Gatsby has plugins that can be used to make things easier. One plugin that you can use to embed YouTube videos is [gatsby-remark-better-embed-video](https://www.gatsbyjs.com/plugins/gatsby-remark-better-embed-video/)
+
+This plugin can easily help you embed videos from YouTube, Vimeo or Twitch with just a link, below are the details:
+
+    `video: https://www.youtube.com/embed/2Xc9gXyf2G4`
+    `youtube: https://www.youtube.com/watch?v=2Xc9gXyf2G4`
+    `youtube: 2Xc9gXyf2G4`
+
+    `vimeo: https://vimeo.com/5299404`
+    `vimeo: 5299404`
+
+    `videoPress: https://videopress.com/v/kUJmAcSf`
+    `videoPress: kUJmAcSf`
+
+    `twitch: https://player.twitch.tv/?channel=dakotaz`
+    `twitch: https://player.twitch.tv/?autoplay=false&video=v273436948`
+    `twitch: 273436948`
+    `twitchLive: dakotaz`
+
+Now let's see all the needed steps.
+
+### Step 1: Install gatsby-remark-better-embed-video
+
+You need to navigate into your website location and add the plugin to your Gatsby installation:
+
+    npm i gatsby-remark-better-embed-video
+    npm -i gatsby-transformer-remark
+    #OR
+    yarn add gatsby-remark-better-embed-video
+    yarn add gatsby-transformer-remark
+
+### Step 2: Update gatsby-config.js
+
+For every plugin that you use you need to add it to the to gatsby-config.js. For this to work with Contentful or other headless CMS systems you can add the below:
+
+```
+    {
+    resolve: "gatsby-transformer-remark",
+    options: {
+      plugins: [
+      {
+resolve: "gatsby-remark-better-embed-video",
+options: {
+  width: 800,
+  ratio: 1.77, // Optional: Defaults to 16/9 = 1.77.
+  height: 400, // Optional: Overrides optional.ratio.
+  related: false, // Optional: Will remove related videos from the end of an embedded YouTube video.
+  noIframeBorder: true, // Optional: Disable insertion of <style> border: 0.
+  showInfo: false // Optional: Hides video title and player actions.
+}
+      }
+      ]
+    }
+   },
+```
+
+This taken from the plugin documentation and you have couple of options that you can modify in here if you want. In case you are using **gatsby-remark-responsive-iframe** it shoud be used after the video plugin.
+
+### Step 3: Add the Video In Contentful
+
+After you clear the cache and push the changes to your repo you can add the videos to your headless CMS with the format they want, for instance for a youtube video you add on a new line:
+
+    `youtube: https://youtu.be/2Wmats7Q6ck`
+
+The final product will be as below:
+![youtube video example](//images.ctfassets.net/l6qg42gls3p1/FFqinDaxqYtYt2Oz2G0M2/32c04d044a9a944f2611a7ed62c8a48f/youtube_video.jpeg)
+
+That's all you need to do to have your video embedded with Gatsby and contentful.

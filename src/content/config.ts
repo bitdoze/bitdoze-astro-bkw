@@ -2,18 +2,22 @@ import { defineCollection, z } from "astro:content";
 
 // Post collection schema
 const postsCollection = defineCollection({
-  schema: z.object({
-    id: z.string().optional(),
-    title: z.string(),
-    meta_title: z.string().optional(),
-    description: z.string().optional(),
-    date: z.date().optional(),
-    image: z.string().optional(),
-    authors: z.array(z.string()).default(["admin"]),
-    categories: z.array(z.string()).default(["others"]),
-    tags: z.array(z.string()).default(["others"]),
-    draft: z.boolean().optional(),
-  }),
+  schema: ({ image }) =>
+    z.object({
+      id: z.string().optional(),
+      title: z.string(),
+      meta_title: z.string().optional(),
+      description: z.string().optional(),
+      date: z.date().optional(),
+      image: image().refine((img) => img.width >= 1080, {
+        message: "Cover image must be at least 1080 pixels wide!",
+      }),
+      authors: z.array(z.string()).default(["admin"]),
+      categories: z.array(z.string()).default(["others"]),
+      tags: z.array(z.string()).default(["others"]),
+      canonical: z.string().optional(),
+      draft: z.boolean().optional(),
+    }),
 });
 
 // Author collection schema

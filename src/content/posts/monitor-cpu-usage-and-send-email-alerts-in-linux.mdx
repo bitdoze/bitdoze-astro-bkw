@@ -1,0 +1,247 @@
+---
+date: 2022-09-14T00:00:00Z
+title: "Monitor CPU Usage and Send Email Alerts in Linux"
+description: "Let's see how we can monitor CPU usage on a server and receive emails."
+excerpt: "Let's see how we can monitor CPU usage on a server and receive emails."
+image: "../../assets/images/cpu_monitoring.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["linux", "tutorials"]
+canonical: https://www.bitdoze.com/monitor-cpu-usage-and-send-email-alerts-in-linux/
+---
+
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import Button from "../../layouts/components/widgets/Button.astro";
+
+Monitoring the CPU is very important on a Linux server as there may be cases when your applications will need more CPU and can consume everything. You would want to be notified via email in case the CPU usage spikes and you need to do some checks.
+
+For your server to be able to send emails you will need to have configured an SMTP Relay or you should have an email server hosted on the VPS that will send the alarm.
+
+In case you are using an online VPS provider like Hetzner or DigitalOcean having such a script can be very useful as it can catch problems coming from your hosting provider or your app. For more details on Hetzner, you can check this review.
+
+In this article, we will configure a script that will run in crontab every 5 minutes and check to see if the CPU usage is above 80% in case that happens you will be notified via email with the:
+
+- Current Usage
+- Top 20 processes that consume high CPU
+- Top 10 Processes that consume high CPU using the ps command
+- Memory Utilization on the server
+
+In case you are interested to have a web panel that can help you manage your applications and be used as a reverse proxy you can check the bellow course:
+
+<Button
+  link="https://webdoze.net/courses/cloudpanel-setup/"
+  text="CloudPanel Setup Course"
+/>
+
+Having all of this in an email will help us better understand what is happening on the server we have. To build the script we are going to use shell commands.
+
+<Button link="https://go.bitdoze.com/do" text="DigitalOcean $100 Free" />
+<Button link="https://go.bitdoze.com/vultr" text="Vultr $100 Free" />
+<Button link="https://go.bitdoze.com/hetzner" text="Hetzner €⁠20 Free" />
+
+## Youtube Video With Details
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/FdjECMq1N2U"
+  label="Monitor CPU Usage and Send Email Alerts in Linux"
+/>
+
+## Shell Script To Be Used
+
+Below is the script that we are going to use to help us monitor the CPU usage, this will help you monitor Ubuntu versions like 20.04 or 22.04 or RedHat distros.
+
+```
+    #!/bin/bash
+    cpu_idle=`top -b -n 1 | grep Cpu | awk '{print $8}'|cut -f 1 -d "."`
+    cpuuse=`expr 100 - $cpu_idle`
+    date=$(date '+%Y-%m-%d %H:%M:%S')
+    if [ "$cpuuse" -ge 80 ]; then
+    SUBJECT="ATTENTION: CPU load is high on $(hostname) at $(date)"
+    MESSAGE="/tmp/Mail.out"
+    TO="youremail@domain.com"
+      echo "CPU current usage is: $cpuuse%" >> $MESSAGE
+      echo "" >> $MESSAGE
+      echo "+------------------------------------------------------------------+" >> $MESSAGE
+      echo "Top 20 processes that consume high CPU" >> $MESSAGE
+      echo "+------------------------------------------------------------------+" >> $MESSAGE
+      echo "$(top -bn1 | head -20)" >> $MESSAGE
+      echo "" >> $MESSAGE
+      echo "+------------------------------------------------------------------+" >> $MESSAGE
+      echo "Top 10 Processes which consuming high CPU using the ps command" >> $MESSAGE
+      echo "+------------------------------------------------------------------+" >> $MESSAGE
+      echo "$(ps -eo pcpu,pid,user,args | sort -k 1 -r | head -10)" >> $MESSAGE
+      echo "Memory Utilization on the server" >> $MESSAGE
+      echo "+------------------------------------------------------------------+" >> $MESSAGE
+      echo "$(ps_mem)" >> $MESSAGE
+      mail -s "$SUBJECT" "$TO" < $MESSAGE
+      rm /tmp/Mail.out
+    else
+    echo "$date: Server CPU usage is in under threshold.CPU current usage is: $cpuuse%"
+      fi
+```
+
+In this script, you need to change the TO with your email and in case you want to change the threshold you put the value you want in the -ge 80 (now is 80).
+
+## Activating the CPU Monitoring Script
+
+### Install ps_mem
+
+This is a tool that will show you better memory usage per process, to install this tool you do:
+
+Get ps_men:
+
+```
+      sudo wget -qO /usr/local/bin/ps_mem https://raw.githubusercontent.com/pixelb/ps_mem/master/ps_mem.py
+```
+
+Make ps_mem executable:
+
+```
+sudo chmod a+x /usr/local/bin/ps_mem
+```
+
+Check the version:
+
+```
+      ps_mem --version
+```
+
+If you are receiving an error message /usr/bin/env: 'python': No such file or directory, you need to create a symbolic link for /usr/bin/python. In Ubuntu 20.04 or Ubuntu 22.04, only Python 3 is installed by default.
+
+```
+      sudo ln -s /usr/bin/python3 /usr/bin/python
+```
+
+### Put the Script in Crontab
+
+Create a file with the script under /opt/scripts or in any location you want:
+
+```
+vi /opt/scripts/cpu-alert.sh
+```
+
+Make The File Executable:
+
+```
+sudo chmod a+x /opt/scripts/cpu-alert.sh
+```
+
+Execute the Script:
+
+```
+      /opt/scripts/cpu-alert.sh
+```
+
+The output should be on email:
+
+```
+    CPU current usage is: 5%
+    +------------------------------------------------------------------+
+    Top 20 processes that consume high CPU
+    +------------------------------------------------------------------+
+    top - 11:27:12 up 6 days, 4:31, 1 user, load average: 0.08, 0.08, 0.07
+    Tasks: 204 total, 1 running, 202 sleeping, 0 stopped, 1 zombie
+    %Cpu(s): 4.1 us, 0.0 sy, 0.0 ni, 95.9 id, 0.0 wa, 0.0 hi, 0.0 si, 0.0 st
+    MiB Mem : 3827.7 total, 556.1 free, 1427.2 used, 1844.4 buff/cache
+    MiB Swap: 2048.0 total, 1276.7 free, 771.3 used. 1454.0 avail Mem
+    PID USER PR NI VIRT RES SHR S %CPU %MEM TIME+ COMMAND
+    1959 clp 20 0 1355012 63248 21020 S 6.2 1.6 127:54.60 beam.smp
+    1 root 20 0 168072 9940 6204 S 0.0 0.3 2:35.24 systemd
+    2 root 20 0 0 0 0 S 0.0 0.0 0:00.11 kthreadd
+    3 root 0 -20 0 0 0 I 0.0 0.0 0:00.00 rcu_gp
+    4 root 0 -20 0 0 0 I 0.0 0.0 0:00.00 rcu_par_gp
+    5 root 0 -20 0 0 0 I 0.0 0.0 0:00.00 netns
+    7 root 0 -20 0 0 0 I 0.0 0.0 0:00.00 kworker/0:0H-events_highpri
+    10 root 0 -20 0 0 0 I 0.0 0.0 0:00.00 mm_percpu_wq
+    11 root 20 0 0 0 0 S 0.0 0.0 0:00.00 rcu_tasks_rude_
+    12 root 20 0 0 0 0 S 0.0 0.0 0:00.00 rcu_tasks_trace
+    13 root 20 0 0 0 0 S 0.0 0.0 3:41.85 ksoftirqd/0
+    14 root 20 0 0 0 0 I 0.0 0.0 9:58.13 rcu_sched
+    15 root rt 0 0 0 0 S 0.0 0.0 0:01.65 migration/0
+    +------------------------------------------------------------------+
+    Top 10 Processes that consume high CPU using the ps command
+    +------------------------------------------------------------------+
+    %CPU PID USER COMMAND
+    5.0 596375 btdo php-fpm: pool btdo.uk
+    3.5 1039 mysql /usr/sbin/mariadbd
+    1.4 1959 clp /app/erts-12.0/bin/beam.smp -- -root /app -progname erl -- -home /app -- -noshell -s elixir start_cli -mode embedded -setcookie S4WHAF4LH5WHSPWUHPKIVMSFISQKQJVFWEGHSP7YW6MT5LKCNDCA==== -sname plausible -config /app/releases/0.0.1/sys -boot /app/releases/0.0.1/start -boot_var RELEASE_LIB /app/lib -- -extra --no-halt
+    1.2 772 redis /usr/bin/redis-server 127.0.0.1:6379
+    0.6 2677 systemd+ /usr/bin/clickhouse-server --config-file=/etc/clickhouse-server/config.xml
+    0.4 579396 root nginx: worker process
+    0.3 2071 root node server/server.js
+    0.1 789 root /usr/bin/containerd
+    0.1 14 root [rcu_sched]
+    Memory Utilization on the server
+    +------------------------------------------------------------------+
+    Private + Shared = RAM used    Program
+    4.0 KiB + 25.5 KiB = 29.5 KiB    erl_child_setup
+    40.0 KiB + 24.5 KiB = 64.5 KiB    epmd
+    4.0 KiB + 82.5 KiB = 86.5 KiB    dumb-init
+    56.0 KiB + 108.5 KiB = 164.5 KiB    inet_gethost (3)
+    144.0 KiB + 56.5 KiB = 200.5 KiB    cron
+    148.0 KiB + 52.5 KiB = 200.5 KiB    atd
+    320.0 KiB + 0.5 KiB = 320.5 KiB    exim4
+    192.0 KiB + 136.0 KiB = 328.0 KiB    agetty (2)
+    268.0 KiB + 89.5 KiB = 357.5 KiB    qemu-ga
+    340.0 KiB + 104.5 KiB = 444.5 KiB    irqbalance
+    304.0 KiB + 361.5 KiB = 665.5 KiB    master
+    352.0 KiB + 361.0 KiB = 713.0 KiB    chronyd (2)
+    384.0 KiB + 358.5 KiB = 742.5 KiB    unattended-upgr
+    728.0 KiB + 111.5 KiB = 839.5 KiB    systemd-udevd
+    652.0 KiB + 339.5 KiB = 991.5 KiB    polkitd
+    732.0 KiB + 418.5 KiB = 1.1 MiB    systemd-logind
+    920.0 KiB + 243.5 KiB = 1.1 MiB    dbus-daemon
+    800.0 KiB + 391.5 KiB = 1.2 MiB    systemd-networkd
+    4.0 KiB + 1.3 MiB = 1.3 MiB    clckhouse-watch
+    820.0 KiB + 516.5 KiB = 1.3 MiB    systemd-resolved
+    1.4 MiB + 128.5 KiB = 1.5 MiB    rsyslogd
+    328.0 KiB + 1.2 MiB = 1.5 MiB    php-fpm7.1
+    660.0 KiB + 902.5 KiB = 1.5 MiB    qmgr
+    708.0 KiB + 878.5 KiB = 1.5 MiB    pickup
+    1.3 MiB + 458.5 KiB = 1.8 MiB    ModemManager
+    776.0 KiB + 1.2 MiB = 1.9 MiB    php-fpm7.2
+    2.0 MiB + 49.5 KiB = 2.0 MiB    proftpd
+    924.0 KiB + 1.2 MiB = 2.1 MiB    php-fpm7.3
+    1.6 MiB + 533.5 KiB = 2.2 MiB    udisksd
+    2.5 MiB + 1.1 MiB = 3.6 MiB    tlsmgr
+    2.3 MiB + 1.4 MiB = 3.7 MiB    bash (2)
+    3.3 MiB + 992.5 KiB = 4.3 MiB    networkd-dispat
+    4.3 MiB + 73.5 KiB = 4.4 MiB    memcached
+    4.2 MiB + 754.0 KiB = 4.9 MiB    docker-proxy (4)
+    3.6 MiB + 1.5 MiB = 5.1 MiB    sshd (2)
+    5.4 MiB + 5.0 MiB = 10.5 MiB    systemd (3)
+    11.1 MiB + 35.5 KiB = 11.1 MiB    clp-agent
+    12.3 MiB + 1.6 MiB = 13.9 MiB    containerd-shim-runc-v2 (5)
+    14.5 MiB + 2.6 MiB = 17.1 MiB    php-fpm8.0
+    17.4 MiB + 23.5 KiB = 17.4 MiB    containerd
+    18.9 MiB + 170.5 KiB = 19.0 MiB    redis-server
+    17.0 MiB + 3.8 MiB = 20.8 MiB    php-fpm8.1 (2)
+    21.4 MiB + 751.5 KiB = 22.2 MiB    multipathd
+    13.9 MiB + 10.2 MiB = 24.1 MiB    systemd-journald
+    28.5 MiB + 178.5 KiB = 28.6 MiB    dockerd
+    28.9 MiB + 1.3 MiB = 30.2 MiB    clickhouse
+    29.6 MiB + 15.6 MiB = 45.2 MiB    postgres (18)
+    40.1 MiB + 6.0 MiB = 46.0 MiB    php-fpm7.4 (2)
+    47.2 MiB + 8.0 MiB = 55.3 MiB    beam.smp
+    82.3 MiB + 82.5 KiB = 82.4 MiB    node
+    72.0 MiB + 30.0 MiB = 102.0 MiB    nginx (8)
+    807.7 MiB + 398.5 KiB = 808.1 MiB    mariadbd
+    ---------------------------------
+    1.4 GiB
+    =================================
+```
+
+Activating the script in crontab and creating a log for the run:
+
+```
+    #open crontab in edit mode
+    contab -e
+    #add the bellow line
+    */5 * * * * /bin/bash /opt/scripts/cpu-alert.sh >> /opt/scripts/cpu_check_cron.log 2>&1
+```
+
+The above will create a log under /opt/scripts/cpu_check_cron.log with the output when this is not sending an email.
+
+<Button link="https://go.bitdoze.com/do" text="DigitalOcean $100 Free" />
+<Button link="https://go.bitdoze.com/vultr" text="Vultr $100 Free" />
+<Button link="https://go.bitdoze.com/hetzner" text="Hetzner €⁠20 Free" />

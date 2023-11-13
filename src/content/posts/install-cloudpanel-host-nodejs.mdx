@@ -1,0 +1,238 @@
+---
+date: 2023-02-02T00:00:00Z
+title: "How To Install CloudPanel and Host Node.js Apps"
+description: "Learn how to install CloudPanel and host Node.js apps in minutes! Follow our easy step-by-step guide for a quick set up with no coding experience required."
+image: "../../assets/images/23/instal-cloudpanel-host-nodejs.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["cloudpanel", "node", "tutorials"]
+canonical: https://www.bitdoze.com/install-cloudpanel-host-nodejs/
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import { Picture } from "astro:assets";
+import sanity from "../../assets/images/23/sanity_node.jpeg";
+
+[CloudPanel](https://www.cloudpanel.io/) is a free hosting panel that can be installed on VPS servers and can help with hosting websites including node.js applications.
+
+Cloudpanel is a simple and nice hosting panel that runs on top of Nginx and MySql or Maria DB and can help you run various applications from PHP ones to Python or node.js.
+
+**Below is a list of what CloudPanel has to offer:**
+
+- File Manager
+- IP & Bot Blocking
+- Varnish Cache & Redis
+- SSH/FTP
+- Firewall
+- Cron Jobs
+- Vhost Editor
+- Remote Backup with Rclone
+- Free Let’s Encrypt Certificates
+- Cloudflare Integration
+- User Management
+- System resources usage graphs
+- Multiple PHP versions
+- MySQL and MariaDB support
+- Node.js, Python support
+- Nginx Web Server
+
+**Minimum requirements:**
+
+- Minimum 1 core
+- Minimum 2 GB RAM
+- 10 GB of disk space
+
+CloudPanel has direct cloud integrations with [DigitalOcean](https://go.bitdoze.com/do), [Vultr](https://go.bitdoze.com/vultr), [Hetzner](https://go.bitdoze.com/hetzner), AWS or Google Cloud. These integrations can help you create snapshots and enable automatic snapshot creations from CloudPanel UI.
+
+In this article and video I will use Hetzner to create the VPS and Ubuntu 22.04 to host my node.js application, I have made a review and benchmark off [DigitalOcean vs Vultr vs Hetzner](https://www.wpdoze.com/digitalocean-vs-vultr-vs-hetzner/) so you can check that to see the exact differences.
+
+If you are interested on how you can monitor your CPU and have an automatic email sent when load is too big you should check: [Monitor CPU Usage and Send Email Alerts in Linux](https://www.bitdoze.com/monitor-cpu-usage-and-send-email-alerts-in-linux/)
+
+## Video With CloudPanel Install and Node.js Configs
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/5KndMFz-VKQ"
+  label="How To Install CloudPanel and Host Node.js Apps"
+/>
+
+In case you are interested to have a web panel that can help you manage your applications and be used as a reverse proxy you can check the bellow course:
+
+<Button
+  link="https://webdoze.net/courses/cloudpanel-setup/"
+  text="CloudPanel Setup Course"
+/>
+
+## 1. How To Install Cloudpanel
+
+After you have your VPS created you need to SSH to it and run the below command:
+
+### 1.1 Update the OS:
+
+```bash
+apt update && apt -y upgrade && apt -y install curl wget sudo
+```
+
+### 1.2 Install CloudPanel:
+
+I use MariaDB 10.9 for this install and Hetzner as a cloud provider you can check [Cloudpanel Install Doc](https://www.cloudpanel.io/docs/v2/getting-started/hetzner-cloud/installation/installer/) to check the options:
+
+```bash
+curl -sS https://installer.cloudpanel.io/ce/v2/install.sh -o install.sh; \
+echo "2d3812327d8229c372f599156515c4639d18badd5c6a972616affbf86960c24f  install.sh" | \
+sha256sum -c && sudo CLOUD=hetzner DB_ENGINE=MARIADB_10.9 bash install.sh
+```
+
+### 1.3 Access CloudPanel Admin
+
+You can access the CloudPanel admin with the **https://serverIpAddress:8443** but in the next steps, we are going to go and create a subdomain and use it to access CloudPanel in the future.
+
+### 1.4 Create an Admin Subdomain:
+
+To access CloudPanel securely and have an SSL certificate we need to create a subdomain and point it to the CloudPanel VPS server. I am using CloudFlare for this and I just go and add an A record under DNS on the domain I want to host.
+
+Next, we need to go and add it to the CloudPanel Admin area in Settings. And add it there to secure the admin area.
+
+<Button link="https://go.bitdoze.com/do" text="DigitalOcean $100 Free" />
+<Button link="https://go.bitdoze.com/vultr" text="Vultr $100 Free" />
+<Button link="https://go.bitdoze.com/hetzner" text="Hetzner €⁠20 Free" />
+
+## 2. Run Your Node.js App on CloudPanel
+
+Next, we will deploy a Node.js app that we are going to host with CloudPanel. To do this we are going to add the application to CloudPanel.
+
+### 2.1 Add a Node.JS Webiste in CloudPanel
+
+You just need to click add a site and add your domain with node.js version with username and passwords as in the picture below:
+
+<Picture
+  src={sanity}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="CloudPanel Add Sanity"
+/>
+
+### 2.2 Point the Domain to CloudPanel
+
+I will use CloudFlare for this and I will add an A record to my domain or subdomain that will point to my VPS server. I will also enable CloudFlare on it to benefit from the speed improvements.
+
+From the SSL/TLS tab in CloudPanel, I will generate a Let's Encrypt certificate so the website works over HTTPS.
+
+### 2.3 Generate the SSL certificate
+
+Next, you need to go under SSL/TLS and generate an SSL Let's Encrypt certificate for your domain.
+
+### 2.4 Install Strapi to CloudPanel
+
+```bash
+ sudo su - <username created when website is added>
+ cd htdocs && rm -rf www.domain.com
+ npx create-strapi-app@latest www.domain.com
+```
+
+Then you will be asked to configure the admin panel you will be able to do that at https://www.domain.com/admin
+
+### 2.5 Build Strapi Admin Panel
+
+```bash
+cd htdocs/www.domain.com/
+NODE_ENV=production npm run build
+```
+
+### 2.6 Run Strapi
+
+```bash
+NODE_ENV=production npm start
+
+> strapi start
+
+
+ Project information
+
+┌────────────────────┬──────────────────────────────────────────────────┐
+│ Time               │ Thu Feb 02 2023 10:04:46 GMT+0000 (Coordinated … │
+│ Launched in        │ 1047 ms                                          │
+│ Environment        │ production                                       │
+│ Process PID        │ 121469                                           │
+│ Version            │ 4.6.0 (node v14.21.2)                            │
+│ Edition            │ Community                                        │
+│ Database           │ sqlite                                           │
+└────────────────────┴──────────────────────────────────────────────────┘
+
+ Actions available
+
+One more thing...
+Create your first administrator 💻 by going to the administration panel at:
+
+┌───────────────────────────┐
+│ http://0.0.0.0:1337/admin │
+└───────────────────────────┘
+
+```
+
+### 2.7 Create The admin User
+
+Now you just need to visit the website you chose with Admin like: https://www.domain.com/admin
+
+Here just add your details with the password
+
+<Button link="https://go.bitdoze.com/do" text="DigitalOcean $100 Free" />
+<Button link="https://go.bitdoze.com/vultr" text="Vultr $100 Free" />
+<Button link="https://go.bitdoze.com/hetzner" text="Hetzner €⁠20 Free" />
+
+## 3.Enable Auto Start With PM2
+
+The node.js app will not start by itself in case the server reboots, so if you don't want to go and manually start it we need to enable pm2 to auto-restart it.
+
+### 3.1 Install the latest pm2 via npm
+
+```bash
+npm install pm2@latest -g
+```
+
+### 3.2 Start The App and save the config
+
+```bash
+pm2 start npm --name strapi-app -- start
+pm2 save
+```
+
+### 3.3 Add Cron To Start Strapi On Reboot
+
+Find the current path:
+
+```bash
+echo $PATH
+```
+
+Edit the user crontab and add the action:
+
+```bash
+crontab -e
+PATH=<output of path>
+@reboot pm2 resurrect &> /dev/null
+
+eg:
+PATH=/home/bitdoze-strapi/.nvm/versions/node/v14.21.2/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
+@reboot pm2 resurrect &> /dev/null
+```
+
+You can check with crontab -l to see if crontab for the user was added ok.
+After you can reboot the server and see if the process is up with pm2 status
+
+```bash
+bitdoze-strapi@ubuntu-2gb-hil-2:~$ pm2 status
+┌─────┬───────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id  │ name          │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├─────┼───────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0   │ strapi-app    │ default     │ 0.39.1  │ fork    │ 1521     │ 50s    │ 0    │ online    │ 0%       │ 56.7mb   │ bit… │ disabled │
+└─────┴───────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+```
+
+## Conlcusions
+
+This is how you can easily have CloudPanel installed on any VPS and you can host your node.js apps or other types of apps you want. I have been using CloudPanel for more than a year now and I can say it didn't disappointed with anything till now.
+
+<Button link="https://go.bitdoze.com/do" text="DigitalOcean $100 Free" />
+<Button link="https://go.bitdoze.com/vultr" text="Vultr $100 Free" />
+<Button link="https://go.bitdoze.com/hetzner" text="Hetzner €⁠20 Free" />

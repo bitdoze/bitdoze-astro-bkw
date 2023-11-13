@@ -2,7 +2,7 @@
   "colors": {
     "default": {
       "theme_color": {
-        "primary": "#01AD9F",
+        "primary": "#4169e1",
         "body": "#fff",
         "border": "#D5D5D5",
         "theme_light": "#FAFAFA",
@@ -17,11 +17,11 @@
   },
   "fonts": {
     "font_family": {
-      "primary": "Mulish:wght@400;600;700",
+      "primary": "BlinkMacSystemFont:wght@400;600;700",
       "primary_type": "sans-serif"
     },
     "font_size": {
-      "base": "16",
+      "base": "19",
       "scale": "1.250"
     }
   }

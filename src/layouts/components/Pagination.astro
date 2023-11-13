@@ -71,8 +71,8 @@ for (let i = 1; i <= totalPages; i++) {
           <a
             href={
               i === 0
-                ? `${section ? "/" + section : "/"}`
-                : `${section ? "/" + section : ""}/page/${pagination}`
+                ? `${section ? "/" + section : "/"  + "/"}`
+                : `${section ? "/" + section : ""}/page/${pagination  + "/"}`
             }
             aria-current="page"
             class={`border border-primary hover:bg-primary hover:text-white rounded-md h-10 w-10 leading-[36px] font-semibold text-dark flex items-center justify-center transition duration-200`}
@@ -85,7 +85,7 @@ for (let i = 1; i <= totalPages; i++) {
       {/* next page */}
       {hasNextPage ? (
         <a
-          href={`${section ? "/" + section : ""}/page/${currentPage + 1}`}
+          href={`${section ? "/" + section : ""}/page/${currentPage + 1}` + "/"}
           class="border border-primary hover:bg-primary hover:text-white rounded-md h-10 w-10 leading-[36px] font-semibold text-dark flex items-center justify-center transition duration-200"
         >
           <span class="sr-only">Next</span>

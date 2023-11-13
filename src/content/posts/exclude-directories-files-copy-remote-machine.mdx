@@ -1,0 +1,85 @@
+---
+date: 2023-07-07T00:00:00Z
+title: "How to Exclude Directories or Files When Copying to a Remote Machine"
+description: Let's see exactly what needs to be done when we want to use scp or rsync to exclude files or folders when coppyng to remote machine."
+image: "../../assets/images/23/07/linux-scp-rsync-exclude-files.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["linux"]
+canonical: https://www.bitdoze.com/exclude-directories-files-copy-remote-machine/
+---
+
+In Linux we can use 2 commands to move files or directories to a remote server or from a remote server
+
+- **scp** - secure copy
+- **rsync** - remote sync
+
+From the scp and rsync the better choice is to use rsync as it offers more options and a straight forward way to exclude what you want easily. So without making this longer let's see the way to use both rsync and scp to exclude files.
+
+## Excluding Files or Directories with Rsync
+
+When using Rsync, you can easily exclude specific directories or files from the synchronization process. This allows you to fine-tune your sync to only include the data that is relevant to you. Here's how you can exclude files with Rsync:
+
+1. Use the `--exclude` option: Rsync provides the `--exclude` option, followed by the path of the file or directory you want to exclude. You can use this option multiple times to exclude multiple files or directories. For example:
+
+   ```shell
+   rsync --exclude 'dir1' --exclude 'dir2' source/ destination/
+   ```
+
+   This command will exclude `dir1` and `dir2` from the synchronization process.
+
+2. Exclude files based on patterns: Rsync also allows you to exclude files based on specific patterns. For instance, you can exclude all files with a certain extension or exclude files with a particular naming pattern. Here's an example:
+
+   ```shell
+   rsync --exclude '*.txt' --exclude 'backup*' source/ destination/
+   ```
+
+   In this case, all files with the `.txt` extension and files starting with `backup` will be excluded.
+
+3. Exclude directories recursively: If you want to exclude directories and their subdirectories, you can use the `--exclude-dir` option. This option works similarly to `--exclude` but applies to directories instead. Here's an example:
+
+   ```shell
+   rsync --exclude-dir 'dir1' --exclude-dir 'dir2' source/ destination/
+   ```
+
+   This command will exclude `dir1` and `dir2` along with their subdirectories.
+
+4. To exclude multiple directories or files, you can specify them using a comma-separated list. For example, to exclude both "docs" and "tmp" directories, you can use the command:
+   ```shell
+   rsync -av --exclude="docs,tmp" source_directory destination_directory
+   ```
+
+> Note: Remember, when using Rsync, the order of the `--exclude` or `--exclude-dir` options matters. Rsync processes them from left to right, so place more specific exclusions before more general ones.
+
+## Excluding Files with SCP
+
+SCP (Secure Copy) is a popular choice but is not the best one if you would like to exclude files. SCP does not offer a default command that you can use and exclude any file or directory you want.
+
+However you can try excluding files or directories with SCP with extglob, this works in bash so enable extglob you do:
+
+```shell
+shopt -s extglob
+```
+
+After you can run your SCP command:
+
+```shell
+scp !(*.txt) root@centos7:/tmp/
+```
+
+This will copy everything in the current directory except the txt files to the remote server /tmp locations.
+
+The extglob extended pattern matching list is below one:
+
+| Pattern           | Description                                             |
+| ----------------- | ------------------------------------------------------- |
+| `?(pattern-list)` | Matches zero or one occurrence of the given patterns.   |
+| `*(pattern-list)` | Matches zero or more occurrences of the given patterns. |
+| `+(pattern-list)` | Matches one or more occurrences of the given patterns.  |
+| `@(pattern-list)` | Matches one of the given patterns.                      |
+| `!(pattern-list)` | Matches anything except the given patterns.             |
+
+If you want more linux related articles you should check:
+
+- [How to Benchmark Cloud Servers (VPS)](https://www.bitdoze.com/benchmark-cloud-servers/)
+- [Monitor CPU Usage and Send Email Alerts in Linux](https://www.bitdoze.com/monitor-cpu-usage-and-send-email-alerts-in-linux/)

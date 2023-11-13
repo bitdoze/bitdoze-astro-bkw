@@ -1,0 +1,124 @@
+---
+date: 2023-08-16T5:00:00Z
+title: "How To Clean All Docker Images With Disks and Everything"
+description: "Learn how to declutter your Docker environment. Our guide shows you how to remove images, containers, volumes, and networks, freeing up valuable disk space. Follow step-by-step instructions to start fresh with Docker."
+image: "../../assets/images/23/08/docker-cleanup.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["docker"]
+canonical: "https://www.bitdoze.com/cleanup-all-docker-things/"
+---
+
+I was responsible for maintaining the analytics platform for several websites using plausible.io, which I had set up using Docker and docker-compose. The other day, I noticed there was an update available for the plausible.io Docker image. Eager to benefit from the latest features, I updated the docker-compose image configuration and tried to apply the update.
+
+To my surprise, the update failed. After checking the logs, I realized the problem was with the PostgreSQL database version. I had version 12, but the new plausible.io image required version 14. I thought the quickest solution would be to revert the PostgreSQL database to its previous state using the old image.
+
+After restoring the database and trying to restart [plausible.io](https://www.bitdoze.com/install-plausible-analytics/), I faced another issue: the websites were no longer accessible through the analytics platform. I decided to [pull the latest images again](https://www.bitdoze.com/updating-container-docker-compose/), hoping this would resolve the problem. However, I was met with a new error:
+
+```bash
+ERROR: for plausible_plausible_events_db_1  Cannot create container for service plausible_events_db: open /var/lib/docker/volumes/plausible_event-data/_data: no such file or directory
+```
+
+Additionally, there was a warning:
+
+```bash
+WARNING: Service "plausible_events_db" is using volume "/var/lib/clickhouse" from the previous container. Host mapping "plausible_event-data2" has no effect. Remove the existing containers (with `docker-compose rm plausible`)
+```
+
+It became clear to me that I needed to take more drastic measures. I decided to do a clean install of everything and remove the previous plausible.io configurations.
+
+I have started doing that but in the beginning, I only cleaned the images and volumes had an issue and so on. In the below steps you will find everything you need to do a proper docker cleanup to install the new images fresh.
+
+## How To Clean All Docker Images With Disks and Everything
+
+### 1.Stop All Running Containers:
+
+First, you need to stop all running containers because you can't remove a container that is currently running.
+
+```bash
+docker stop $(docker ps -a -q)
+```
+
+This command stops all running containers by listing all container IDs and then stopping them.
+
+> If you have more containers there that don't need to be stopped you can only stop them.
+
+### 2.Remove All Containers:
+
+After stopping all containers, you can remove them.
+
+```bash
+docker rm $(docker ps -a -q)
+```
+
+This command removes all containers by listing all container IDs and then removing them.
+
+> If you have containers that should not be removed just remove them one by one not with all.
+
+### 3.Remove All Images:
+
+Once all containers are removed, you can remove all images.
+
+```bash
+docker rmi $(docker images -q)
+```
+
+This command removes all images by listing all image IDs and then removing them.
+
+> Again if you don't want all images to be removed remove what you don't need.
+
+### 4.Remove All Volumes:
+
+Docker volumes are used to persist data from a certain container or to share data between containers. To remove all unused volumes:
+
+```bash
+docker volume prune -f
+```
+
+This command removes all unused volumes. The -f or --force flag will bypass the confirmation prompt.
+
+### 5.Remove All Networks:
+
+To remove all unused networks:
+
+```bash
+docker network prune -f
+```
+
+This command removes all unused networks. The -f or --force flag will bypass the confirmation prompt.
+
+### 6.System-wide Cleanup:
+
+Docker provides a command that cleans up containers, images, volumes, and networks that are not associated with a container:
+
+```bash
+docker system prune -a -f
+```
+
+The -a flag tells Docker to remove all unused images, not just dangling ones. The -f or --force flag will bypass the confirmation prompt.
+
+### 7.Disk Settings and Everything:
+
+If you want to clean up disk space further, you may need to look into the Docker data directory, which is usually located at /var/lib/docker/ on Linux systems. Be very careful with this step, as it will remove all Docker data:
+
+```bash
+ sudo rm -rf /var/lib/docker
+```
+
+After this, you may need to restart the Docker service:
+
+```bash
+sudo systemctl restart docker
+```
+
+> Do this only if you don't have other docker images and you want a fresh start.
+
+### Warning:
+
+> These commands will remove all your Docker containers, images, volumes, and networks. They will also free up disk space, but you will lose all data associated with your Docker containers and images. Make sure you have backed up important data before running these commands.
+
+## Conclusions
+
+In this way, you clean up all the docker things if you bump into issues and you want a fresh start. Be sure to take a backup before in case you need something. Also if this is a production environment you should also do a basic test before with a downtime.
+
+Good luck with your Docker cleanup!

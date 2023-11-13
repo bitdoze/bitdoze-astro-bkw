@@ -1,0 +1,124 @@
+---
+date: 2022-10-07T00:00:00Z
+title: "How to Install Node.js using NVM on MacOS and Ubuntu"
+description: "Tutorial of how Node.js can be installed on MacOS and Ubuntu to start your node projects."
+image: "../../assets/images/2210/nodejs_install.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["node", "tutorials"]
+canonical: https://www.bitdoze.com/install-nodejs-using-nvm-macos-ubuntu/
+---
+
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+
+Node.js can be installed in different ways, in this article we are going to leave NVM and see how it can be installed on our Mac or Ubuntu machines. M1 or M2 are also supported with these.
+
+## 1. NVM Installation
+
+### 1.1 Mac NVM Installation
+
+#### Install Homebrew
+
+[Homebrew](https://brew.sh/) is the package manager that will be used to install the node. If you are already using it you should skip this step.
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+#### Install NVM with Homebrew on Mac
+
+To do this you just need to follow the below steps:
+
+```bash
+brew install nvm
+```
+
+Then create a directory in the user home
+
+```bash
+mkdir ~/.nvm
+```
+
+When using the zsh shell, add the following config inside ~/.zshrc:
+
+```bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+```
+
+To activate the changes you either login logout or do:
+
+```bash
+source ~/.zshrc
+```
+
+At the end you can check to see the nvm version with the below command:
+
+```bash
+nvm --version
+```
+
+## Youtube Video With Details
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/XXrZHWKTJfg"
+  label="How to Install Node.js using NVM on MacOS and Ubuntu"
+/>
+
+### 1.2 Ubuntu NVM Installation
+
+Homebrew can be used also on Ubuntu but it's recommended to use the default repo. In this part, we are going to see how we can install NVM on Ubuntu to use it for the last part Node.JS install.
+
+Install NVM:
+
+```bash
+sudo apt install curl
+curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+```
+
+The script will do the rest and activate everything needed on the user profile.
+You just need to source it to have the changes, you can login/logout or do:
+
+```bash
+source ~/.bashrc
+```
+
+At the end you can check to see the nvm version with the below command:
+
+```bash
+nvm --version
+```
+
+## 2. Install Node.js with NVM
+
+This part can be done on both Mac and Ubuntu as it uses the NVM to install node.
+
+There are multiple versions of node out there, in function of what your application is supporting you should install the right version, you can also install multiple versions and tell what to use.
+In this case, we are going to go with LTS one which is 16.
+
+To install the current LTS Node.js version, execute:
+
+```bash
+nvm install --lts
+```
+
+See the version used:
+
+```bash
+node --version
+```
+
+You can install multiple nodejs versions and choose what to use.
+
+Install the second version:
+
+```bash
+nvm install 18
+```
+
+Use a specific version:
+
+```bash
+nvm use 16
+```
