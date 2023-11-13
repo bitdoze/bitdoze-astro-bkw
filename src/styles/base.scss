@@ -44,3 +44,7 @@ h6,
 .h6 {
   @apply text-h6;
 }
+
+content a {
+  @apply underline text-blue-600 hover:text-blue-800 visited:text-purple-600;
+}
