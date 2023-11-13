@@ -24,7 +24,7 @@ const filterByTags = taxonomyFilter(posts, "tags", tag);
 const title = humanize(tag || "");
 ---
 
-<Base title={title || "Tag"}>
+<Base title={title || "Tag" } noindex="true">
   <div class="section">
     <div class="container">
       <p class="text-center mb-4">Showing Posts From</p>

@@ -7,16 +7,17 @@ import Footer from "@partials/Footer.astro";
 import Header from "@partials/Header.astro";
 import "@styles/style.scss";
 
+
 // font families
 const pf = theme.fonts.font_family.primary;
 const sf = theme.fonts.font_family.secondary;
 
 // types for frontmatters
 export interface Props {
-  title?: string;
+  title: string;
   meta_title?: string;
   description?: string;
-  image?: string;
+  image: string;
   noindex?: boolean;
   canonical?: string;
 }
@@ -24,28 +25,17 @@ export interface Props {
 // distructure frontmatters
 const { title, meta_title, description, image, noindex, canonical } =
   Astro.props;
+const canonicalURL  = `${config.site.base_url}/${Astro.url.pathname.replace("/", "")}`;
+const author = config.metadata.meta_author;
+const mytitle = plainify(meta_title ? meta_title : title ? title : config.site.title);
+const mydescription = plainify(
+        description ? description : config.metadata.meta_description
+      );
 ---
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- favicon -->
-    <link rel="shortcut icon" href={config.site.favicon} />
-    <!-- theme meta -->
-    <meta name="theme-name" content="bookworm-light-astro" />
-    <meta name="msapplication-TileColor" content="#000000" />
-    <meta
-      name="theme-color"
-      media="(prefers-color-scheme: light)"
-      content="#fff"
-    />
-    <meta
-      name="theme-color"
-      media="(prefers-color-scheme: dark)"
-      content="#000"
-    />
-    <meta name="generator" content={Astro.generator} />
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
     <!-- google font css -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -57,87 +47,40 @@ const { title, meta_title, description, image, noindex, canonical } =
       rel="stylesheet"
     />
 
-    <!-- responsive meta -->
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=5"
-    />
 
     <!-- title -->
-    <title>
-      {plainify(meta_title ? meta_title : title ? title : config.site.title)}
-    </title>
-
-    <!-- canonical url -->
- <link rel="canonical" href={`${config.site.base_url}/${Astro.url.pathname.replace("/", "")}`} item-prop="url" />
-
+<title>{mytitle}</title>
+<script src="https://an.bitdoze.com/js/plausible.outbound-links.js" data-domain="bitdoze.com" defer></script>
+<link rel="shortcut icon" href='/favicon.ico' />
+<link rel="icon" type="image/svg+xml" href='/favicon.ico' />
+<link rel="mask-icon" href='/favicon.ico' color="#8D46E7" />
+<link rel="sitemap" href='/sitemap-index.xml' />
+<link rel="canonical" href={canonicalURL} />
     <!-- noindex robots -->
     {noindex && <meta name="robots" content="noindex,nofollow" />}
 
-    <!-- meta-description -->
-    <meta
-      name="description"
-      content={plainify(
-        description ? description : config.metadata.meta_description
-      )}
-    />
+<!-- Primary Meta Tags -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width" />
+<meta name="title" content={mytitle} />
+<meta name="description" content={mydescription} />
 
-    <!-- author from config.json -->
-    <meta name="author" content={config.metadata.meta_author} />
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={mytitle} />
+<meta property="og:description" content={mydescription} />
+<meta property="og:image" content={image} />
 
-    <!-- og-title -->
-    <meta
-      property="og:title"
-      content={plainify(
-        meta_title ? meta_title : title ? title : config.site.title
-      )}
-    />
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:url" content={canonicalURL} />
+<meta name="twitter:title" content={mytitle} />
+<meta name="twitter:description" content={mydescription} />
+<meta name="twitter:image" content={image} />
+<meta name="twitter:creator" content="@bitdoze">
 
-    <!-- og-description -->
-    <meta
-      property="og:description"
-      content={plainify(
-        description ? description : config.metadata.meta_description
-      )}
-    />
-    <meta property="og:type" content="website" />
-    <meta
-      property="og:url"
-      content={`${config.site.base_url}/${Astro.url.pathname.replace("/", "")}`}
-    />
 
-    <!-- twitter-title -->
-    <meta
-      name="twitter:title"
-      content={plainify(
-        meta_title ? meta_title : title ? title : config.site.title
-      )}
-    />
-
-    <!-- twitter-description -->
-    <meta
-      name="twitter:description"
-      content={plainify(
-        description ? description : config.metadata.meta_description
-      )}
-    />
-
-    <!-- og-image -->
-    <meta
-      property="og:image"
-      content={`${config.site.base_url}${
-        image ? image : config.metadata.meta_image
-      }`}
-    />
-
-    <!-- twitter-image -->
-    <meta
-      name="twitter:image"
-      content={`${config.site.base_url}${
-        image ? image : config.metadata.meta_image
-      }`}
-    />
-    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <TwSizeIndicator />
