@@ -1,0 +1,99 @@
+---
+date: 2023-11-14T0:00:00Z
+title: "How To Compare Two Folders Content and See Different Files in Terminal"
+description: "Learn how you can compare two folders and see the different files in terminal in a linux or MacOs"
+image: "../../assets/images/23/11/compare-folders-content-differences.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["linux"]
+canonical: "https://www.bitdoze.com/compare-folders-content-differences/"
+---
+
+If you have two folders that contain similar files, you might want to compare them and see what are the differences. For example, you might have a backup folder that is supposed to be identical to your original folder, but you are not sure if they are in sync. Or you might have two versions of a project that you want to merge or update.
+
+For me I needed to check the different files in two repos, I contracted someone to help me with some issues on this website in astro.js and he provided me the zip archive with the finished code. I needed to see what are the modified files so I could understand what changed.
+
+In this article, you will learn how to compare two folders’ content and see different files in the terminal using some simple commands. This can be done in the terminal and will work in MacOS or Linux, on Windows can also work but you need the Windows subsystem to have access to the command.
+
+By the end of this article, you will be able to compare any two folders and find out what files are added, deleted, modified, or unchanged.
+
+## Compare Two Folders Content and See Different Files in Terminal
+
+The **diff** command is a command-line utility that compares two files or directories line by line and displays the differences between them. It also tells you what changes you need to make to one file or directory to make it match the other one. The basic syntax of the diff command is:
+
+```bash
+diff [options] file1 file2
+```
+
+or
+
+```bash
+diff [options] dir1 dir2
+```
+
+To compare two directories, you need to use the -rq option
+
+```bash
+diff -rq dir1 dir2
+```
+
+- **-r** option, which stands for recursive. This option tells the diff command to compare all the files and subdirectories inside the specified directories. For example, if you have two directories named dir1 and dir2, you can compare them by running:
+
+- **-q** makes the output more concise and readable -q option stands for brief. This option tells the diff command to only report when files differ, without showing the details of the differences. For example, if you run:
+
+```bash
+diff -rq  /Users/dbalota/websites/bitdoze-astro-bkw  /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze
+```
+
+The output will look something like this:
+
+```bash
+Only in /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src: .DS_Store
+Only in /Users/dbalota/websites/bitdoze-astro-bkw/src/assets/favicons: Grammarly.c8npGa4ajbhi8fee1ud80d82.dmg
+Only in /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/assets/favicons: favicon.ico
+Only in /Users/dbalota/websites/bitdoze-astro-bkw/src/assets/favicons: favicon.png
+Only in /Users/dbalota/websites/bitdoze-astro-bkw/src/assets/favicons: favicon.svg
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/config/menu.json and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/config/menu.json differ
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/content/posts/add-accordion-carrd.mdx and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/content/posts/add-accordion-carrd.mdx differ
+Only in /Users/dbalota/websites/bitdoze-astro-bkw/src/content/posts: compare-folders-content-differences.mdx
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/content/posts/opnform-open-source.mdx and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/content/posts/opnform-open-source.mdx differ
+Only in /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/layouts: .DS_Store
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/layouts/Base.astro and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/layouts/Base.astro differ
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/layouts/PostSingle.astro and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/layouts/PostSingle.astro differ
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/layouts/Posts.astro and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/layouts/Posts.astro differ
+Only in /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/layouts/components: .DS_Store
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/layouts/components/SimilarPosts.astro and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/layouts/components/SimilarPosts.astro differ
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/layouts/components/widgets/Button.astro and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/layouts/components/widgets/Button.astro differ
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/layouts/partials/Footer.astro and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/layouts/partials/Footer.astro differ
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/pages/[regular].astro and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/pages/[regular].astro differ
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/pages/authors/[single].astro and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/pages/authors/[single].astro differ
+Files /Users/dbalota/websites/bitdoze-astro-bkw/src/styles/base.scss and /Users/dbalota/Desktop/orange-facturi/easypanel/bitdoze/src/styles/base.scss diffe
+```
+
+In the above output, you can see that it will give you the exact files which are different.
+
+## Enhance The Diff Command and Filter The Results
+
+One way to filter the output of the diff command is to use the grep command, which can search for a pattern in the input and print only the matching lines. For example, if we want to compare two directories, dir1 and dir2, and exclude a certain file from the comparison, we can use the following command:
+
+```bash
+diff -rq dir1 dir2 | grep -v <file>
+```
+
+The pipe symbol (|) redirects the output of the diff command to the input of the grep command. The **grep -v** option tells the grep command to invert the match, meaning that it will print only the lines that do not contain the pattern. The pattern is the name of the file we want to exclude, enclosed in angle brackets. For example, if we want to exclude the file README.md, we can use:
+
+Another way to filter the output of the diff command is to use the **grep -i** option, which tells the grep command to ignore the case of the pattern. This can be useful if we want to compare two directories and find the files that have the same name but different cases. For example, if we want to compare dir1 and dir2 and find the files that have the name file.txt, regardless of the case, we can use the following command:
+
+```bash
+diff -rq dir1 dir2 | grep -i file.txt
+```
+
+The grep -i option tells the grep command to match the pattern file.txt in any case, such as File.txt, FILE.TXT, or fiLe.TxT. For example, if dir1 contains File.txt and dir2 contains file.txt, the command will print:
+
+Files dir1/File.txt and dir2/file.txt differ
+
+By using these filters, we can enhance the diff command and make it more flexible and powerful for our purposes.
+
+## Conclusions
+
+This easy is to compare two folders with subdirectories and see exactly what fails are different, with the terminal on Linux or MacOS you don't need any app besides the command diff. You can enhance the command with grep to find exactly what you are interested in and also you can use **-u** option to see the exact changes.
