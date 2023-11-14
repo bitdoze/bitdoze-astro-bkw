@@ -7,6 +7,10 @@ import Footer from "@partials/Footer.astro";
 import Header from "@partials/Header.astro";
 import "@styles/style.scss";
 
+import { getImage } from 'astro:assets'
+import faviconSrc from '../assets/favicons/favicon.png'
+import faviconSvgSrc from '../assets/favicons/favicon.svg'
+
 // font families
 const pf = theme.fonts.font_family.primary;
 const sf = theme.fonts.font_family.secondary;
@@ -44,6 +48,15 @@ const mydescription = plainify(
 );
 
 const myimage = `${config.site.base_url}${image}`
+
+const appleTouchIcon = await getImage({
+  src: faviconSrc,
+  width: 180,
+  height: 180,
+  format: 'png'
+})
+const faviconSvg = await getImage({ src: faviconSvgSrc, format: 'svg' })
+
 ---
 
 <!DOCTYPE html>
@@ -52,7 +65,10 @@ const myimage = `${config.site.base_url}${image}`
 <title>{mytitle}</title>
 <script src="https://an.bitdoze.com/js/plausible.outbound-links.js" data-domain="bitdoze.com" defer></script>
 
-<link rel="icon" href='/favicon.ico' />
+ <link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href={faviconSvg.src} type="image/svg+xml" />
+<link rel="apple-touch-icon" href={appleTouchIcon.src} />
+
 <link rel="sitemap" href='/sitemap-index.xml' />
 <link rel="canonical" href={canonicalURL} />
     <!-- noindex robots -->
