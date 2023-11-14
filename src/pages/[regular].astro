@@ -23,13 +23,20 @@ export async function getStaticPaths() {
 
 const { page } = Astro.props;
 const { title, meta_title, description, image } = page.data;
+
+const ogImage =
+  typeof image === "string"
+    ? image
+    : typeof image === "object"
+      ? image.src
+      : image;
 ---
 
 <Base
   title={title}
   meta_title={meta_title}
   description={description}
-  image={image}
+  image={ogImage}
 >
   {
     postsSlug.includes(page.slug) ? (

@@ -1,7 +1,8 @@
 ---
 import { getCollection } from "astro:content";
+import { collections } from "@content/config";
 
-export const getSinglePage = async (collection: any) => {
+export const getSinglePage = async (collection: keyof typeof collections) => {
   const allPage = await getCollection(collection);
   const removeIndex = allPage.filter((data) => data.id.match(/^(?!-)/));
   const removeDrafts = removeIndex.filter((data) => !data.data.draft);
