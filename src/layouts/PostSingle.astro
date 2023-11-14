@@ -8,12 +8,13 @@ import similerItems from "@lib/utils/similarItems";
 import { humanize,markdownify,slugify } from "@lib/utils/textConverter";
 import { BiCalendarEdit,BiCategoryAlt } from "react-icons/bi/index.js";
 
+
 const allAuthors = await getSinglePage("authors");
 const posts = await getSinglePage("posts");
 const { post } = Astro.props;
 const similarPosts = similerItems(post, posts, post.slug);
 const { Content } = await post.render();
-const { title, description, authors, categories, image, date, tags, canonical = true } =
+const { title, description, authors, categories, image, date, tags, canonical } =
   post.data;
 ---
 
@@ -21,7 +22,7 @@ const { title, description, authors, categories, image, date, tags, canonical = 
   <div class="container">
     <article class="row justify-center">
       <div class="md:col-10 text-center">
-        <h1 set:html={markdownify(title)} class="h2" />
+        <h1 set:html={markdownify(title)} class="h2" transition:name={`title-${post.slug}`}/>
         <ul class="mt-4 flex flex-wrap items-center justify-center text-text">
           <li class="mx-3">
             {
@@ -43,6 +44,7 @@ const { title, description, authors, categories, image, date, tags, canonical = 
                         height={50}
                         width={50}
                         class="mr-2 h-6 w-6 rounded-full"
+            
                       />
                     )}
                     <span>{author.data.title}</span>
@@ -62,7 +64,7 @@ const { title, description, authors, categories, image, date, tags, canonical = 
                 categories.map((category: string, i: number) => (
                   <li class="inline-block">
                     <a
-                      href={`/categories/${slugify(category)}` + "/"}
+                      href={`/categories/${slugify(category)}`}
                       class="mr-2 hover:text-primary font-medium"
                     >
                       {humanize(category)}{i !== post.data.categories.length - 1 && ","}
@@ -84,6 +86,7 @@ const { title, description, authors, categories, image, date, tags, canonical = 
             width={1000}
             alt={title}
             class="rounded-lg"
+             transition:name={`image-${post.slug}`}
           />
         )}
       </div>

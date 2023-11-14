@@ -7,6 +7,9 @@ import Footer from "@partials/Footer.astro";
 import Header from "@partials/Header.astro";
 import "@styles/style.scss";
 
+import { ViewTransitions } from "astro:transitions";
+
+
 import { getImage } from 'astro:assets'
 import faviconSrc from '../assets/favicons/favicon.png'
 import faviconSvgSrc from '../assets/favicons/favicon.svg'
@@ -62,6 +65,8 @@ const faviconSvg = await getImage({ src: faviconSvgSrc, format: 'svg' })
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+  <ViewTransitions /> 
 <title>{mytitle}</title>
 <script src="https://an.bitdoze.com/js/plausible.outbound-links.js" data-domain="bitdoze.com" defer></script>
 

@@ -10,32 +10,32 @@
   "dependencies": {
     "@astrojs/mdx": "^1.1.4",
     "@astrojs/rss": "^3.0.0",
-    "astro": "^3.5.1",
+    "astro": "^3.5.3",
     "astro-seo": "^0.8.0",
-    "date-fns": "^2.29.3",
+    "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
     "fuse.js": "^7.0.0",
     "github-slugger": "^2.0.0",
-    "marked": "^9.1.6",
-    "react-icons": "^4.7.1"
+    "marked": "^10.0.0",
+    "react-icons": "^4.11.0"
   },
   "devDependencies": {
     "@astrojs/react": "^3.0.4",
     "@astrojs/sitemap": "^3.0.3",
     "@astrojs/tailwind": "^5.0.2",
-    "@tailwindcss/forms": "^0.5.3",
-    "@tailwindcss/typography": "^0.5.9",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
     "@types/marked": "^6.0.0",
-    "@types/react": "^18.0.28",
-    "postcss": "^8.4.20",
-    "prettier": "^3.0.3",
-    "prettier-plugin-astro": "^0.12.1",
+    "@types/react": "^18.2.37",
+    "postcss": "^8.4.31",
+    "prettier": "^3.1.0",
+    "prettier-plugin-astro": "^0.12.2",
     "prettier-plugin-tailwindcss": "^0.5.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sass": "^1.58.1",
+    "sass": "^1.69.5",
     "sharp": "^0.32.6",
     "tailwind-bootstrap-grid": "^5.0.1",
-    "tailwindcss": "^3.2.6"
+    "tailwindcss": "^3.3.5"
   }
 }

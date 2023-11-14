@@ -22,6 +22,8 @@ const { className, posts, fluid } = Astro.props;
               alt={post.data.title}
               width={i === 0 ? 925 : 445}
               height={i === 0 ? 475 : 230}
+              transition:name={`image-${post.slug}`}
+             
             />
           </a>
         )}
@@ -74,7 +76,7 @@ const { className, posts, fluid } = Astro.props;
           </li>
         </ul>
         <h3 class="mb-4">
-          <a href={`/${post.slug}` + "/"} class="block hover:text-primary transition duration-300">
+          <a href={`/${post.slug}` + "/"} class="block hover:text-primary transition duration-300" transition:name={`title-${post.slug}`}>
             {post.data.title}
           </a>
         </h3>
