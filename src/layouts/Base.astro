@@ -26,10 +26,13 @@ export interface Props {
   image?: string;
   noindex?: boolean;
   canonical?: string;
+  author?: string;
 }
 
 const defaultImage = "images/posts/01.jpg";
 // distructure frontmatters
+const defaultAuthor = config.metadata.meta_author;
+
 const {
   title,
   meta_title,
@@ -37,12 +40,13 @@ const {
   image = defaultImage,
   noindex,
   canonical,
+  author = defaultAuthor,
 } = Astro.props;
 const canonicalURL = `${config.site.base_url}/${Astro.url.pathname.replace(
   "/",
   "",
 )}`;
-const author = config.metadata.meta_author;
+
 const mytitle = plainify(
   meta_title ? meta_title : title ? title : config.site.title,
 );
@@ -60,6 +64,20 @@ const appleTouchIcon = await getImage({
 })
 const faviconSvg = await getImage({ src: faviconSvgSrc, format: 'svg' })
 
+
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description: description,
+  author: {
+    '@type': 'Person',
+    name: author,
+    url: "https://www.bitdoze.com/authors/dragos/",
+  },
+}
+
 ---
 
 <!DOCTYPE html>
@@ -70,7 +88,7 @@ const faviconSvg = await getImage({ src: faviconSvgSrc, format: 'svg' })
 <title>{mytitle}</title>
 <script src="https://an.bitdoze.com/js/plausible.outbound-links.js" data-domain="bitdoze.com" defer></script>
 
- <link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" href={faviconSvg.src} type="image/svg+xml" />
 <link rel="apple-touch-icon" href={appleTouchIcon.src} />
 
@@ -84,6 +102,9 @@ const faviconSvg = await getImage({ src: faviconSvgSrc, format: 'svg' })
 <meta name="viewport" content="width=device-width" />
 <meta name="title" content={mytitle} />
 <meta name="description" content={mydescription} />
+
+<meta name="author" content={author}>
+<meta name="copyright" content={author}>
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
@@ -100,7 +121,7 @@ const faviconSvg = await getImage({ src: faviconSvgSrc, format: 'svg' })
 <meta name="twitter:image" content={myimage} />
 <meta name="twitter:creator" content="@bitdoze">
 
-
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />
   </head>
   <body>
     <TwSizeIndicator />
