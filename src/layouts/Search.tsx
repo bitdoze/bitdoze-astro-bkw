@@ -134,7 +134,7 @@ export default function SearchBar({ searchList }: Props) {
 
             <h3 className="mb-2">
               <a
-                href={`/${item.slug}`}
+                href={`/${item.slug}` + "/"}
                 className="block hover:text-primary transition duration-300"
               >
                 {item.data.title}
