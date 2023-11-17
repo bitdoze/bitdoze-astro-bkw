@@ -24,9 +24,7 @@ interface SearchResult {
 export default function SearchBar({ searchList }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputVal, setInputVal] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResult[] | null>(
-    null,
-  );
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
 
   const handleChange = (e: React.FormEvent<HTMLInputElement>) => {
     setInputVal(e.currentTarget.value);
@@ -90,8 +88,8 @@ export default function SearchBar({ searchList }: Props) {
       )}
 
       <div className="row">
-        {searchResults?.map(({ item }) => (
-          <div key={item.slug} className={"col-12 mb-8 sm:col-6"}>
+        {searchResults.map(({ item }, index) => (
+          <div key={item.slug + index} className={"col-12 mb-8 sm:col-6"}>
             {item.data.image && (
               <a
                 href={`/${item.slug}` + "/"}
@@ -99,7 +97,7 @@ export default function SearchBar({ searchList }: Props) {
               >
                 <img
                   className="group-hover:scale-[1.03] transition duration-300 w-full"
-                  src={item.data.image}
+                  src={item.data.image.src}
                   alt={item.data.title}
                   width={445}
                   height={230}
@@ -117,7 +115,7 @@ export default function SearchBar({ searchList }: Props) {
                 <>
                   <ul>
                     {item.data.categories.map((category: string, i: number) => (
-                      <li className="inline-block">
+                      <li className="inline-block" key={i}>
                         <a
                           href={`/categories/${slugify(category)} + "/"`}
                           className="mr-2 hover:text-primary font-medium"
@@ -141,7 +139,7 @@ export default function SearchBar({ searchList }: Props) {
               </a>
             </h3>
             <p className="text-text">
-              {item.content?.slice(0, Number(summary_length))}...
+              {item.data.description?.slice(0, Number(summary_length))}...
             </p>
           </div>
         ))}
