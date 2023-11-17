@@ -5,14 +5,9 @@ export type PostItem = CollectionEntry<"posts">;
 // similer products
 const similerItems = (currentItem: PostItem, allItems: PostItem[]) => {
   const {
-    data: { tags = [], categories = [] },
+    data: { tags = [] },
     slug,
   } = currentItem;
-
-  // filter by categories
-  const filterByCategories = allItems.filter((item) =>
-    item.data.categories.some((category) => categories.includes(category)),
-  );
 
   // filter by tags
   const filterByTags = allItems.filter((item) =>
@@ -20,7 +15,7 @@ const similerItems = (currentItem: PostItem, allItems: PostItem[]) => {
   );
 
   // merged after filter
-  const mergedItems = [...new Set([...filterByCategories, ...filterByTags])];
+  const mergedItems = [...new Set([...filterByTags])];
 
   // filter by slug
   const filterBySlug = mergedItems.filter((product) => product.slug !== slug);
