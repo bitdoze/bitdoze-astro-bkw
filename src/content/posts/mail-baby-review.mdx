@@ -1,0 +1,103 @@
+---
+date: 2023-11-27T00:00:00Z
+title: "Mail.Baby Review: Pros and Cons of the Budget-Friendly Email Service by Interserver"
+description: "Mail.Baby Review: See if this SMTP email-sending solution is for you and your business."
+image: "../../assets/images/23/11/mail-baby-review.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["mail"]
+canonical: "https://www.bitdoze.com/mail-baby-review/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/23/11/mail-baby-order.png";
+
+Do you want to send emails without breaking the bank? Do you want to avoid the hassle of setting up your own mail server? Do you want to enjoy high deliverability and reliability? If you answered yes to any of these questions, you might be interested in [Mail.Baby](https://mail.baby/), a low-cost outbound email service by Interserver.
+
+I have tried different email services in the past and I want to use something that is:
+
+- **not expensive**: I want to be able to send bulk emails and not pay a ton of money.
+- **reliable**: when an email is sent I want to have a high delivery rate, so my emails reach the inbox.
+- **use it for lists and transactional emails**: I have servers and applications and I want to be able to use the email server for both
+- **use multiple domains**: I have more than 10 domains and sometimes I want that domain to send the email not a central one.
+- **secure**: I need to connect securely to the email server.
+- **pay as you go**: I am not sending thousands of emails monthly I just need to be charged when I send them.
+
+But before you sign up, there is one thing you should know: Mail.Baby might expose your server’s IP address to the public. Here’s why.
+
+## Mail.Baby and SPF records
+
+Mail.Baby is a service that allows you to send emails from your own domain name using their SMTP relay servers. To do that, you need to configure your DNS records to authorize Mail.Baby to send emails on your behalf. One of these records is the SPF (Sender Policy Framework) record, which specifies which servers are allowed to send emails from your domain.
+
+Mail.Baby requires that you add their servers and your own server’s IP address to your SPF record. For example, if your domain is example.com and your server’s IP is 123.456.789.0, your SPF record should look like this:
+
+```
+v=spf1 include:relay.mailbaby.net ip4:123.456.789.0 -all
+```
+
+This means that only Mail.Baby’s servers and your server can send emails from example.com. However, it also means that anyone who looks up your SPF record can see your server’s IP address. This can be a security risk, especially if you are using a service like Cloudflare to hide your server’s IP behind a proxy. By revealing your server’s IP, you might expose yourself to attacks or abuse.
+
+### Why does Mail.Baby need your server’s IP?
+
+You might wonder why Mail.Baby needs your server’s IP in the first place. After all, other email services like MXroute and MailChimp’s Mandrill don’t require this. The reason is that Mail.Baby checks your SPF record to verify that your server is authorized to send emails for your domain. This is a way to prevent spam and abuse of their service. However, this also means that they don’t accept emails from servers that are not listed in your SPF record, even if they are using your Mail.Baby credentials.
+
+### Is there a way around this?
+
+Unfortunately, there is no easy way to use Mail.Baby without revealing your server’s IP in your SPF record. You could try to use a different IP for sending emails, but that would require setting up another server or using a VPN. You could also try to use a subdomain for sending emails, but that would require changing your email addresses and configuring your DNS records accordingly. Neither of these options is very convenient or practical.
+
+## Mail.Baby Sending Limits, Price, Quality
+
+### Price
+
+[Mail.Baby](https://mail.baby/) charges $1 a month for the availability and then $0.20 for every 1000 emails sent. The price would be on top of the $1 a month one, so if you send 10.000 emails a month you will be charged $1 + $2 = $3. This is a very affordable service and Only Amazon SES comes close.
+Compared with other services the price is quite good, other services charge even 10 times more. So mail.baby has a plus from my side even if you need to pay the $1 a month.
+
+### Sending Limits
+
+Sending limits are the following:
+
+- 6,000 emails per hour – per email address (not per Mail Baby account).
+- If you send over 6,000 emails in one hour, all the “excess” emails (beyond the 6,000th email) will be disregarded.
+
+There is a problem if you need to send more than 6000 emails an hour as you need your tool to cache them and not send more otherwise they will be lost.
+This could have been done better as they could have cached the emails and sent them the next hour. You need to be careful with this limit.
+
+### What Types of Emails are Supported
+
+Mail.Baby lets you send transactional emails and marketing emails. So you can use the service for both and not need 2 services for this. I like this as not all the SMTP providers out here lets you do both, usually sending marketing emails can be quite expensive.
+
+### Security
+
+STARTTLS it is used to connect to the email server but in case your server doesn't support TLS you can access it insecure. The ports that can be used and SMTP details can be found in the admin area.
+Mail.Baby is scanning the email that is sent for spam so in case your server is compromised mail.baby will block the sending of the email.
+
+### Email Deliverability
+
+I am using Mail.Baby for a couple of weeks and I can say that I didn't have any issues all the emails that I have sent have been delivered. I have tested the service with bulk send and also to some of my inboxes on Gmail and live and I didn't see any issues.
+
+### How You Register
+
+- Go To Interserver site and create an account: [https://my.interserver.net/](https://my.interserver.net/)
+- Order Email: After you create an account you should go under **Mail - Order** and get a package
+
+<Picture
+  src={imag1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="mail.baby order"
+/>
+
+### My Experience With Mail.Baby
+
+I have been using them for a couple of weeks, and till now I am happy with the service they are providing, I am using them on multiple servers and I can say the emails are delivered without problems. paying the $1 a month is not a problem especially when you want the email to reach the other side.
+Setting up the account and connecting to the email server is not hard and all the details are on their interface.
+
+In case of issues, I will update this section.
+
+## Should you use Mail.Baby?
+
+Mail.Baby is a very attractive service for anyone who needs to send a lot of emails at a low price. Mail.baby is much cheaper than most other email services, and the quality and deliverability are reportedly very good. However, you should also be aware of the security risk of exposing your server’s IP address in your SPF record. If you are not comfortable with that, you might want to look for another email service.
+
+In the end it's up to you if you want to use it or not.
