@@ -1,0 +1,119 @@
+---
+date: 2023-11-27T00:00:00Z
+title: "How To Add Pricing Table to Carrd.co"
+description: "Learn how to add a responsive monthly-year toggle pricing table to Carrd.co"
+image: "../../assets/images/23/11/carrd-priging-table.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["carrd"]
+canonical: https://www.bitdoze.com/carrd-add-pricing-table/
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+
+In this tutorial we are going to see how you can add a responsive pricing table to your Carrd.co website that has a monthly and yearly toggle and looks nice. The plugin costs $5 and you can use it on as many carrd.co websites as you want.
+
+## What is Carrd.co?
+
+[Carrd.co](https://try.carrd.co/bitdoze) is a platform that allows users to create single-page, responsive websites with ease. Perfect for personal profiles, business landing pages, and more, Carrd has become a go-to choice for those seeking a simple yet effective solution for their online presence.
+
+Some Carrd Tutorials:
+
+- [Add Stickey Header Carrd](https://www.bitdoze.com/add-stickey-header-carrd/)
+- [Add Carrd Cookie Notice](https://www.bitdoze.com/add-cookie-notice-carrd/)
+- [How To Add Pricing Table to Carrd.co](https://www.bitdoze.com/carrd-add-pricing-table/)
+- [Carrd.co review](https://www.bitdoze.com/carrd-review/)
+- [How To Add Accordion FAQs Drop-Down to Carrd.co](https://www.bitdoze.com/add-accordion-carrd/)
+
+## How To Add The Pricing Table to Carrd
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/Q3UpuDDs0AY"
+  label="How To Add Pricing Table to Carrd.co"
+/>
+
+As carrd.co is not coming up with an easy way to add a pricing table in the widgets it has you will need to be on the Pro Plus plan that will allow you to embed code. In the below tutorial, we are going to see everything that needs to be done to have a responsive pricing table.
+
+### 1. Download the Pricing Table Code
+
+The first thing to do is to download the code that you are going to use on your Carrd website. To do that just go to: [Carrd Pricing Table](https://webdoze.net/buy/carrd-co-pricing-table/) and get your pricing table. It's not free it costs $5 which is the price of a coffee.
+
+### 2. Customize the Code
+
+After you have your code you will be able to change colors, prices, and font and add the price elements for your business. The code that will help you do this is outlined below:
+
+**Change Colours**
+
+```css
+:root {
+  --priceb-col-gr: linear-gradient(
+    135deg,
+    rgba(163, 168, 240, 1) 0%,
+    rgba(105, 111, 221, 1) 100%
+  );
+}
+```
+
+**Change Font**
+
+You can use your won font, you can alter the bellow line under style:
+
+```css
+font-family: inherit;
+```
+
+The above code holds the colors for buttons, active card, and toggle. You can change or add your color and will be used automatically as this is a css variable.
+
+**Change Prices**
+
+You need to edit 2 elements for the prices, 1 is for html code:
+
+```html
+<li id="basic" class="price bottom-bar">&dollar;199.99</li>
+```
+
+The other one is for the java script where it has the toggle:
+
+```js
+const prices = {
+  basic: { monthly: "$19.99", annual: "$199.99" },
+  professional: { monthly: "$24.99", annual: "$249.99" },
+  master: { monthly: "$39.99", annual: "$399.99" },
+};
+```
+
+You can add your own prices don't forget to change the plan name in case you use custom ones for your business.
+
+**Change Elements**
+
+To add your own price elements you just replace the `li` items in each card with your own, you can add more to suite your needs.
+
+```html
+<li class="bottom-bar">1 TB Storage</li>
+<li class="bottom-bar">5 Users Allowed</li>
+<li class="bottom-bar">Send up to 10 GB</li>
+<li class="bottom-bar">Unlimited</li>
+```
+
+**Change Buttons**
+
+You can add your won text on the buttons and you can replace the link to your package with your details, to do so alter:
+
+```html
+<li>
+  <a href="https://carrdme.com"><div class="btn">Learn More</div></a>
+</li>
+```
+
+### 3. Add the code to Carrd.co
+
+After you customize the code you will need to go to the carrd website and add a container, in that container you can add the `embed` widget, give it a name and paste the code. You can align the text as you link and ad spacing for the container.
+
+### 4. Save and check the modifications
+
+What remains is to save your project and see how is looking, just publish the design and see how is looking, If there are issues you can alter the width of the container and make some customizations in carrd interface.
+
+## Conclusions
+
+In this way, you can add a pricing table to your carrd.co website with the price of a coffee. This shouldn't be hard and you need only some basic knowlade to change the elements and customize the elements as you need. For additional carrd plugins, you can check [carrdme.com](https://carrdme.com/) website.
