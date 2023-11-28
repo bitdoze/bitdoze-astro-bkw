@@ -1,0 +1,120 @@
+---
+date: 2023-11-28T00:00:00Z
+title: "How to Launch Your Own Newsletter Platform with Keila and Docker"
+description: "Deploy Keila self-hosted newsletter on your server with Docker and EasyPanel. "
+image: "../../assets/images/23/11/keila-setup.jpeg"
+categories: ["tools"]
+authors: ["Dragos"]
+tags: ["easypanel", "email"]
+canonical: "https://www.bitdoze.com/keila-setup/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/23/11/keila-project.png";
+import imag2 from "../../assets/images/23/11/creae-keila.png";
+import imag3 from "../../assets/images/23/11/keila-interface.png";
+import imag4 from "../../assets/images/23/11/keila-stats.png";
+
+[Keila](https://www.keila.io/) is an open source email newsletter tool that allows you to create and send engaging campaigns to your contacts.
+
+Some of the features of Keila are:
+
+- Easy import of contacts: You can upload a CSV file with your existing contacts and start sending newsletters right away.
+- Custom data and tags: You can add any information you want to your contacts and use it to filter them or personalize your campaigns.
+- Smart segments: You can create subsets of your contacts based on criteria you define with a visual editor or a query language.
+- Privacy and data ownership: You can host Keila on your servers and keep full control of your data. Keila also respects the privacy of your contacts and gives you useful statistics without tracking them.
+
+Keila can be deployed easily to your server with the help of Docker, you will need to use an SMTP to send the campaigns, if you don't have a SMTP service that you are using you can check: [Mail.Baby Review](https://www.bitdoze.com/mail-baby-review/) a service that can help you send emails on a budget.
+
+Keila can help you create forms to collect emails but does not have a double opt-in option like [ListMonk](https://listmonk.app/) yet, this is under work.
+
+## How to Install Keila
+
+In this article, we are going to see everything that needs to be done to set Keila and start sending newsletters, we are going to use EasyPanel for this as it offers easy control and setup.
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/lpvAGQwO0RA"
+  label="Keila Setup"
+/>
+
+### 1.Deploy a Hetzner VPS
+
+The first part is to have a server ready where we can deploy Easypanel, my preferred choice is Easypanel. The recommendation for Easypanel is to have at least 2 CPUs and 2 GB of memory and you can use an Ubuntu installation. In the video, we go into detail about how you can do that on Hetzner. You can check this [Hetzner Review](https://www.wpdoze.com/hetzner-cloud-review/) for more details if you are not aware of Hetzner and what it can do.
+
+<Button link="https://go.bitdoze.com/hetzner" text="Hetzner €⁠20 Free" />
+
+### 2. Install Easypanel.io
+
+To do this you just need to run a simple command and Easypanel will be installed:
+
+```sh
+curl -sSL https://get.easypanel.io | sh
+```
+
+The complete [EasyPanel Setup tutorial](https://www.bitdoze.com/easypanel-modern-server-control-panel/) can be followed to properly set EasyPanel.
+
+### 3. Create an Easypanel Project
+
+After you install EasyPanel you will need to add your first project and go and choose the Keila from the templates they have, as in the below picture:
+
+<Picture
+  src={imag1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="EasyPanel Keila Choose"
+/>
+
+### 4. Create Keila in EaasyPanel
+
+Next, you will need to add the details for deploying Keila:
+
+- App Service Name: name of the app in easypanel
+- App Service Image: use `pentacent/keila:latest` to use the latest one.
+- Database Service Name: name for the DB container service
+- SMTP details: System From Email, SMTP Email Host,SMTP Email Port, SMTP Email Username, SMTP Email Password, if you don't have an SMTP provider you can check: [Mail.Baby Review](https://www.bitdoze.com/mail-baby-review/)
+
+<Picture
+  src={imag2}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Create Keila"
+/>
+
+At the end you hit `create`.
+
+Then you will be prompted to use the generated user and password that can be changed later:
+
+Login with changeme@easypanel.io:password123 - change this from the administration panel.
+
+### 5. Add your domain to the installation
+
+By default, easypanel will use his domain for this, but you can add your domain or subdomain to access Keila, to do this you need to go under project `domains` in EasyPanel and add your own. \
+You need first to point the A record to the EasyPanel server IP for the domain for this to work.
+
+### 6. Configure Keila
+
+After you set up the domain you can access Keila and change the password for the admin user, also you can add your first project and senders you have. You can use different senders for different projects. The video has more details about this.
+
+<Picture
+  src={imag3}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Keila Interface"
+/>
+
+Now you can import your contacts, create forms and start sending newsletters.
+
+Keila has statistics for your campaigns and after you send one you will have the stats as below:
+
+<Picture
+  src={imag4}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="EasyPanel Keila Choose"
+/>
+
+## Conclusion
+
+[Keila](https://www.keila.io/) is a light newsletter alternative that you can self-host easily and start sending emails fast, it has statistics about campaigns sent and can help you manage things easily. With the help of EasyPanel you can host it easily.
