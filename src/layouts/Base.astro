@@ -9,10 +9,9 @@ import "@styles/style.scss";
 
 import { ViewTransitions } from "astro:transitions";
 
-
-import { getImage } from 'astro:assets'
-import faviconSrc from '../assets/favicons/favicon.png'
-import faviconSvgSrc from '../assets/favicons/favicon.svg'
+import { getImage } from "astro:assets";
+import faviconSrc from "../assets/favicons/favicon.png";
+import faviconSvgSrc from "../assets/favicons/favicon.svg";
 
 // font families
 const pf = theme.fonts.font_family.primary;
@@ -54,76 +53,76 @@ const mydescription = plainify(
   description ? description : config.metadata.meta_description,
 );
 
-const myimage = `${config.site.base_url}${image}`
+const myimage = `${config.site.base_url}${image}`;
 
 const appleTouchIcon = await getImage({
   src: faviconSrc,
   width: 180,
   height: 180,
-  format: 'png'
-})
-const faviconSvg = await getImage({ src: faviconSvgSrc, format: 'svg' })
-
-
+  format: "png",
+});
+const faviconSvg = await getImage({ src: faviconSvgSrc, format: "svg" });
 
 const schema = {
-  '@context': 'https://schema.org',
-  '@type': 'BlogPosting',
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
   headline: title,
   description: description,
   author: {
-    '@type': 'Person',
+    "@type": "Person",
     name: author,
     url: "https://www.bitdoze.com/authors/dragos/",
   },
-}
-
+};
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1">
-  <ViewTransitions /> 
-<title>{mytitle}</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <ViewTransitions />
+    <title>{mytitle}</title>
 
+    <script
+      defer
+      data-domain="bitdoze.com"
+      data-api="/theone/dra/event"
+      src="/theone/dr/script.js"></script>
 
-<script defer data-domain="bitdoze.com" data-api="/theone/api/event" src="/theone/js/script.js"></script>
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href={faviconSvg.src} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={appleTouchIcon.src} />
 
-<link rel="icon" href="/favicon.ico" sizes="32x32" />
-<link rel="icon" href={faviconSvg.src} type="image/svg+xml" />
-<link rel="apple-touch-icon" href={appleTouchIcon.src} />
-
-<link rel="sitemap" href='/sitemap-index.xml' />
-<link rel="canonical" href={canonicalURL} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="canonical" href={canonicalURL} />
     <!-- noindex robots -->
     {noindex && <meta name="robots" content="noindex,nofollow" />}
 
-<!-- Primary Meta Tags -->
+    <!-- Primary Meta Tags -->
 
-<meta name="title" content={mytitle} />
-<meta name="description" content={mydescription} />
+    <meta name="title" content={mytitle} />
+    <meta name="description" content={mydescription} />
 
-<meta name="author" content={author}>
-<meta name="copyright" content={author}>
+    <meta name="author" content={author} />
+    <meta name="copyright" content={author} />
 
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content={canonicalURL} />
-<meta property="og:title" content={mytitle} />
-<meta property="og:description" content={mydescription} />
-<meta property="og:image" content={myimage} />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={mytitle} />
+    <meta property="og:description" content={mydescription} />
+    <meta property="og:image" content={myimage} />
 
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:url" content={canonicalURL} />
-<meta name="twitter:title" content={mytitle} />
-<meta name="twitter:description" content={mydescription} />
-<meta name="twitter:image" content={myimage} />
-<meta name="twitter:creator" content="@bitdoze">
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalURL} />
+    <meta name="twitter:title" content={mytitle} />
+    <meta name="twitter:description" content={mydescription} />
+    <meta name="twitter:image" content={myimage} />
+    <meta name="twitter:creator" content="@bitdoze" />
 
-<script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   </head>
   <body>
     <TwSizeIndicator />

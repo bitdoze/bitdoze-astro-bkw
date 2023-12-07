@@ -1,0 +1,175 @@
+---
+date: 2023-12-07T00:00:00Z
+title: "Setting up Plausible Analytics for Astro with CloudFlare Workers"
+description: "Learn how to set up a proxy for Plausible Analytics using Cloudflare Workers, a free service that allows you to count your website stats without third-party requests"
+image: "../../assets/images/23/12/cloudflare-workers-plausible.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["astro","plausible"]
+canonical: https://www.bitdoze.com/astro-plausible-cloudflare-workers/
+---
+
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/23/12/create-worker.png";
+import imag2 from "../../assets/images/23/12/deploy-worker.png";
+import imag3 from "../../assets/images/23/12/cf-worker-edit-code.png";
+import imag4 from "../../assets/images/23/12/worker-code.png";
+import imag5 from "../../assets/images/23/12/worker-routes.png";
+
+[Plausible Analytics](https://plausible.io/) is a simple, lightweight, and privacy-friendly alternative to Google Analytics. It does not use cookies, track personal data, or collect identifiers. It offers a simple dashboard, a powerful API, and transparent and open-source code.
+
+You can self-host plausible on your servers easily and take control over your analytics you can check: [Install Plausible With One Click](https://www.bitdoze.com/install-plausible-analytics/) or if you prefer to do it manually: [How to Install Plausible Google Analytics Open Source Alternative](https://www.wpdoze.com/how-to-install-plausible/) you can use [self-hosted server panels](https://www.bitdoze.com/best-self-hosted-panels/) if you want easy deploy.
+
+
+[Astro](https://astro.build/) is a new framework for building faster websites with less client-side JavaScript. It allows you to write in JS, react, etc, and deploy your code to Cloudflare Pages, a serverless platform that runs on Cloudflare’s global network. You can take a look at  [How To Deploy An Astro.JS Blog On Cloudflare](https://www.bitdoze.com/deploy-astrojs-cloudflare/) to see how you can deploy it.
+
+In this article, you will learn how to set up Plausible Analytics for your Astro website using CloudFlare Workers. You will be able to track your site traffic and get essential insights on your visitors, content, and referral sources, and will not be blocked by ad blockers.
+
+>A proxy is a middleman that passes your requests from your website to Plausible and back. This way, the ad blockers and browsers won’t know that you are using Plausible and won’t block it.
+
+## Why Would You Proxy Analytics Script Thru CloudFlare Workers?
+
+One of the challenges of using Plausible Analytics is that some browsers and ad blockers may block the requests to the Plausible script or API, which can affect the accuracy of your analytics data. To avoid this, you can use a Cloudflare Worker to proxy the requests to Plausible using your domain.
+
+A Cloudflare Worker is a serverless function that runs on Cloudflare’s edge network, which means it can execute your code within milliseconds of your users worldwide.
+
+>You can use this for any analytics script or you can use it to deploy it on any platform you wish like Netlify or Vercel. This is not restricted only to Astro and will work with any static website you have.
+
+## Why Use CloudFlare Workers and not just Redirect?
+
+Astro is permitting you to have a `_redirects`` file where you can add your details, this will work on Netlify but will not work on CloudFlare Pages as CloudFlare Pages will not permit proxying the request to absolute URLs if you try you will get: 
+
+```sh
+Found invalid redirect lines:
+09:59:12.187	  - #1: /js/script.js https://domain.com/js/plausible.outbound-links.js 200
+09:59:12.187	    Proxy (200) redirects can only point to relative paths. Got https://domain.com/js/plausible.outbound-links.js
+09:59:12.187	  - #2: /api/event https://domain.com/api/event 200
+09:59:12.187	    Proxy (200) redirects can only point to relative paths. Got https://domain.com/api/event
+```
+
+## Proxying Plausible Through Cloudflare Workers
+
+Cloudflare Workers offers free service for up to 100,000 requests per day. All you need to set it up is a free Cloudflare account. I am using CloudFlare for all my projects and I will use it to proxy the Plausible scripts to not be blocked anymore by ad blockers and have a complete picture of my traffic.
+
+### Step 1: Create a worker
+
+Go to the ‘Workers & Pages’ section in your Cloudflare account and click on the ‘Create application’ button. Then click on the ‘Create Worker’ button in the ‘Workers’ tab. You can give your worker a name or keep the default one. Then click on the ‘Deploy’ button. Avoid using names that are associated with analytics.
+
+**Create Cloudflare Worker:**
+
+<Picture
+  src={imag1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Create Cloudflare Worker"
+/>
+
+**Deploy Cloudflare Worker:**
+
+<Picture
+  src={imag2}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Deploy Cloudflare Worker"
+/>
+
+### Step 2: Add The Code
+
+Click on the ‘Edit Code’ button and delete the default code and add the one below:
+
+```js
+const ScriptName = '/dr/script.js';
+const Endpoint = '/dra/event';
+
+const ScriptWithoutExtension = ScriptName.replace('.js', '')
+
+addEventListener('fetch', event => {
+    event.passThroughOnException();
+    event.respondWith(handleRequest(event));
+})
+
+async function handleRequest(event) {
+  const pathname = new URL(event.request.url).pathname
+  const [baseUri, ...extensions] = pathname.split('.')
+
+  if (baseUri.endsWith(ScriptWithoutExtension)) {
+      return getScript(event, extensions)
+  } else if (pathname.endsWith(Endpoint)) {
+      return postData(event)
+  }
+  return new Response(null, { status: 404 })
+}
+
+async function getScript(event, extensions) {
+    let response = await caches.default.match(event.request);
+    if (!response) {
+        response = await fetch("https://plausible.io/js/plausible." + extensions.join("."));
+        event.waitUntil(caches.default.put(event.request, response.clone()));
+    }
+    return response;
+}
+
+async function postData(event) {
+    const request = new Request(event.request);
+    request.headers.delete('cookie');
+    return await fetch("https://plausible.io/api/event", request);
+}
+```
+
+- **plausible.io** can be modified to use your domain where you have Plausible installed or in case you are using the Plausible one you can let it like that.
+- **dr** and **dra** can be modified if you wish to 
+
+**Edit Worker**
+<Picture
+  src={imag3}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Edit Cloudflare Worker"
+/>
+**Add Code**
+
+<Picture
+  src={imag4}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Add Cloudflare Worker Code"
+/>
+
+Once you've added the above code to the worker, you can click on the 'Save and Deploy' button on the top right
+
+### Step 3: Check That The Code is Working
+
+You need to see that your code is working now you can try to access it with:
+
+```sh
+https://your-worker-name.your-cloudflare-username.workers.dev/dr/script.js
+```
+In case you use something else for **dr** use your path.
+
+### Step 4: Run proxy as a subdirectory
+
+You will need to use CloudFlare for hosting your domain and if you can run the proxy as a subdirectory of your website instead of a separate domain. This can make your URLs look cleaner and avoid third-party requests. To do this, you need to add a route for your worker in the ‘Routes’ section of your worker. The route should be a URL prefix where you want to install Plausible, like https://example.com/theone/ and chose the domain in the zone
+
+**Route**: `*example.com/theone/*`
+**theone** is the subdir you can use what you want
+
+
+Below is a picture with my example:
+<Picture
+  src={imag5}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Add Cloudflare Worker route"
+/>
+
+### Step 5: Integrate a new snippet into your site header
+
+You will need to add the below snippet code into your site header, for Astro or anything you may want:
+
+```html
+<script defer data-domain="yourdomain.com" data-api="/theone/dra/event" src="/theone/dr/script.js"></script>
+```
+Replace `yourdomain.com` with the actual domain in case you changed the subdir from `theone` use what you provided, same for `dr` and `dra`.
+
+Now you should have a working plausible analytics that is proxied to Cloudflare workers and is served from the domain.
