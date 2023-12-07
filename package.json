@@ -12,8 +12,9 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^2.0.0",
-    "@astrojs/rss": "^4.0.0",
-    "astro": "^4.0.2",
+    "@astrojs/rss": "^4.0.1",
+    "astro": "^4.0.3",
+    "astro-analytics": "^2.7.0",
     "astro-seo": "^0.8.0",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
