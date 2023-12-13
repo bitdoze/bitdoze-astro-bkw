@@ -43,14 +43,14 @@ const {
 } = Astro.props;
 const canonicalURL = `${config.site.base_url}/${Astro.url.pathname.replace(
   "/",
-  "",
+  ""
 )}`;
 
 const mytitle = plainify(
-  meta_title ? meta_title : title ? title : config.site.title,
+  meta_title ? meta_title : title ? title : config.site.title
 );
 const mydescription = plainify(
-  description ? description : config.metadata.meta_description,
+  description ? description : config.metadata.meta_description
 );
 
 const myimage = `${config.site.base_url}${image}`;
@@ -76,7 +76,7 @@ const schema = {
 };
 ---
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -123,6 +123,10 @@ const schema = {
     <meta name="twitter:creator" content="@bitdoze" />
 
     <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5524145876241117"
+      crossorigin="anonymous"></script>
   </head>
   <body>
     <TwSizeIndicator />
