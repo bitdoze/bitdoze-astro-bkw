@@ -1,0 +1,145 @@
+---
+date: 2024-01-09T00:00:00Z
+title: "Dockge - Portainer Alternative for Docker Management"
+description: "Learn how Dockge can help you manage your Docker containers, stacks, and services with ease. Dockge is a web-based Docker manager that lets you self-host your own applications and services with minimal hassle."
+image: "../../assets/images/24/01/dockge-install.jpeg"
+categories: ["tools"]
+authors: ["Dragos"]
+tags: ["dockge", "self-hosted"]
+canonical: "https://www.bitdoze.com/dockge-install/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/01/dockge-main.png";
+import imag2 from "../../assets/images/24/01/dockge-container.png";
+import imag3 from "../../assets/images/24/01/dockge-add.png";
+
+Docker is a popular technology that allows you to run applications and services in isolated containers. Docker containers are lightweight, portable, and scalable, making them ideal for self-hosting your own applications and services.
+
+However, managing Docker containers can be challenging, especially if you have multiple containers, stacks, and services running on your server. You need to use the command line, edit configuration files, monitor the status and logs, and deal with networking and security issues.
+
+That’s where Dockge comes in. Dockge is a web-based Docker manager that simplifies the process of self-hosting your own applications and services. With Dockge, you can easily create, manage, and update your Docker containers, stacks, and services from a user-friendly interface.
+
+In this article, we will introduce Dockge, explain how it works, and show you how to install it on your server. We will also highlight some of the features and benefits of using Dockge for your self-hosting needs.
+
+## What is Dockge?
+
+[Dockge](https://github.com/louislam/dockge) is a web-based Docker manager that lets you self-host your own applications and services with minimal hassle. Dockge is a Portainer alternative that is a lot simpler and can help you deploy docker-compose applications, it was developed by Louis the creator of [Uptime Kuma](https://github.com/louislam/uptime-kuma) which is a well known tool that can help you monitor your applications and websites more on: [Uptime Kuma Self Hosted Monitoring Tool](https://www.bitdoze.com/uptime-kuma-tool/)
+
+<Picture
+  src={imag1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Dockge UI"
+/>
+
+Dockge, you can access everything you need on a single page, without switching between multiple tabs. Whether you want to create a new container, view the logs, edit the YAML file, use the terminal, or control the container, you can do it all from one place. Dockge integrates all the essential functions into a single interface, making Docker management easy and convenient.
+
+Dockge is also a powerful tool that helps you manage Docker Compose.yaml stacks with ease. You can create, edit, start, stop, restart, and delete Docker containers and services, all defined by your compose.yaml files. Dockge provides an interactive compose.yaml editor that lets you configure your stacks without hassle. You can also communicate with your containers and services in real time through the web terminal.
+
+Dockge lets you track the progress of your container operations, such as image pulls, in real time. Dockge has a sleek and stylish user interface that enhances your productivity and enjoyment. If you like Uptime Kuma’s elegant UI/UX, you will love Dockge’s interface too. Moreover, Dockge makes it easy to convert complex “docker run” commands into Compose.yaml configurations, keeping your Compose files safe and organized on your drive. You can access and manage them using standard Docker Compose commands, giving you full control over your configuration files.
+
+<Picture
+  src={imag2}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Dockge Container"
+/>
+
+## Installing Dockge
+
+In this section we are going to see everything that needs to be done to have Dockge installed and running on a VPS server.
+
+### 1. Create a VPS server
+
+You will need a VPS server where you can host your docker containers I am recommending [Hetzner](https://go.bitdoze.com/hetzner), for more details check this [Hetzner Review](https://www.wpdoze.com/hetzner-cloud-review/) and you can check also: [DigitalOcean vs Vultr vs Hetzner](https://www.wpdoze.com/digitalocean-vs-vultr-vs-hetzner/)
+
+<Button link="https://go.bitdoze.com/do" text="DigitalOcean $100 Free" />
+<Button link="https://go.bitdoze.com/vultr" text="Vultr $100 Free" />
+<Button link="https://go.bitdoze.com/hetzner" text="Hetzner €⁠20 Free" />
+
+The VPS process is easy and you just need a Ubuntu server, Dockge is working on ARM and x86_64 also.
+
+### 2. Install Docker
+
+Now that you have your VPS created you will need to update it and have docker installed, the below will need to be done to have docker UP and running:
+
+```sh
+sudo apt-get update
+sudo apt-get install ca-certificates curl gnupg lsb-release
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  jammy stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose
+```
+
+Everything is also explained in: [Install Docker & Docker-compose for Ubuntu](https://www.bitdoze.com/install-docker-ubuntu-arm/)
+
+### 3. Install Dockge
+
+Installing Dockge is easy. Here are the steps they lay out on their [GitHub Page](https://github.com/louislam/dockge?l#basic)
+
+```sh
+# Create directories that store your stacks and stores Dockge's stack
+mkdir -p /opt/stacks /opt/dockge
+cd /opt/dockge
+
+# Download the compose.yaml
+curl https://raw.githubusercontent.com/louislam/dockge/master/compose.yaml --output compose.yaml
+
+# Start the server
+docker compose up -d
+```
+
+The default port in the YAML file is 5001 but you can change it if you want with your port. Below is the YAML file:
+
+```yaml
+version: "3.8"
+services:
+  dockge:
+    image: louislam/dockge:1
+    restart: unless-stopped
+    ports:
+      # Host Port : Container Port
+      - 5001:5001
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+
+      # If you want to use private registries, you need to share the auth file with Dockge:
+      # - /root/.docker/:/root/.docker
+
+      # Stacks Directory
+      # ⚠️ READ IT CAREFULLY. If you did it wrong, your data could end up writing into a WRONG PATH.
+      # ⚠️ 1. FULL path only. No relative path (MUST)
+      # ⚠️ 2. Left Stacks Path === Right Stacks Path (MUST)
+      - /opt/stacks:/opt/stacks
+    environment:
+      # Tell Dockge where is your stacks directory
+      - DOCKGE_STACKS_DIR=/opt/stacks
+```
+
+### 4. Access Dockge
+
+To access the dockge installation and create your first user you will need to use the server IP and the port(5001 by default) in the compose.yaml file. First, you will be prompted to create your first user. After you can go and start deploying docker compose apps.
+
+<Picture
+  src={imag3}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Dockge Add Compose"
+/>
+
+### 5. Adding Admin URL with SSL to Dockge and the APPS
+
+If this is an internet-facing server and the APPs hosted on it will be internet facing then you will need to add a container that is handling the reverse proxy to your containers you can do that with CloudFlare tunnels or you can use the [nginx-proxy-manager](https://nginxproxymanager.com/)
+In the video we will see how this can be done with CloudFlare Tunnels.
+
+## Final Notes
+
+I have only started to use Dockge and I really like it, it allows me to have also an UI to my docker compose apps. I will use it starting now and create some tutorials that will help deploy verious apps with it.
