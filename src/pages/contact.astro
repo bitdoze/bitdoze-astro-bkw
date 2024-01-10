@@ -48,7 +48,7 @@ const { title, description, meta_title, image } = entry.data;
           </ul>
         </div>
         <div class="sm:col-7 md:col-8">
-          <form class="contact-form row gy-2 justify-center" method="POST" action={contact_form_action}>
+          <form class="contact-form row gy-2 justify-center" method="POST" action="https://formsubmit.co/dragos@bitdoze.com" data-astro-reload>
             <div class="lg:col-6">
               <label class="mb-2 block" for="name">Name <span class="text-red-600">*</span></label>
               <input class="form-input w-full" name="name" type="text" required />
@@ -67,7 +67,7 @@ const { title, description, meta_title, image } = entry.data;
             </div>
             <div class="col-12">
               <label class="mb-2 block" for="message">Message <span class="text-red-600">*</span></label>
-              <textarea class="form-textarea w-full" rows="4"></textarea>
+              <textarea name="message" class="form-textarea w-full" rows="4"></textarea>
             </div>
             <div class="col-12">
               <button class="btn btn-primary mt-2">Submit Now</button>
