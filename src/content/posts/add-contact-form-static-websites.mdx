@@ -1,0 +1,120 @@
+---
+date: 2024-01-10T00:00:00Z
+title: "How To Add A Contact Form To Any Static Website"
+description: "Add a contact for to any static website free and easy in 2024 with formsubmit.co."
+image: "../../assets/images/24/01/contact-form-static-websites.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["astro", "tutorials"]
+canonical: "https://www.bitdoze.com/add-contact-form-static-websites/"
+---
+
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+
+In the past, I have created a tutorial with [OpnForms to add a contact form to Astro](https://www.bitdoze.com/add-contact-form-astro/) back then OpnForms had a free option that was sending also an email when the form was submitted but since then things changed and the email send feature was added behind a pay option.
+
+Since then I have searched to see the best free contact option to use for a static website and I have come across [formsubmit.co](https://formsubmit.co/) a web service that allows you to connect your HTML forms to an email endpoint and receive email notifications of form submissions. You do not need any coding or backend skills to use it. You just need to point your form’s action attribute to the Formsubmit.co URL and confirm your email address. You can also customize your form features, such as reply, subject, copy, and reCAPTCHA.
+
+What I like about formsubmit.co besides the fact that is easy to use is the reCAPTCHA that will block spam. I have tested a few similar services in the past and I was receiving a lot of spam.
+
+## How You add The Contact Form to Any Static Website
+
+### 1. Create your Form
+
+Design a form for your website using HTML. You can use any elements you want, such as `<input>`, `<select>`, and `<textarea>`, but make sure to include a name attribute for each element that you want to receive the submission data. For example, you can create a simple contact form like this:
+
+```html
+<form id="contact-form">
+  <label for="name">Name:</label>
+  <input type="text" id="name" name="name" required />
+  <label for="email">Email:</label>
+  <input type="email" id="email" name="email" required />
+  <label for="message">Message:</label>
+  <textarea id="message" name="message" required></textarea>
+  <button type="submit">Send</button>
+</form>
+```
+
+### 2. Point the action Attribute
+
+Point the action attribute of your form to the formsubmit.co URL with your email address as the parameter. This will enable submissions to be sent to your email address. For example, if your email address is your@email.com, you can add this attribute to your form:
+
+```html
+<form
+  id="contact-form"
+  action="https://formsubmit.co/your@email.com"
+  method="POST"
+></form>
+```
+
+The form will look like this:
+
+```html
+<form
+  id="contact-form"
+  action="https://formsubmit.co/your@email.com"
+  method="POST"
+>
+  <label for="name">Name:</label>
+  <input type="text" id="name" name="name" required />
+  <label for="email">Email:</label>
+  <input type="email" id="email" name="email" required />
+  <label for="message">Message:</label>
+  <textarea id="message" name="message" required></textarea>
+  <button type="submit">Send</button>
+</form>
+```
+
+### 3. Submit the form once
+
+Submit the form once on your website or visit the URL in your browser. A confirmation email will be sent to you with a link, which you will have to click to confirm your email address. This is a one-time step to verify that you own the email address.
+
+### 4. Customize the form with formsubmit.co options
+
+You are all set to go! Now, whenever someone submits the form on your website, you will receive an email notification with the form data. You can also customize your form features, such as reply, subject, copy, and reCAPTCHA, by using special name attributes prefixed with an underscore.
+
+#### Page Redirect After Form Is Submitted
+
+You can redirect it to a page `Thank You` after the form is submitted or any other page you just need to add _`_next`_ :
+
+```html
+<input type="hidden" name="_next" value="https://yourdomain.co/thanks.html" />
+```
+
+#### Add CC to emails
+
+You can send email to others with the _`cc`_ attribute as below:
+
+```html
+<input
+  type="hidden"
+  name="_cc"
+  value="another@email.com,yetanother@email.com"
+/>
+```
+
+You can check all the attributes in the [formsubmit.co documentation](https://formsubmit.co/documentation)
+
+## How You Add The Contact Form to Astro
+
+I am having my blog built in Astro and I need this to work there. Initially, when I only added the above I got an error:
+
+> Make sure your form has the method="POST" attribute
+
+I am using ViewTransition in Astro and I think that caused the problem, to fix that I just added the `data-astro-reload` to the form and everything worked, just as below:
+
+```html
+<form
+  id="contact-form"
+  action="https://formsubmit.co/your@email.com"
+  method="POST"
+  data-astro-reload
+></form>
+```
+
+This made the contact form to work on Astro.
+
+## Conclusion
+
+[formsubmit.co](https://formsubmit.co/) provides an easy way to add a contact form to any static website, you don't need to be an expert you just add the email endpoint and you are ready to go.
+I hope you enjoyed this tutorial and found it useful. If you have any feedback or questions, please let us know by using the contact form.
