@@ -1,0 +1,104 @@
+---
+date: 2024-01-16T00:00:00Z
+title: "How To Add Custom Domain to Carrd.co Website"
+description: "Let's see how a custom domain name can be added to your carrd.co website."
+image: "../../assets/images/24/01/carrd-domain-setup.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["carrd"]
+canonical: "https://www.bitdoze.com/carrd-add-domain/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/01/domain-settings-carrd.png";
+
+[Carrd.co](https://go.bitdoze.com/carrd) is a great platform for creating simple and beautiful websites. But what if you want to use your own domain name instead of the default .carrd.co URL? In this article, you’ll learn how to set up a custom domain for your Carrd.co website in just a few steps.
+You need the Carrd.co Pro Standard plan that allows 10 domains (websites) at $19/year to add a domain name.
+
+## Key Takeaways
+
+- You need a Pro Standard or higher plan to use a custom domain on Carrd.co
+- You need to register a domain name from a domain provider (such as Namecheap, Cloudflare, or GoDaddy)
+- You need to add two A records and one CNAME record to your domain’s DNS settings
+- You need to enter your custom domain name in Carrd.co’s publish settings and wait for it to initialize
+- You can use Cloudflare’s free SSL service to encrypt your site and improve its SEO ranking
+
+Some Carrd Tutorials:
+
+- [Add Stickey Header Carrd](https://www.bitdoze.com/add-stickey-header-carrd/)
+- [Add Carrd Cookie Notice](https://www.bitdoze.com/add-cookie-notice-carrd/)
+- [How To Add Pricing Table to Carrd.co](https://www.bitdoze.com/carrd-add-pricing-table/)
+- [Carrd.co Review](https://www.bitdoze.com/carrd-review/)
+- [How To Add Accordion FAQs Drop-Down to Carrd.co](https://www.bitdoze.com/add-accordion-carrd/)
+
+## How to Register a Domain Name
+
+The first step to using a custom domain on Carrd.co is to register a domain name. A domain name is the address of your website on the internet, such as example.com or mysite.net. You can choose any domain name that is available and suits your purpose.
+
+To register a domain name, you need to use a domain provider. A domain provider is a company that sells and manages domain names. There are many domain providers to choose from, such as Namecheap, Cloudflare, or GoDaddy. The price and features of each domain provider may vary, so you should compare them before making a decision.
+
+Here are some [tips to help you choose a domain name](https://www.wpdoze.com/choose-domain-name/) and a domain provider:
+
+- Choose a domain name that is short, memorable, and relevant to your website’s topic or niche
+- Choose a domain extension that matches your website’s purpose or audience, such as .com for commercial, .org for non-profit, or .io for tech
+- Check the availability of your domain name using a domain search tool, such as Namecheap’s Domain Search or Cloudflare’s Domain Registration
+- Compare the prices and features of different domain providers, such as Namecheap’s Pricing or Cloudflare’s Pricing
+- Look for domain providers that offer free or discounted services
+  Once you have chosen a domain name and a domain provider, you can proceed to register your domain name.
+
+## How to Configure Your Domain’s DNS Settings
+
+All of this is covered in below video:
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/wwRzzLGSc2U"
+  label="How To Add Custom Domain to Carrd.co Website"
+/>
+
+The second step to using a custom domain on Carrd.co is to configure your domain’s DNS settings. DNS stands for Domain Name System, and it is a system that translates domain names into IP addresses. IP addresses are numerical identifiers that locate devices on the internet, such as servers or computers.
+
+To use a custom domain on Carrd.co, you need to point your domain name to Carrd.co’s IP addresses. This way, when someone types your domain name in their browser, they will be directed to your Carrd.co website. To do this, you need to add two A records and one CNAME record to your domain’s DNS settings.
+
+An A record is a type of DNS record that maps a domain name to an IP address. A CNAME record is a type of DNS record that maps a domain name to another domain name. You need to add two A records to point your domain name and your www subdomain to Carrd.co’s IP addresses. You need to add one CNAME record to redirect your www subdomain to your domain name.
+
+To configure your domain’s DNS settings, you need to use your domain provider’s DNS management tool. The DNS management tool is where you can add, edit, or delete DNS records for your domain. The location and interface of the DNS management tool may vary depending on the domain provider, but it usually can be accessed from your domain provider’s dashboard or control panel.
+
+Here are some examples of how to access and use the DNS management tool for some popular domain providers:
+
+- **Namecheap’s DNS Management**: Log in to your Namecheap account and go to Domain List. Click on Manage next to your domain name and select Advanced DNS. Click on Add New Record and select A Record from the drop-down menu. Enter @ in the Host field and one of Carrd.co’s IP addresses in the Value field. Repeat the same steps for the second A record. Click on Add New Record and select CNAME Record from the drop-down menu. Enter www in the Host field and your domain name in the Value field. Save the changes and wait for the DNS propagation to take effect.
+- **Cloudflare’s DNS Management**: Log in to your Cloudflare account and go to the dashboard. Click on the domain name that you want to manage and select DNS. Click on Add record and select A from the Type drop-down menu. Enter @ in the Name field and one of Carrd.co’s IP addresses in the IPv4 address field. Repeat the same steps for the second A record. Click on Add record and select CNAME from the Type drop-down menu. Enter www in the Name field and your domain name in the Target field. Save the changes and wait for the DNS propagation to take effect.
+
+The IP addresses that you need to use for the A records are:
+
+151.101.1.195
+151.101.65.195
+
+You can find these IP addresses in Carrd.co’s publish settings, which we will cover in the next step.
+
+## How to Publish Your Carrd.co Website with a Custom Domain
+
+The third and final step to using a custom domain on Carrd.co is to publish your Carrd.co website with a custom domain. This is where you tell Carrd.co what domain name you want to use for your website and wait for it to initialize.
+
+To publish your Carrd.co website with a custom domain, you need to use Carrd.co’s publish settings. The publish settings are where you can choose where and how to publish your Carrd.co website. You can access the publish settings from Carrd.co’s editor or dashboard.
+
+Here are the steps to publish your Carrd.co website with a custom domain:
+
+- Log in to your Carrd.co account and open the website that you want to publish
+- Click on the Publish icon (the disk icon) on the top right corner of the editor or dashboard
+- Set the Action to Publish to a custom domain
+- Enter your domain name exactly as you want it to appear in the address bar (either domain.ext or www.domain.ext)
+- Scroll down a bit to locate the site’s host records. These are the same IP addresses that you used for the A records in the previous step. You can use them to verify that you configured your domain’s DNS settings correctly.
+- Click on Publish Changes
+
+<Picture
+  src={imag1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Carrd domain add"
+/>
+
+Wait for the domain to initialize. This is an automatic process that can take up to an hour to complete (though it’s usually a lot faster than that). Once initialized, you’ll be able to access your website using the custom domain that you just set up.
+
+<Button link="https://go.bitdoze.com/carrd" text="Carrd.co" />
