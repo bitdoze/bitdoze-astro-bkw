@@ -1,0 +1,223 @@
+---
+date: 2024-01-18T00:00:00Z
+title: "Deploy Streamlit on a VPS and Proxy to Cloudflare Tunnels"
+description: Learn how to deploy Streamlit on your own VPS with this comprehensive guide. Discover the steps to set up Streamlit on a VPS, proxy it to Cloudflare Tunnels, and more."
+image: "../../assets/images/24/01/streamlit-on-vps.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["streamlit"]
+canonical: "https://www.bitdoze.com/streamlit-deploy-vps-cloudflare/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/01/cloudflare_tunnels.png";
+import imag2 from "../../assets/images/24/01/cloudflare-strimlit-tunnel.jpeg";
+
+[Streamlit](https://streamlit.io/) is a Python framework that lets you create interactive web applications with minimal code. You can use streamlit to build various types of apps, such as:
+
+- Data exploration and analysis apps, where you can load, manipulate, and visualize data from different sources and formats.
+- Machine learning and deep learning apps, where you can train, test, and deploy models, and showcase their results and performance.
+- Business intelligence and reporting apps, where you can create dashboards, charts, and tables to communicate insights and metrics.
+
+Streamlit has a simple and intuitive syntax, where you can use Python functions and decorators to define the layout and logic of your app. For example, you can use st.title to add a title, st.write to add text, st.dataframe to display a pandas dataframe, and st.slider to add a slider widget. You can also use st.cache to speed up your app by caching data or computations, and st.sidebar to add a sidebar with controls and options.
+
+Streamlit also has a hot-reloading feature, where your app automatically updates as you edit your code, without the need to refresh your browser. This makes streamlit ideal for rapid prototyping and experimentation, as you can see the changes and effects of your code instantly.
+
+To install streamlit, you can use the following command:
+
+```bash
+pip install streamlit
+```
+
+To run a streamlit app, you can use the following command:
+
+```bash
+streamlit run app.py
+```
+
+Where app.py is the name of your Python file that contains your streamlit code. By default, streamlit will run your app on http://localhost:8501, where you can view it in your browser.
+
+## Streamlit Cloud Free Deployment
+
+[Streamlit Cloud](https://streamlit.io/cloud) is a service that allows you to deploy your streamlit app online for free. You can use Streamlit Cloud to share your app with anyone, without the need to set up and manage your own server.
+
+To use Streamlit Cloud, you need to have a GitHub account and a repository that contains your streamlit app. You can then sign up for Streamlit Cloud with your GitHub account and link your repository to your Streamlit Cloud account. Streamlit Cloud will automatically detect your streamlit app and deploy it on a random URL with the streamlit.io domain, such as https://share.streamlit.io
+
+**Streamlit Cloud has some advantages, such as:**
+
+- It is free and easy to use, as you only need a GitHub account and a repository to deploy your app.
+- It supports GitHub integration, as you can sync your app with your GitHub repository and update your app with every push or pull request.
+- It supports collaboration and feedback, as you can invite others to view, comment, and edit your app, and see the analytics and usage of your app.
+
+**However, Streamlit Cloud also has some limitations, such as:**
+
+- You only get 1 GB of memory for your app, which might not be enough for some complex or data-intensive applications.
+- You can’t scale up your app to handle more traffic or resources, as Streamlit Cloud does not offer any paid plans or customizations.
+- You can’t use a custom domain name for your app, as Streamlit Cloud only provides a random URL with the streamlit.io domain.
+
+## How to Deploy Streamlit on Your VPS and Proxy Through CloudFlare Tunnels
+
+If you want to have more control and flexibility over your streamlit app, you can deploy it on your own virtual private server (VPS). A VPS is a virtual machine that you can rent from a cloud provider, such as [Hetzner](https://go.bitdoze.com/hetzner), DigitalOcean, AWS, or Google Cloud. A VPS gives you full access and control over your server, where you can install and run any software and applications you want.
+
+To deploy your streamlit app on your own VPS, you need to follow these steps:
+
+### 1. Create a VPS
+
+Choose a VPS provider and plan that suits your needs and budget. For example, you can use [Hetzner](https://go.bitdoze.com/hetzner) and choose a server with 2 GB of memory and 50 GB of disk space for $5/month. You also need to choose an operating system for your VPS, such as Ubuntu 22.04.
+
+### 2. Update and add swap to the VPS
+
+Once you have created and logged in to your VPS, you need to update the system and install some essential packages. You also need to add some swap space to your VPS, which is a file that acts as a virtual memory when your physical memory is full. This can help prevent your app from crashing due to memory issues. To update and add swap to your VPS, you can use the following commands:
+
+```bash
+# Update the system
+sudo apt update && sudo apt -y upgrade
+
+# Add 2 GB of swap space
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+### 3. Install pip and streamlit on your VPS
+
+Pip is a package manager for Python, which allows you to install and manage Python packages and dependencies. Streamlit is the framework that you use to create your app. To install pip and streamlit on your VPS, you can use the following commands:
+
+```sh
+# Install pip for Python 3
+sudo apt install python3-pip
+
+# Install streamlit
+pip3 install streamlit
+
+```
+
+### 4. Get the Streamlit App on VPS.
+
+You need to transfer your streamlit app code from your local machine or GitHub repository to your VPS. You can use different methods to do this, such as FTP, SCP, or Git. For example, you can use Git to clone your GitHub repository to your VPS, by using the following commands:
+
+```sh
+# Create a directory for your app
+mkdir /opt/streamlit-app && cd /opt/streamlit-app
+
+# Clone your GitHub repository to your app directory
+git clone https://github.com/username/repo-name
+
+# Go to your app directory
+cd repo-name
+```
+
+### 5. Install the requirements for your app
+
+Your app might have some additional Python packages or dependencies that you need to install on your VPS. You can list these requirements in a file called requirements.txt in your app directory, and use pip to install them. For example, if your app uses pandas and matplotlib, you can create a requirements.txt file with the following content:
+
+```
+pandas
+matplotlib
+```
+
+And then use the following command to install them:
+
+```sh
+pip3 install -r requirements.txt
+```
+
+### 6. Run the app on your VPS
+
+You can use the same command that you use to run your app locally to run it on your VPS, such as:
+
+```sh
+streamlit run app.py
+```
+
+Where `app.py` is the name of your Python file that contains your streamlit code. By default, streamlit will run your app on `http://localhost:8501` or `http://ip:8501`, where you can view it in your browser. However, this URL is only accessible from your VPS, and not from the outside world. To make your app accessible from the internet, you need to proxy it to Cloudflare tunnels, which we will explain in the next section.
+
+### 7.Set up PM2 to manage your streamlit app
+
+PM2 is a process manager for Node.js, which allows you to run and monitor your applications in the background. You can use PM2 to run your streamlit app as a daemon, which means it will keep running even if you close your terminal or log out of your VPS. You can also use PM2 to restart your app automatically if it crashes, and to view the logs and status of your app. To set up PM2 to manage your streamlit app, you need to follow these steps:
+
+**Install Node.js and npm on your VPS.**
+
+Node.js is a JavaScript runtime environment, and npm is a package manager for Node.js. You can use the following commands to install them:
+
+```sh
+sudo apt update
+sudo apt install nodejs npm
+```
+
+**Install PM2 globally on your VPS**
+
+You can use the following command to install PM2 with npm:
+
+```sh
+sudo npm install pm2@latest -g
+```
+
+**Run streamlit with PM2.**
+
+You can use the following command to start your streamlit app with PM2, and give it a name, such as `my-streamlit-app:`
+
+```sh
+pm2 start 'streamlit run /opt/streamlit-app/repo-name/app.py' --name my-streamlit-app
+```
+
+**Set PM2 to start on boot.**
+
+You can use the following commands to make PM2 start automatically when your VPS boots, and to save the current state of your PM2 processes:
+
+```sh
+pm2 startup
+pm2 save
+```
+
+You can use the following commands to manage your streamlit app with PM2:
+
+- **pm2 list:** to list all the PM2 processes and their status.
+- **pm2 show my-streamlit-app:** to show the details of your streamlit app, such as the port, the PID, the memory usage, and the logs.
+- **pm2 stop my-streamlit-app:** to stop your streamlit app.
+- **pm2 restart my-streamlit-app:** to restart your streamlit app.
+- **pm2 delete my-streamlit-app:** to delete your streamlit app from PM2.
+
+### 8. Create a Cloudflare tunnel and install Cloudflared on your VPS
+
+Cloudflare tunnels are a service that allows you to securely expose your app to the internet without opening any ports on your VPS. Cloudflare tunnels use a software called cloudflared, which creates an encrypted connection between your VPS and Cloudflare’s edge network. Cloudflare then proxies the traffic from your app’s port to your custom domain name, and provides you with HTTPS, firewall, and DDoS protection. To create a Cloudflare tunnel and install cloudflared on your VPS, you need to follow these steps:
+
+Sign up for a Cloudflare account and add your domain name. You need to have a domain name that you own or control, and add it to your Cloudflare account. Cloudflare will then provide you with the nameservers that you need to point your domain name to Cloudflare’s DNS. You can follow the instructions on Cloudflare’s dashboard to do this.
+
+Go to **Zero Tryst** > **Access** > **Tunnels** and create a tunnel. After you give it a name you will have an option to install the package on your VPS as in below picture:
+
+<Picture
+  src={imag1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="cloudflare tunnel"
+/>
+
+You just copy the code and run it on the VPS, it should be something like:
+
+```sh
+curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb &&
+
+sudo dpkg -i cloudflared.deb &&
+
+sudo cloudflared service install <tocken>
+```
+
+After you point the domain to the IP address of the server with the port as below:
+
+<Picture
+  src={imag2}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="cloudflare strimlit tunnel"
+/>
+
+After you save, you can then access your streamlit app with your domain name or subdomain, such as https://app.example.com
+
+## Conclusions
+
+This is how easy it is to have your streamlit app run on a VPS server with CloufLare as a proxy. You can even modify it and run it in a python virtual env.
