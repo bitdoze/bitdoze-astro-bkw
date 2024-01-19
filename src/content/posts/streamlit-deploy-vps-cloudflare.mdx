@@ -96,13 +96,31 @@ pip3 install streamlit
 
 ```
 
-### 4. Get the Streamlit App on VPS.
+### 4. Create a User for Your Streamlit App
+
+For security reasons, you should create a user that will be used to run your app. To do this you should run:
+
+```sh
+useradd -m streamlit
+```
+
+This will add a user called `streamlit` with a home in `/home/streamlit` that we are going to use to run the app.
+
+### 5. Get the Streamlit App on VPS.
 
 You need to transfer your streamlit app code from your local machine or GitHub repository to your VPS. You can use different methods to do this, such as FTP, SCP, or Git. For example, you can use Git to clone your GitHub repository to your VPS, by using the following commands:
 
+Login with the new user:
+
+```sh
+sudo su - streamlit
+```
+
+Create the directory and clone the app:
+
 ```sh
 # Create a directory for your app
-mkdir /opt/streamlit-app && cd /opt/streamlit-app
+mkdir $HOME/streamlit-app && cd $HOME/streamlit-app
 
 # Clone your GitHub repository to your app directory
 git clone https://github.com/username/repo-name
@@ -111,7 +129,7 @@ git clone https://github.com/username/repo-name
 cd repo-name
 ```
 
-### 5. Install the requirements for your app
+### 6. Install the requirements for your app
 
 Your app might have some additional Python packages or dependencies that you need to install on your VPS. You can list these requirements in a file called requirements.txt in your app directory, and use pip to install them. For example, if your app uses pandas and matplotlib, you can create a requirements.txt file with the following content:
 
@@ -120,13 +138,14 @@ pandas
 matplotlib
 ```
 
-And then use the following command to install them:
+And then use the following command to install them use the user you just created:
 
 ```sh
 pip3 install -r requirements.txt
+. ~/.profile
 ```
 
-### 6. Run the app on your VPS
+### 7. Run the app on your VPS
 
 You can use the same command that you use to run your app locally to run it on your VPS, such as:
 
@@ -136,7 +155,7 @@ streamlit run app.py
 
 Where `app.py` is the name of your Python file that contains your streamlit code. By default, streamlit will run your app on `http://localhost:8501` or `http://ip:8501`, where you can view it in your browser. However, this URL is only accessible from your VPS, and not from the outside world. To make your app accessible from the internet, you need to proxy it to Cloudflare tunnels, which we will explain in the next section.
 
-### 7.Set up PM2 to manage your streamlit app
+### 8. Set up PM2 to manage your streamlit app
 
 PM2 is a process manager for Node.js, which allows you to run and monitor your applications in the background. You can use PM2 to run your streamlit app as a daemon, which means it will keep running even if you close your terminal or log out of your VPS. You can also use PM2 to restart your app automatically if it crashes, and to view the logs and status of your app. To set up PM2 to manage your streamlit app, you need to follow these steps:
 
@@ -144,9 +163,16 @@ PM2 is a process manager for Node.js, which allows you to run and monitor your a
 
 Node.js is a JavaScript runtime environment, and npm is a package manager for Node.js. You can use the following commands to install them:
 
+**Under root:**
+
+From [deb.nodesource](https://deb.nodesource.com/)
+
 ```sh
-sudo apt update
-sudo apt install nodejs npm
+sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+NODE_MAJOR=20
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+sudo apt-get update && sudo apt-get install nodejs -y
 ```
 
 **Install PM2 globally on your VPS**
@@ -161,8 +187,11 @@ sudo npm install pm2@latest -g
 
 You can use the following command to start your streamlit app with PM2, and give it a name, such as `my-streamlit-app:`
 
+You need to do this with the user just created.
+
 ```sh
-pm2 start 'streamlit run /opt/streamlit-app/repo-name/app.py' --name my-streamlit-app
+sudo su - streamlit
+pm2 start 'streamlit run /home/streamlit/streamlit-app/repo-name/app.py' --name my-streamlit-app
 ```
 
 **Set PM2 to start on boot.**
@@ -170,7 +199,13 @@ pm2 start 'streamlit run /opt/streamlit-app/repo-name/app.py' --name my-streamli
 You can use the following commands to make PM2 start automatically when your VPS boots, and to save the current state of your PM2 processes:
 
 ```sh
+#with streamlit
 pm2 startup
+
+#with root
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u streamlit --hp /home/streamlit
+
+#with streamlit
 pm2 save
 ```
 
@@ -182,7 +217,7 @@ You can use the following commands to manage your streamlit app with PM2:
 - **pm2 restart my-streamlit-app:** to restart your streamlit app.
 - **pm2 delete my-streamlit-app:** to delete your streamlit app from PM2.
 
-### 8. Create a Cloudflare tunnel and install Cloudflared on your VPS
+### 9. Create a Cloudflare tunnel and install Cloudflared on your VPS
 
 Cloudflare tunnels are a service that allows you to securely expose your app to the internet without opening any ports on your VPS. Cloudflare tunnels use a software called cloudflared, which creates an encrypted connection between your VPS and Cloudflare’s edge network. Cloudflare then proxies the traffic from your app’s port to your custom domain name, and provides you with HTTPS, firewall, and DDoS protection. To create a Cloudflare tunnel and install cloudflared on your VPS, you need to follow these steps:
 
