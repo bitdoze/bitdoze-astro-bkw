@@ -1,0 +1,274 @@
+---
+date: 2024-01-19T00:00:00Z
+title: "How to Manage Applications with PM2: A Complete Guide"
+description: Learn how to use PM2, a powerful and easy-to-use process manager for Node.js, to run and monitor your applications in production. Whether you are using Node.js, Python, or any other language, PM2 can help you improve the scalability, performance, and reliability of your applications."
+image: "../../assets/images/24/01/pm2-manage.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["linux"]
+canonical: "https://www.bitdoze.com/pm2-manage-apps/"
+---
+
+import { Picture } from "astro:assets";
+import imag1 from "../../assets/images/24/01/pm2-monit.png";
+
+If you are developing applications for the web, you know how important it is to have a reliable and efficient way to run and manage them in production. You need a process manager that can help you run your applications in the background, scale them up or down, monitor their status and performance, handle errors and crashes, and more.
+
+PM2 is a process manager for Node.js applications that can also be used to manage applications written in any other language, such as Python, Ruby, PHP, etc. PM2 is powerful, easy to use, and has a lot of features that can make your life easier as a developer. In this article, we will show you how to use PM2 to manage your applications, and explain the benefits of using PM2 for your projects.
+
+## What is PM2
+
+[PM2](https://pm2.keymetrics.io/) is a process manager for Node.js applications that can also be used to manage applications written in any other language. PM2 is an open-source project that has been developed since 2014, and has over 30 million downloads on npm. PM2 is used by many companies and organizations, such as Microsoft, Netflix, NASA, IBM, and more.
+
+PM2 allows you to run your applications in the background, as daemon processes, without blocking your terminal or console. PM2 can also help you scale your applications horizontally or vertically, by running multiple instances of your application on the same or different machines. PM2 can also monitor your applications, and provide you with useful information, such as the status, logs, memory, cpu, event loop, and network usage of your applications. PM2 can also handle errors and crashes gracefully, by restarting your applications automatically, and keeping them alive. PM2 can also provide you with a web interface, where you can access the same dashboard as the command-line interface, but from your browser.
+
+PM2 supports applications written in any language, such as Node.js, Python, Ruby, PHP, etc. PM2 can also run any type of application, such as web servers, microservices, cron jobs, chatbots, etc. PM2 can also run any type of script, such as shell scripts, bash scripts, python scripts, etc.
+
+PM2 is designed to be simple and intuitive, and has a lot of features and options that you can customize to suit your needs. PM2 is also well-documented, and has a large and active community that can help you with any questions or issues that you may have.
+
+## How to Install PM2
+
+Before you can use PM2 to manage your applications, you need to install PM2 on your system. PM2 is a Node.js module, so you need to have Node.js and npm installed first. You can check the official documentation for Node.js installation instructions for your operating system.
+
+Once you have Node.js and npm installed, you can install PM2 globally with the following command:
+
+```sh
+npm install -g pm2
+```
+
+This will install PM2 as a global module that you can access from anywhere on your system. You can verify that PM2 is installed by running:
+
+```sh
+pm2 --version
+```
+
+This should display the current version of PM2 that you have installed.
+
+```
+[PM2] PM2 Successfully daemonized
+5.3.0
+```
+
+## How to Manage Applications with PM2
+
+In this section, we are going to see how you can use PM2 to run your node.js applications or python ones. First, we will start with some of the things you need to look at before being informed.
+
+### Best Practices for Managing Applications with PM2
+
+Depending on the type and language of your application, there are some best practices that you should follow when managing your applications with PM2. Here are some of the best practices for managing Node.js and Python applications with PM2.
+
+#### Node.js Applications
+
+Node.js is a JavaScript runtime environment that allows you to run JavaScript code outside of a browser. Node.js is also the platform that PM2 is built on, and that PM2 supports natively. PM2 can run and manage any Node.js application, such as web servers, microservices, cron jobs, chatbots, etc.
+
+Here are some of the best practices for managing Node.js applications with PM2:
+
+- Use the `node` interpreter to run your Node.js applications. PM2 will automatically detect and use the node interpreter if you don’t specify one.
+- Use the `cluster mode` to run your Node.js applications. The `cluster` mode allows you to run multiple instances of your application, and enable load balancing and inter-process communication between them. The cluster mode can improve the performance and scalability of your Node.js applications, especially on multi-core machines. PM2 will automatically use the cluster mode if you don’t specify one.
+- Use the `max` value for the `instances` field to run as many instances of your application as the number of CPU cores on your system. This can optimize the resource utilization and throughput of your Node.js applications. PM2 will automatically use the max value if you don’t specify one.
+- Use the `--watch` option to enable the watch mode for your Node.js applications. The watch mode allows PM2 to monitor the changes in your code, and reload your applications automatically. The watch mode can help you with the development and testing of your Node.js applications, as you don’t have to restart them manually every time you make a change. You can enable the watch mode by adding the `--watch` option to your PM2 start command, or by setting the watch field to true in your JSON configuration file.
+
+#### Python Applications
+
+Python is a popular and versatile programming language that can be used for web development, data science, machine learning, and more. PM2 can also run and manage any Python application, such as web servers, microservices, cron jobs, chatbots, etc.
+
+Here are some of the best practices for managing Python applications with PM2:
+
+- Use the `python` interpreter to run your Python applications. PM2 can use any interpreter that you have installed on your system, such as python, python3, python2, etc. You need to specify the interpreter that you want to use.
+- Use the `fork` mode to run your Python applications. The fork mode allows you to run each instance of your application in a separate process, without any load balancing or inter-process communication. The `fork` mode is more suitable for Python applications, as Python has a global interpreter lock (GIL) that prevents multiple threads from executing Python code at the same time. You need to specify the fork mode in your JSON configuration file or command.
+- Use a fixed number for the `instances` field to run a specific number of instances of your application. You can choose the number of instances that best suits your needs, depending on the resources and workload of your Python applications.
+- Use the `--no-autorestart` option to disable the automatic restarts for your Python applications. PM2 will restart your applications automatically if they exit with a non-zero exit code, which can happen for various reasons, such as syntax errors, exceptions, signals, etc. However, this can also cause an infinite loop of restarts, if your Python applications have some persistent issues that prevent them from running properly. You can disable the automatic restarts by adding the `--no-autorestart` option to your PM2 start command, or by setting the autorestart field to false in your JSON configuration file.
+
+### How to Start Your Application with PM2
+
+#### You can use a JSON to start your application
+
+Below is an example:
+
+```json
+{
+  "apps": [
+    {
+      "name": "your-app-name",
+      "script": "your-app-script.py",
+      "interpreter": "python3",
+      "instances": "max",
+      "exec_mode": "cluster",
+      "env": {
+        "your-env-variable": "your-env-value"
+      }
+    }
+  ]
+}
+```
+
+Here is a brief explanation of the main fields in the JSON configuration file:
+
+- name: The name of your application. This will be used by PM2 to identify and display your application.
+- script: The path to the main script of your application. This is the entry point of your application that PM2 will execute.
+- interpreter: The interpreter to use to run your script. In this case, we are using python3, but you can also specify the full path to your Python executable if you have multiple versions installed.
+- instances: The number of instances of your application that you want to run. You can specify a fixed number, or use max to run as many instances as the number of CPU cores on your system.
+- exec_mode: The execution mode of your application. You can use fork to run each instance in a separate process, or cluster to enable load balancing and inter-process communication between your instances.
+- env: The environment variables that you want to pass to your application. You can specify any key-value pairs that you need for your application.
+
+You can save this file as `your-app-config.json` in the same directory as your Python script, or in any other location that you prefer. You can also customize the file name as you wish, as long as it has a `.json` extension.
+
+More complex one for streamlit would be:
+
+```json
+{
+  "apps": [
+    {
+      "name": "streamlit-app",
+      "script": "streamlit",
+      "args": ["run", "app.py"],
+      "cwd": "/path/to/your/streamlit/app",
+      "interpreter": "python3",
+      "instances": 1,
+      "autorestart": true,
+      "watch": false,
+      "max_memory_restart": "1G",
+      "log_date_format": "YYYY-MM-DD HH:mm Z",
+      "error_file": "/path/to/your/log/pm2/streamlit-app-error.log",
+      "out_file": "/path/to/your/log/pm2/streamlit-app-out.log",
+      "merge_logs": true
+    }
+  ]
+}
+```
+
+Then to run it just do:
+
+```sh
+pm2 start pm2-config.json
+```
+
+#### You can use command line:
+
+Command line is easeier and you can start a command right away with:
+
+```sh
+#node
+pm2 start your_app.js --name your-node-app
+#python
+pm2 start your_app.py --name your-python-app --interpreter python3
+#python streamlit app
+pm2 start 'streamlit run path/to/app/app.py' --name my-streamlit-app
+```
+
+```
+root@streamlit:~/streamlit-app/streamlit-tools# pm2 start  'streamlit run  app.py' --name my-streamlit-app
+[PM2] Starting /usr/bin/bash in fork_mode (1 instance)
+[PM2] Done.
+┌────┬─────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name                │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼─────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ my-streamlit-app    │ default     │ N/A     │ fork    │ 9484     │ 0s     │ 0    │ online    │ 0%       │ 10.3mb   │ root     │ disabled │
+```
+
+### How to Check the Status and Logs of Your Application with PM2
+
+PM2 provides several commands and features that allow you to check the status and logs of your application easily and effectively. Here are some of the most useful ones:
+
+```sh
+pm2 status your-app-name:
+```
+
+This will display the status of your application, such as the name, the id, the mode, the pid, the uptime, the memory, and the cpu usage.
+
+```sh
+pm2 logs your-app-name
+```
+
+This will display the logs of your application, and show you any output or errors that your application generates. You can also use the --lines option to specify the number of lines to display, or the --err option to display only the error logs, or the --out option to display only the output logs.
+
+```sh
+pm2 logrotate your-app-name
+```
+
+This will rotate the logs of your application, and create a new log file every day. This can help you manage the size and number of your log files, and avoid filling up your disk space. You can also use the --rotate-interval option to specify the interval of log rotation, or the --max-size option to specify the maximum size of a log file, or the --retain option to specify the number of log files to keep.
+
+### How to Monitor the Performance of Your Application with PM2
+
+PM2 provides several commands and features that allow you to monitor the performance of your application easily and effectively. Here are some of the most useful ones:
+
+```sh
+pm2 monit your-app-name
+```
+
+This will open a dashboard that shows you the performance metrics of your application, such as the memory, the cpu, the event loop, and the network usage. You can also see the logs, the processes, and the custom metrics of your application on the same dashboard.
+
+<Picture
+  src={imag1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="pm2 monit"
+/>
+
+### How to Manage the State of Your Application with PM2
+
+PM2 provides several commands and features that allow you to manage the state of your application easily and effectively. Here are some of the most useful ones:
+
+```sh
+pm2 stop your-app-name
+```
+
+This will stop your application gracefully, and free up the resources that it was using. You can also use the --kill-timeout option to specify the timeout for the graceful stop, or the --force option to force the stop without waiting for the graceful stop.
+
+```sh
+pm2 restart your-app-name
+```
+
+This will restart your application, and reload any changes that you made to your code or configuration file. You can also use the --update-env option to update the environment variables of your application, or the --only option to restart only a specific instance of your application.
+
+```sh
+pm2 reload your-app-name:
+```
+
+This will reload your application gracefully, without losing any requests or connections. This is similar to the restart command, but more gentle and smooth. You can also use the --update-env option to update the environment variables of your application, or the --only option to reload only a specific instance of your application.
+
+```sh
+pm2 delete your-app-name
+```
+
+This will delete your application from PM2, and remove it from the list of applications that PM2 manages. You can also use the --force option to force the delete without stopping the application first.
+
+### How to Configure Automatic Restarts with PM2 for Your Application
+
+PM2 can help you keep your application alive, by restarting it automatically if it exits with a non-zero exit code, which can happen for various reasons, such as syntax errors, exceptions, signals, etc. PM2 can also restart your application automatically if it exceeds a certain memory limit, which can happen if your application has a memory leak or a high memory consumption.
+
+To configure the automatic restarts with PM2 for your application, you can use the following fields in your JSON configuration file or in your command line:
+
+- `autorestart`: This field determines whether PM2 should restart your application automatically or not. The default value is true, which means that PM2 will restart your application automatically. You can set this field to false if you want to disable the automatic restarts for your application.
+- `max_memory_restart`: This field specifies the maximum memory limit for your application, in megabytes. If your application exceeds this limit, PM2 will restart it automatically. The default value is 0, which means that PM2 will not restart your application based on the memory limit. You can set this field to any positive number if you want to enable the memory-based restarts for your application.
+- `min_uptime`: This field specifies the minimum uptime for your application, in milliseconds. If your application exits before this time, PM2 will consider it as an abnormal exit, and restart it automatically. The default value is 1000, which means that PM2 will restart your application if it exits within one second. You can set this field to any positive number if you want to adjust the minimum uptime for your application.
+- `max_restarts`: This field specifies the maximum number of restarts for your application, within a certain time window. If your application reaches this limit, PM2 will stop trying to restart it, and mark it as errored. The default value is 15, which means that PM2 will try to restart your application up to 15 times, within 15 minutes. You can set this field to any positive number if you want to adjust the maximum restarts for your application.
+
+If you want the app to be restarted automatically when the server is rebooted you should:
+
+```sh
+pm2 startup
+pm2 save
+```
+
+The pm2 startup command is used to generate and configure a startup script for your operating system, ensuring that PM2 starts automatically when your system boots up. This command requires root (or administrator) privileges because it involves modifying system configurations.
+
+To do that for a different user you can:
+
+```sh
+sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u your_user --hp /home/your_user
+```
+
+Replace your_user with your actual username. Running this command will create a systemd service to start PM2 on boot.
+
+The pm2 save command is used to save the current list of running processes managed by PM2. It generates a dump file containing information about the running applications and their configurations. This dump file is then used by PM2 to restore the processes on system reboot.
+
+## Conclusion
+
+In conclusion, PM2 is a powerful tool for managing Python, nodejs or other applications . With its simple and user-friendly interface, it allows developers to easily deploy and monitor their applications in a production environment. By using PM2, you can ensure that your Python applications are running smoothly and efficiently.
+
+One of the key benefits of using PM2 is its process management capabilities. It allows you to easily start, stop, restart, and reload your application processes with just a few simple commands. Additionally, PM2 provides built-in load balancing features that help distribute incoming traffic across multiple instances of your application, ensuring high availability and optimal performance.
+
+Furthermore, PM2 offers detailed monitoring functionality that enables you to keep track of important metrics such as CPU usage, memory consumption, and response times. This real-time monitoring allows you to quickly identify any issues or bottlenecks in your application's performance so that you can take appropriate measures to address them.
+
+Overall, by leveraging the power of PM2 for managing your Python applications, you can streamline your development workflow and enhance the stability and scalability of your projects. So why wait? Start using PM2 today and experience the benefits it brings to managing Python applications effortlessly!
