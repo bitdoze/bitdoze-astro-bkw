@@ -5,7 +5,7 @@ description: Learn how to use PM2, a powerful and easy-to-use process manager fo
 image: "../../assets/images/24/01/pm2-manage.jpeg"
 categories: ["vps"]
 authors: ["Dragos"]
-tags: ["linux"]
+tags: ["pm2"]
 canonical: "https://www.bitdoze.com/pm2-manage-apps/"
 ---
 
@@ -64,7 +64,7 @@ Node.js is a JavaScript runtime environment that allows you to run JavaScript co
 Here are some of the best practices for managing Node.js applications with PM2:
 
 - Use the `node` interpreter to run your Node.js applications. PM2 will automatically detect and use the node interpreter if you don’t specify one.
-- Use the `cluster mode` to run your Node.js applications. The `cluster` mode allows you to run multiple instances of your application, and enable load balancing and inter-process communication between them. The cluster mode can improve the performance and scalability of your Node.js applications, especially on multi-core machines. PM2 will automatically use the cluster mode if you don’t specify one.
+- Use the `cluster mode` to run your Node.js applications. The `cluster` mode allows you to run multiple instances of your application, and enable load balancing and inter-process communication between them. The [cluster mode](https://www.bitdoze.com/pm2-fork-cluster/) can improve the performance and scalability of your Node.js applications, especially on multi-core machines. PM2 will automatically use the cluster mode if you don’t specify one.
 - Use the `max` value for the `instances` field to run as many instances of your application as the number of CPU cores on your system. This can optimize the resource utilization and throughput of your Node.js applications. PM2 will automatically use the max value if you don’t specify one.
 - Use the `--watch` option to enable the watch mode for your Node.js applications. The watch mode allows PM2 to monitor the changes in your code, and reload your applications automatically. The watch mode can help you with the development and testing of your Node.js applications, as you don’t have to restart them manually every time you make a change. You can enable the watch mode by adding the `--watch` option to your PM2 start command, or by setting the watch field to true in your JSON configuration file.
 
@@ -75,7 +75,7 @@ Python is a popular and versatile programming language that can be used for web 
 Here are some of the best practices for managing Python applications with PM2:
 
 - Use the `python` interpreter to run your Python applications. PM2 can use any interpreter that you have installed on your system, such as python, python3, python2, etc. You need to specify the interpreter that you want to use.
-- Use the `fork` mode to run your Python applications. The fork mode allows you to run each instance of your application in a separate process, without any load balancing or inter-process communication. The `fork` mode is more suitable for Python applications, as Python has a global interpreter lock (GIL) that prevents multiple threads from executing Python code at the same time. You need to specify the fork mode in your JSON configuration file or command.
+- Use the `fork` mode to run your Python applications. The [fork mode](https://www.bitdoze.com/pm2-fork-cluster/) allows you to run each instance of your application in a separate process, without any load balancing or inter-process communication. The `fork` mode is more suitable for Python applications, as Python has a global interpreter lock (GIL) that prevents multiple threads from executing Python code at the same time. You need to specify the fork mode in your JSON configuration file or command.
 - Use a fixed number for the `instances` field to run a specific number of instances of your application. You can choose the number of instances that best suits your needs, depending on the resources and workload of your Python applications.
 - Use the `--no-autorestart` option to disable the automatic restarts for your Python applications. PM2 will restart your applications automatically if they exit with a non-zero exit code, which can happen for various reasons, such as syntax errors, exceptions, signals, etc. However, this can also cause an infinite loop of restarts, if your Python applications have some persistent issues that prevent them from running properly. You can disable the automatic restarts by adding the `--no-autorestart` option to your PM2 start command, or by setting the autorestart field to false in your JSON configuration file.
 
@@ -109,7 +109,7 @@ Here is a brief explanation of the main fields in the JSON configuration file:
 - interpreter: The interpreter to use to run your script. In this case, we are using python3, but you can also specify the full path to your Python executable if you have multiple versions installed.
 - instances: The number of instances of your application that you want to run. You can specify a fixed number, or use max to run as many instances as the number of CPU cores on your system.
 - exec_mode: The execution mode of your application. You can use fork to run each instance in a separate process, or cluster to enable load balancing and inter-process communication between your instances.
-- env: The environment variables that you want to pass to your application. You can specify any key-value pairs that you need for your application.
+- env: The [environment variables](https://www.bitdoze.com/pm2-env-vars/) that you want to pass to your application. You can specify any key-value pairs that you need for your application.
 
 You can save this file as `your-app-config.json` in the same directory as your Python script, or in any other location that you prefer. You can also customize the file name as you wish, as long as it has a `.json` extension.
 
