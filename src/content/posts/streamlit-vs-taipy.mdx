@@ -1,0 +1,153 @@
+---
+date: 2024-01-22T00:00:00Z
+title: "Streamlit vs Taipy: How to Choose the Best Tool for Python Projects"
+description: " Streamlit and Taipy are two popular tools for creating web apps from Python scripts. But which one is better for your data projects?"
+image: "../../assets/images/24/01/streamlit-vs-taipy.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["streamlit", "taipy"]
+canonical: "https://www.bitdoze.com/streamlit-vs-taipy/"
+---
+
+Python is a powerful and versatile programming language that is widely used for data analysis, machine learning, and web development. However, creating web applications from Python scripts can be challenging and time-consuming, especially for data teams who want to share their insights and results with others.
+
+Fortunately, there are tools that can help you turn your Python scripts into web apps with minimal code and effort. [Streamlit](https://streamlit.io/) and [Taipy](https://www.taipy.io/) are two of the most popular and promising tools in this domain. They both allow you to create interactive and beautiful web apps from your Python code, without requiring any web development skills.
+
+But how do you choose between Streamlit and Taipy for your data projects? What are the key differences and advantages of each tool? In this article, we will compare Streamlit and Taipy on various aspects such as prototyping, callbacks, design flexibility, big data support, and dedicated backend framework. By the end of this article, you will have a clear idea of which tool is more suitable for your needs and preferences
+
+## 10 Differences Between Streamlit and Taipy
+
+Streamlit and Taipy are both tools for turning Python scripts into web apps. Here are 10 differences between the two:
+
+- Taipy is a newer tool than Streamlit.
+- Taipy is written in Rust, while Streamlit is written in Python.
+- Taipy manages both synchronous and asynchronous calls, while Streamlit only manages synchronous calls.
+- Taipy runs on Jupyter Notebooks, while Streamlit does not.
+- Taipy has a VSCode extension that does auto-completion and linting inside of strings, while Streamlit does not.
+- Taipy is built for both prototyping and production, while Streamlit is mainly built for prototypes.
+- Taipy has better backend management for large scale applications like Big Data or ML, while Streamlit has poor backend management for such applications.
+- Taipy only runs what needs to be run using callbacks, while Streamlit re-runs the whole code when a change is made.
+- Taipy's front-end and back-end are run on separate threads, so the app does not freeze when something runs in the background, while Streamlit's front-end and back-end are not separated.
+- Taipy provides front-end elements for end-users of Taipy apps to change inputs and execute, while Streamlit does not.
+
+## Which one is Better for Building Interactive GUI, streamlit or Taipy
+
+The choice between Streamlit and Taipy for building interactive GUIs depends on the specific requirements of the project. Streamlit is well-established and known for its ease of use, making it a popular choice for prototyping. On the other hand, Taipy is a newer tool with a focus on being production-ready while still offering ease of use for prototyping.
+
+Taipy also provides better support for big data and backend management, and it runs on both synchronous and asynchronous calls. However, Streamlit has a larger and more active community, which can be beneficial for finding solutions and getting support. Ultimately, the decision between the two would depend on the specific needs of the project, the level of community support desired, and the balance between prototyping and production readiness.
+
+## Which one is More Beginner-Friendly, Streamlit or Taipy
+
+Both Streamlit and Taipy are beginner-friendly tools for building interactive GUIs. However, **Taipy** might be considered more beginner-friendly due to its focus on ease of use for prototyping and its support for both synchronous and asynchronous calls. Taipy also has a VSCode extension that provides auto-completion and linting inside of strings, which can be helpful for beginners. Additionally, Taipy has a more Pythonic feel with an easier learning curve compared to Streamlit.
+
+Taipy Code example:
+
+```python
+import taipy as tp
+from taipy import Config, Core, Gui
+
+
+################################################################
+#            Configure application                             #
+################################################################
+def build_message(name):
+    return f"Hello {name}!"
+
+
+# A first data node configuration to model an input name.
+input_name_data_node_cfg = Config.configure_data_node(id="input_name")
+# A second data node configuration to model the message to display.
+message_data_node_cfg = Config.configure_data_node(id="message")
+# A task configuration to model the build_message function.
+build_msg_task_cfg = Config.configure_task("build_msg", build_message, input_name_data_node_cfg, message_data_node_cfg)
+# The scenario configuration represents the whole execution graph.
+scenario_cfg = Config.configure_scenario("scenario", task_configs=[build_msg_task_cfg])
+
+################################################################
+#            Design graphical interface                        #
+################################################################
+
+input_name = "Taipy"
+message = None
+
+
+def submit_scenario(state):
+    state.scenario.input_name.write(state.input_name)
+    state.scenario.submit()
+    state.message = scenario.message.read()
+
+page = """
+Name: <|{input_name}|input|>
+
+<|submit|button|on_action=submit_scenario|>
+
+Message: <|{message}|text|>
+"""
+
+if __name__ == "__main__":
+    ################################################################
+    #            Instantiate and run Core service                  #
+    ################################################################
+    Core().run()
+
+    ################################################################
+    #            Manage scenarios and data nodes                   #
+    ################################################################
+    scenario = tp.create_scenario(scenario_cfg)
+
+    ################################################################
+    #            Instantiate and run Gui service                   #
+    ################################################################
+
+    Gui(page).run()
+
+```
+
+On the other hand, **Streamlit** is well-established and known for its ease of use, making it a popular choice for prototyping. It has a larger and more active community, which can be beneficial for finding solutions and getting support.
+In conclusion, both Streamlit and Taipy are beginner-friendly, but Taipy might be slightly more beginner-friendly due to its focus on ease of use for prototyping and its VSCode extension. However, the choice between the two would depend on the specific needs of the project and the level of community support desired.
+
+Streamlit Code example:
+
+```python
+import streamlit as st
+
+def main():
+    st.title("Streamlit Input and Button Example")
+
+    # Input box for user to enter text
+    user_input = st.text_input("Enter some text:")
+
+    # Button to trigger an action
+    if st.button("Click me"):
+        # Display the entered text below the button
+        st.text(f"You entered: {user_input}")
+
+if __name__ == "__main__":
+    main()
+
+```
+
+## What are the Limitations of Streamlit Compared to Taipy
+
+The limitations of Streamlit compared to Taipy include:
+
+- **Backend Management:** Streamlit has poor backend management for large-scale applications like big data or machine learning, while Taipy is built for both prototyping and production, with better support for big data and backend management.
+- **Synchronous/Asynchronous Calls:** Streamlit only manages synchronous calls, whereas Taipy manages both synchronous and asynchronous calls, providing more flexibility in handling different types of operations.
+- **Written Language:** Streamlit is written in Python, while Taipy is written in Rust, which may have implications for performance and ecosystem support.
+- **Jupyter Notebooks:** Taipy runs on Jupyter Notebooks, providing an integrated environment for data analysis and app development, while Streamlit does not have this capability
+
+- **Community Support:** Taipy is a newer tool, and its community support may not be as extensive as Streamlit's, which has a larger and more active community.
+
+In summary, Taipy offers advantages over Streamlit in terms of backend management, support for synchronous/asynchronous calls, and integration with Jupyter Notebooks. However, Streamlit has the advantage of a more established community. The choice between the two would depend on the specific needs of the project and the level of community support desired.
+
+## Conclusion
+
+Streamlit and Taipy are two popular and promising tools for creating web apps from Python scripts. They both have their own strengths and weaknesses, depending on your needs and preferences.
+
+Streamlit is a great choice for easy and fast prototyping, as it allows you to create web apps from your Python code in minutes, without any hassle or complexity. However, Streamlit has limited interactivity, design flexibility, big data support, and dedicated backend framework, which may be a drawback for production-level applications.
+
+Taipy is a simple, clear, elegant and easy to use tool for prototyping, as it allows you to create web apps from your Python code and markdown syntax, without any hassle or complexity. Taipy also has callbacks, customizable design options, big data support, and dedicated backend framework, which can be a great advantage for production-level applications.
+
+Ultimately, the choice between Streamlit and Taipy depends on your project requirements, goals, and preferences. You can try both tools and see which one suits you better. You can also use both tools together, as they are compatible and complementary. For example, you can use Streamlit for quick prototyping and testing, and then use Taipy for final deployment and hosting.
+
+We hope this article has helped you understand the key differences between Streamlit and Taipy, and how to choose the best tool for your data projects. If you have any questions or feedback, please feel free to contact us. Thank you for reading! 😊
