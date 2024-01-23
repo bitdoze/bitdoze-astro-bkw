@@ -1,0 +1,103 @@
+---
+date: 2024-01-23T00:00:00Z
+title: "How To Extract Text From PDF In Command Line On Linux"
+description: "Learn how to extract text from PDF files in command line on Linux using a simple and powerful tool called poppler-utils."
+image: "../../assets/images/24/01/extract-text-pdf-cmd.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["tutorials"]
+canonical: "https://www.bitdoze.com/pdf-extract-text-linux-cmd/"
+---
+
+Merging PDF files on Linux can be efficiently done through the command line using the pdfunite utility from the poppler-utils package. This method is particularly useful for users who prefer working within a terminal or for those who need to handle PDF operations in batch scripts or automation tasks.
+
+## What is poppler-utils?
+
+Poppler-utils is a collection of command-line utilities for manipulating PDF files. It is based on the poppler library, which is a fork of the xpdf library. Poppler-utils includes several tools, such as:
+
+- **pdfinfo:** prints information about a PDF file, such as title, author, pages, etc.
+- **pdftotext:** converts a PDF file to plain text.
+- **pdftohtml:** converts a PDF file to HTML.
+- **pdfimages:** extracts images from a PDF file.
+- **pdfseparate:** splits a PDF file into single-page PDF files.
+- **pdfunite:** [merges several PDF](https://www.bitdoze.com/pdf-merge-linux-cmd/) files into one.
+
+In this article, we will focus on the pdfunite tool, which allows us to merge PDF files in command line on Linux.
+
+## How to install poppler-utils?
+
+Poppler-utils is available in the official repositories of most Linux distributions. You can install it using your package manager. For example, on Debian-based systems, such as Ubuntu, you can use the following command:
+
+For Debian-based systems like Ubuntu, you can install poppler-utils using the following command:
+
+```sh
+sudo apt-get install poppler-utils
+```
+
+For Red Hat-based systems such as Fedora or CentOS, use:
+
+```sh
+sudo yum install poppler-utils
+```
+
+To verify that poppler-utils is installed, you can run the following command:
+
+```sh
+pdftotext --version
+```
+
+You should see something like this:
+
+```
+pdftotext version 0.86.1
+Copyright 2005-2019 The Poppler Developers - http://poppler.freedesktop.org
+Copyright 1996-2011 Glyph & Cog, LLC
+```
+
+## How to use pdftotext?
+
+The syntax of pdftotext is very simple. You just need to specify the PDF file that you want to convert to text, and optionally the name of the output text file. For example, if you want to convert a file called input.pdf to a file called output.txt, you can use the following command:
+
+```sh
+pdftotext input.pdf output.txt
+```
+
+If you do not specify the output file name, pdftotext will use the same name as the input file, but with the .txt extension. For example, if you want to convert a file called input.pdf to a file called input.txt, you can use the following command:
+
+```sh
+pdftotext input.pdf
+```
+
+You can also use the - option to read the PDF file from the standard input or write the text to the standard output. For example, if you want to convert a PDF file that is piped from another command, you can use the following command:
+
+```sh
+cat input.pdf | pdftotext - -
+```
+
+## How to customize the output format?
+
+Pdftotext has several options that allow you to customize the output format of the text. Here are some of the most useful ones:
+
+- -layout: preserves the original layout of the PDF file, including columns, tables, etc.
+- -raw: keeps the original order of the text, but ignores the layout.
+- -htmlmeta: generates an HTML file with meta information, such as title, author, etc.
+- -bbox: generates an HTML file with bounding box information for each word.
+- -f number: specifies the first page to convert.
+- -l number: specifies the last page to convert.
+- -enc encoding: specifies the encoding of the output text, such as UTF-8, ISO-8859-1, etc.
+
+For example, if you want to convert the first 10 pages of a PDF file to an HTML file with meta information and bounding boxes, you can use the following command:
+
+```sh
+pdftotext -htmlmeta -bbox -f 1 -l 10 input.pdf output.html
+```
+
+You can see the full list of options by running the following command:
+
+```sh
+pdftotext -h
+```
+
+## Conclusion
+
+The `pdftotext` utility from the `poppler-utils` package provides a simple and efficient way to extract text from PDF files on Linux. Whether you need to extract text for data analysis, content repurposing, or any other reason, `pdftotext` can be a valuable tool in your Linux command line toolkit.

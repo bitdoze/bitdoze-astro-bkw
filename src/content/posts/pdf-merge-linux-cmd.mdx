@@ -1,0 +1,115 @@
+---
+date: 2024-01-23T00:00:00Z
+title: "How To Merge PDF Files In Command Line On Linux"
+description: "Learn how to merge multiple PDF files into one using a simple and powerful tool called poppler-utils. This article will show you how to install poppler-utils, how to use the pdfunite command, and how to troubleshoot common errors"
+image: "../../assets/images/24/01/merge-pdf-cmd.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["tutorials"]
+canonical: "https://www.bitdoze.com/pdf-merge-linux-cmd/"
+---
+
+Merging PDF files on Linux can be efficiently done through the command line using the pdfunite utility from the poppler-utils package. This method is particularly useful for users who prefer working within a terminal or for those who need to handle PDF operations in batch scripts or automation tasks.
+
+## What is poppler-utils?
+
+Poppler-utils is a collection of command-line utilities for manipulating PDF files. It is based on the poppler library, which is a fork of the xpdf library. Poppler-utils includes several tools, such as:
+
+- **pdfinfo:** prints information about a PDF file, such as title, author, pages, etc.
+- **pdftotext:** [converts a PDF file to plain text](https://www.bitdoze.com/pdf-extract-text-linux-cmd/).
+- **pdftohtml:** converts a PDF file to HTML.
+- **pdfimages:** extracts images from a PDF file.
+- **pdfseparate:** splits a PDF file into single-page PDF files.
+- **pdfunite:** merges several PDF files into one.
+
+In this article, we will focus on the pdfunite tool, which allows us to merge PDF files in command line on Linux.
+
+## How to install poppler-utils?
+
+Poppler-utils is available in the official repositories of most Linux distributions. You can install it using your package manager. For example, on Debian-based systems, such as Ubuntu, you can use the following command:
+
+For Debian-based systems like Ubuntu, you can install poppler-utils using the following command:
+
+```sh
+sudo apt-get install poppler-utils
+```
+
+For Red Hat-based systems such as Fedora or CentOS, use:
+
+```sh
+sudo yum install poppler-utils
+```
+
+To verify that poppler-utils is installed, you can run the following command:
+
+```sh
+pdfunite --version
+```
+
+You should see something like this:
+
+```
+pdfunite version 0.86.1
+Copyright 2005-2019 The Poppler Developers - http://poppler.freedesktop.org
+Copyright 1996-2011 Glyph & Cog, LLC
+```
+
+## How to use pdfunite?
+
+The syntax of pdfunite is very simple. You just need to specify the PDF files that you want to merge, followed by the name of the output file. For example, if you want to merge file1.pdf, file2.pdf, and file3.pdf into a single file called output.pdf, you can use the following command:
+
+```sh
+pdfunite file1.pdf file2.pdf file3.pdf output.pdf
+```
+
+You can also use wildcards to merge all the PDF files in a directory. For example, if you want to merge all the PDF files in the current directory into a file called output.pdf, you can use the following command:
+
+```sh
+pdfunite *.pdf output.pdf
+```
+
+You can also use the - option to read the PDF files from the standard input. For example, if you want to merge the PDF files that are listed in a text file called files.txt, you can use the following command:
+
+```sh
+pdfunite - < files.txt output.pdf
+```
+
+The files.txt file should contain one PDF file name per line, such as:
+
+```
+file1.pdf
+file2.pdf
+file3.pdf
+```
+
+## How to troubleshoot common errors?
+
+Sometimes, you may encounter some errors when using pdfunite. Here are some common ones and how to fix them:
+
+- _Permission denied:_ This means that you do not have the permission to read or write the PDF files. You can check the file permissions using the ls -l command, and change them using the chmod command. For example, to give read and write permission to the owner of the file, you can use the following command:
+
+```sh
+chmod u+rw file.pdf
+```
+
+- **No such file or directory:** This means that the PDF file does not exist or the file name is incorrect. You can check the file name using the ls command, and make sure that it matches the one you typed. You can also use the tab key to autocomplete the file name.
+
+- **Invalid or damaged PDF file:** This means that the PDF file is corrupted or not a valid PDF file. You can try to repair the PDF file using the pdfinfo command with the -repair option. For example, to repair a file called file.pdf, you can use the following command:
+
+```sh
+pdfinfo -repair file.pdf
+```
+
+If the repair is successful, you will see a message like this:
+
+```
+Repairing PDF file
+Done. Output file written to file.repaired.pdf
+```
+
+You can then use the repaired file instead of the original one.
+
+## Conclusion
+
+Merging PDF files on Linux using the command line is a quick and straightforward process with the help of `poppler-utils`. Whether you're dealing with a couple of documents or a batch of files, pdfunite provides a reliable way to combine PDFs without the need for a graphical interface.
+Remember to check the merged document to ensure all pages are present and in the correct order. With these simple steps, you can efficiently manage PDF files on your Linux system.
