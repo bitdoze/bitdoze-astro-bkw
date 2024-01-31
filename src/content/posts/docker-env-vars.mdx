@@ -1,0 +1,277 @@
+---
+date: 2024-01-31T00:00:00Z
+title: "How to Use Environment Variables {ARG and ENV} in Docker, Dockerfile or Docker Compose"
+description: "Learn how to use environments variables {ARG and ENV} into Docker command, Dockerfile or Docker Compose"
+image: "../../assets/images/24/01/docker-user-env-vars.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["docker"]
+canonical: https://www.bitdoze.com/docker-env-vars/
+---
+
+In Docker, environment variables play a crucial role in configuring and customizing containerized applications. Two commonly used methods for setting environment variables are ARG and ENV. In this article, we will explore how to set Docker environment variables using ARG and ENV, providing you with the necessary knowledge to effectively manage your container environments.
+
+When it comes to setting environment variables in Docker, two primary approaches are widely adopted: ARG (build-time) and ENV (runtime). The former is utilized during image build time while the latter is employed when running containers. By leveraging these techniques, developers can seamlessly pass information into their containerized applications without modifying the underlying codebase. Join us as we delve into the details of using ARG and ENV in Docker to empower your container deployments.
+
+## What are Docker environment variables?
+
+Docker environment variables play a crucial role in configuring and customizing containerized applications. They allow you to define runtime values that can be accessed by processes running within the Docker container. Here's what you need to know about Docker environment variables:
+
+1. **Definition**: Environment variables are dynamic values that are set outside of an application but can be accessed by it during runtime. In the context of Docker, these variables provide a flexible way to configure containers without modifying their underlying code.
+
+2. **Usage**: Environment variables in Docker can be used for various purposes, such as providing configuration settings, defining connection strings, specifying API keys, or storing sensitive information like passwords.
+
+3. **ARG vs ENV**: There are two types of environment variable instructions in Docker: ARG and ENV.
+
+   - `ARG` (Build-time): ARG allows you to pass build-time arguments when building your image using the `--build-arg` flag with the `docker build` command. These arguments act as placeholders and can only be referenced during the build process.
+   - `ENV` (Runtime): ENV sets environment variables that will persist when the container is running. You can specify them directly in your Dockerfile or through command-line options with `-e` when running a container.
+
+4. **Benefits**:
+
+   - Flexibility: Using environment variables makes it easier to customize your application's behavior without modifying its codebase.
+   - Portability: By externalizing configuration details into environment variables, you create reusable images that work across different environments.
+   - Security: Sensitive information like credentials or API keys can be securely stored and managed as environment variables rather than hardcoding them into source files.
+
+5. **Accessing Variables**: Inside a running container, accessing these environment variable values depends on the programming language or framework being used by your application.
+
+6. **Best Practices**:
+   - Use clear naming conventions for your environment variables to improve readability and maintainability.
+   - Avoid hardcoding sensitive information directly in Dockerfiles or source code files.
+   - Consider using a secrets management solution to securely manage sensitive data stored as environment variables.
+
+Understanding Docker environment variables is essential for effectively configuring and deploying containerized applications. They offer flexibility, portability, and security while allowing you to control different aspects of your containers without modifying their core functionality.
+
+Some other docker articles that can help you in your docker journey:
+
+- [Add Users to a Docker Container](https://www.bitdoze.com/add-users-to-docker-container/)
+- [Copy Multiple Files in One Layer Using a Dockerfile](https://www.bitdoze.com/copy-multiple-files-in-one-layer-using-a-dockerfile/)
+- [Install Docker & Docker-compose for Ubuntu ARM](https://www.bitdoze.com/install-docker-ubuntu-arm/)
+- [Redirect Docker Logs to a Single File](https://www.bitdoze.com/redirect-docker-logs-to-a-single-file/)
+
+## How to use ARG and ENV variables in Dockerfiles and docker-compose files
+
+In this section, you will learn how to use ARG and ENV variables in your Dockerfiles and docker-compose files to build and run your Docker images and containers. You will also see some examples of how to use these variables in different scenarios.
+
+### Using ARG variables in Dockerfiles
+
+To use ARG variables in your Dockerfiles, you need to follow these steps:
+
+- Define the ARG variables using the `ARG` instruction, optionally with a default value. You can define multiple ARG variables in your Dockerfile, but they must come before the first `FROM` instruction.
+- Use the ARG variables in your Dockerfile instructions, such as `FROM`, `RUN`, `COPY`, or `ADD`. You can use the `$` syntax to reference the ARG variables, such as `$my_arg`.
+- Override the default values of the ARG variables using the `--build-arg` option of the `docker build` command. You can specify multiple `--build-arg` options, one for each ARG variable. The format is `--build-arg my_arg=my_value`.
+
+Here is an example of a Dockerfile that uses ARG variables to specify the base image and the version of a library:
+
+```
+# Define ARG variables
+ARG base_image=ubuntu:20.04
+ARG lib_version=1.0.0
+
+# Use ARG variables in FROM instruction
+FROM $base_image
+
+# Use ARG variables in RUN instruction
+RUN apt-get update && apt-get install -y libfoo=$lib_version
+```
+
+To build this image, you can use the following command:
+
+```bash
+docker build -t my_image --build-arg base_image=debian:10 --build-arg lib_version=1.1.0 .
+```
+
+This command overrides the default values of the ARG variables and builds the image using `debian:10` as the base image and `libfoo=1.1.0` as the library version.
+
+### Using ENV variables in Dockerfiles
+
+To use ENV variables in your Dockerfiles, you need to follow these steps:
+
+- Define the ENV variables using the `ENV` instruction, optionally with a default value. You can define multiple ENV variables in your Dockerfile, and they can come after the `FROM` instruction.
+- Use the ENV variables in your Dockerfile instructions, such as `RUN`, `CMD`, or `ENTRYPOINT`. You can use the `$` syntax to reference the ENV variables, such as `$my_env`.
+- Override the default values of the ENV variables using the `-e` option of the `docker run` command or the `environment` or `env_file` options of the `docker-compose` command. You can specify multiple options, one for each ENV variable. The format is `-e my_env=my_value` or `environment: - my_env=my_value` or `env_file: my_env_file`.
+
+Here is an example of a Dockerfile that uses ENV variables to specify the database URL and the API key for an application:
+
+```
+# Define ENV variables
+ENV db_url=postgres://user:pass@localhost:5432/db
+ENV api_key=secret
+
+# Use ENV variables in CMD instruction
+CMD ["python", "app.py", "$db_url", "$api_key"]
+```
+
+To run this image, you can use the following command:
+
+```bash
+docker run -d -p 5000:5000 -e db_url=postgres://user:pass@host:port/db -e api_key=supersecret my_image
+```
+
+This command overrides the default values of the ENV variables and runs the container using `postgres://user:pass@host:port/db` as the database URL and `supersecret` as the API key.
+
+Alternatively, you can use a docker-compose file to run this image, such as:
+
+```yaml
+version: "3"
+services:
+  app:
+    image: my_image
+    ports:
+      - "5000:5000"
+    environment:
+      - db_url=postgres://user:pass@host:port/db
+      - api_key=supersecret
+```
+
+Or, you can use an env_file to store the ENV variables, such as:
+
+```sh
+db_url=postgres://user:pass@host:port/db
+api_key=supersecret
+```
+
+And then reference the env_file in your docker-compose file, such as:
+
+```yaml
+version: "3"
+services:
+  app:
+    image: my_image
+    ports:
+      - "5000:5000"
+    env_file:
+      - my_env_file
+```
+
+I hope this section helps you understand how to use ARG and ENV variables in Dockerfiles and docker-compose files. If you want me to write more sections, please let me know. 😊
+
+## Using ARG and ENV together
+
+When working with Docker, it is common to use both ARG and ENV instructions in combination to set environment variables. Here's how you can use them together effectively:
+
+1. **Using ARG instruction:** The ARG instruction allows you to pass build-time variables during the image build process. These variables are accessible only during the build stage and not at runtime.
+
+2. **Setting ARG values:** To set an argument value, you can either specify it directly in your Dockerfile or pass it as a command-line parameter using the `--build-arg` flag when running `docker build`. For example:
+
+   ```
+   # Set a default value for your argument
+   ARG MY_ARG=default_value
+
+   # Use the argument within your Dockerfile
+   ENV MY_ENV=$MY_ARG
+   ```
+
+3. **Using ENV instruction:** The ENV instruction sets environment variables that will be available in containers based on the image at runtime.
+
+4. **Combining ARG and ENV instructions:** You can leverage both instructions by setting an environment variable using an argument value defined earlier in your Dockerfile.
+
+5. **Example usage:**
+
+   ```
+   # Define an argument with a default value
+   ARG PORT=8080
+
+   # Set an environment variable using the argument value
+   ENV APP_PORT=$PORT
+
+   # Use the environment variable within your container commands/scripts
+   CMD ["node", "app.js", "--port", "$APP_PORT"]
+   ```
+
+6. **Building images with custom arguments:**
+
+- If no `--build-arg` flag is provided, the default values specified in your Dockerfile will be used.
+
+- To override default values during builds, use `--build-arg` followed by `<ARG_NAME>=<VALUE>` syntax while executing `docker build`.
+
+7. Remember that any changes made to ARG values during the build process won't affect the environment variables used within the container. The ENV instruction is responsible for setting those runtime variables.
+
+By using both ARG and ENV instructions together, you can dynamically set environment variables at build time while allowing flexibility to override default values during image builds. This approach helps streamline your Docker workflow and ensures consistent behavior across different environments.
+
+## Best Practices for Managing Docker Environment Variables
+
+When managing environment variables in Docker, it's important to follow best practices to ensure smooth and secure container deployments. Here are some recommendations:
+
+1. **Use ARG for build-time variables**: When you need to pass information during the build process, such as version numbers or credentials, use ARG instead of ENV. ARG values are only available during the build stage and won't be accessible in the final image.
+
+2. **Prefer ENV for runtime variables**: For configuration settings that need to be available inside your running container, use ENV variables. These can be set at runtime using either command-line flags or a docker-compose file.
+
+3. **Avoid sensitive data in plain text**: Never store sensitive information like passwords or API keys directly in your Dockerfile or source code repositories. Instead, consider using external services like secrets managers or encrypted files mounted as volumes.
+
+4. **Keep environment variable names consistent**: Use meaningful and standardized names for your environment variables across different containers and projects. This will make it easier to understand configurations when working with multiple containers or microservices.
+
+5. **Document required environment variables**: Clearly document which environment variables are required by each container so that other developers can easily understand how to run and configure them properly.
+
+6. **Consider default values**: Provide sensible default values wherever possible for non-mandatory environment variables, reducing friction when deploying containers without explicitly setting every variable.
+
+7. **Use .env files sparingly**: While convenient for local development purposes with docker-compose, avoid relying heavily on .env files in production environments where more robust configuration management solutions should be used.
+
+| Best Practice | Description                           |
+| ------------- | ------------------------------------- |
+| 1             | Use ARG for build-time vars           |
+| 2             | Prefer ENV for runtime vars           |
+| 3             | Avoid storing sensitive data directly |
+| 4             | Keep env var names consistent         |
+| 5             | Document required env vars            |
+| 6             | Consider default values               |
+| 7             | Use .env files sparingly              |
+
+Following these best practices will help you manage Docker environment variables effectively, ensuring security and scalability in your containerized applications.
+
+## Common Issues with Docker Environment Variables
+
+When working with Docker environment variables, there are a few common issues that you may encounter. It's important to be aware of these issues and know how to address them:
+
+1. **Missing or Incorrect Variable Names**: Make sure that you are using the correct variable names when defining your environment variables in Docker. Misspelling or using incorrect names can lead to errors and unexpected behavior.
+
+2. **Overwriting Existing Environment Variables**: In some cases, setting an environment variable in Docker may overwrite an existing variable on your host system. This can cause conflicts and lead to undesired results. Always check for any potential clashes before defining new variables.
+
+3. **Ordering Dependencies**: If your application depends on certain environment variables being set before others, it's crucial to define their order correctly within your Dockerfile or docker-compose.yml file. Otherwise, you may run into initialization issues and errors during runtime.
+
+4. **Handling Sensitive Information**: Be cautious when dealing with sensitive information such as passwords or API keys as environment variables in Docker containers. Storing them directly in plain text is not secure and exposes them to potential risks. Consider using secrets management tools provided by container orchestration platforms like Kubernetes instead.
+
+5. **Variable Scope**: Remember that each container has its own isolated environment scope within a Docker network stack, which means that changes made inside one container will not affect other containers unless explicitly linked or connected together via networking configuration.
+
+6. **Updating Running Containers**: Updating the values of running containers' environment variables might require restarting those containers so that they pick up the new values properly.
+
+By understanding these common issues related to Docker environment variables, you'll be better equipped to handle any challenges that arise while working with them effectively.
+
+## Summary
+
+In this section, we will summarize the key points regarding setting Docker environment variables using `ARG` and `ENV`.
+
+- Environment variables play a crucial role in configuring applications running within Docker containers.
+- Docker provides two methods for setting environment variables during image building: `ARG` and `ENV`.
+- The `ARG` instruction allows you to define build-time variables that can be passed to the builder with the docker build command.
+- These ARG values can also be used as default values for ENV instructions or overridden during the build process.
+- On the other hand, the `ENV` instruction sets environment variables that are persistent within the container at runtime.
+- This means that any processes running inside the container have access to these defined environment variables.
+- You can use both ARG and ENV instructions together to create flexible configuration options for your Docker images.
+
+Here is a basic example of how these instructions can be used:
+
+```
+# Set an ARG variable
+ARG my_variable=default_value
+
+# Use it as a default value when defining an ENV variable
+ENV MY_VAR=${my_variable}
+
+# Other instructions...
+```
+
+By utilizing ARG and ENV effectively, you can easily configure your containers with dynamic values while maintaining flexibility. Remember that ARG is primarily intended for passing arguments during image builds, while ENV is suitable for defining persistent runtime configuration.
+
+Keep in mind that proper usage of these features enhances portability and enables better customization of your Dockerized applications. Experimenting with different combinations of ARG and ENV will help you optimize your development workflow and make managing environments easier.
+
+## Conclusion
+
+In this article, we explored the concept of setting Docker environment variables using the `ARG` and `ENV` directives. We learned that environment variables play a crucial role in configuring containers and can be used to pass important information such as database credentials, API keys, or application-specific settings.
+
+By leveraging the `ARG` directive, we can define build-time variables that are accessible during the image building process but not available at runtime. On the other hand, with the `ENV` directive, we can set environment variables that are present both during build time and when running a container.
+
+Understanding how to properly set Docker environment variables is essential for creating flexible and configurable containers. By utilizing `ARG` and `ENV`, developers gain greater control over their containerized applications' behavior without hard-coding values into images.
+
+With these powerful techniques in our toolkit, we can create dynamic Docker images that adapt to different environments seamlessly. Whether it's customizing configurations or securely passing sensitive data, leveraging environmental variables enhances the portability and flexibility of our containerized applications.
+
+Remembering to use proper syntax and follow best practices will ensure smooth deployments across various platforms while keeping our codebase clean and maintainable. So go ahead and start harnessing the power of Docker environment variables with confidence!
