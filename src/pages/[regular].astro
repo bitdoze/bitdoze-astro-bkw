@@ -24,6 +24,8 @@ export async function getStaticPaths() {
 const { page } = Astro.props;
 const { title, meta_title, description, image } = page.data;
 
+console.log("HEY");
+
 const ogImage =
   typeof image === "string"
     ? image
