@@ -1,0 +1,28 @@
+---
+export type Heading = {
+  subheadings: Heading[];
+  depth: number;
+  slug: string;
+  text: string;
+};
+
+interface Props {
+  heading: Heading;
+}
+const { heading } = Astro.props;
+---
+
+<li>
+  <a href={"#" + heading.slug}>
+    {heading.text}
+  </a>
+  {
+    heading.subheadings.length > 0 && (
+      <ul class="pl-5">
+        {heading.subheadings.map((subheading) => (
+          <Astro.self heading={subheading} />
+        ))}
+      </ul>
+    )
+  }
+</li>
