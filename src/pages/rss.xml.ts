@@ -5,8 +5,12 @@ import type { APIRoute } from "astro";
 
 export const GET: APIRoute = async (context) => {
   const posts = await getCollection("posts", ({ data }) => {
-    return data.draft !== true;
+    return data.draft !== true && !!data.date;
   });
+  posts.sort(
+    (a, b) =>
+      new Date(b.data.date!).getTime() - new Date(a.data.date!).getTime(),
+  );
   return rss({
     title: config.site.title,
     description: config.metadata.meta_description,
