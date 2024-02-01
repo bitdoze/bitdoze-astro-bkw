@@ -2,6 +2,8 @@
 import Logo from "@components/Logo.astro";
 import menu from "@config/menu.json";
 import { IoSearch } from "react-icons/io5/index.js";
+import { IoLogoRss } from "react-icons/io";
+
 
 export interface ChildNavigationLink {
   name: string;
@@ -94,6 +96,14 @@ const { main }: { main: NavigationLink[] } = menu;
         aria-label="seach"
       >
         <IoSearch />
+      </a>
+         <a
+        class="mr-4 inline-block cursor-pointer p-2 text-xl text-dark transition hover:text-primary md:mr-0"
+        href="/rss.xml"
+        title="RSS"
+        aria-label="RSS"
+      >
+        <IoLogoRss />
       </a>
     </div>
   </nav>

@@ -8,6 +8,7 @@ import similerItems, { type PostItem } from "@lib/utils/similarItems";
 import { humanize, markdownify, slugify } from "@lib/utils/textConverter";
 import { BiCalendarEdit, BiCategoryAlt } from "react-icons/bi/index.js";
 import { type CollectionEntry } from "astro:content";
+import PostHeadings from "./components/table-of-contents/PostHeadings.astro";
 
 const allAuthors = await getSinglePage("authors");
 const posts = await getSinglePage("posts");
@@ -19,7 +20,7 @@ const { post } = Astro.props;
 
 const similarPosts = similerItems(post, posts as PostItem[]);
 
-const { Content } = await post.render();
+const { Content, headings } = await post.render();
 
 const {
   title,
@@ -118,6 +119,10 @@ const {
 
       <div class="md:col-10">
         <div class="content mb-16 text-left">
+           <aside class="not-prose  p-5 rounded-sm">
+            <p class="font-bold">Table of contents:</p>
+      <PostHeadings headings={headings} />
+           </aside>
           <Content />
         </div>
         <div class="flex flex-wrap items-center justify-between">

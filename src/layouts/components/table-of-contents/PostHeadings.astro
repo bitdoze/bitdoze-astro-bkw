@@ -1,0 +1,47 @@
+---
+import type { MarkdownHeading } from "astro";
+import type { Heading } from "./TOCHeading.astro";
+import TOCHeading from "./TOCHeading.astro";
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+function buildToc(headings: MarkdownHeading[]) {
+  const toc: Heading[] = [];
+  const parentHeadings = new Map();
+  headings
+    .filter((h) => h.depth <= 3)
+    .forEach((h) => {
+      const heading = { ...h, subheadings: [] };
+      parentHeadings.set(heading.depth, heading);
+      if (heading.depth === 2) {
+        toc.push(heading);
+      } else {
+        parentHeadings.get(heading.depth - 1).subheadings.push(heading);
+      }
+    });
+  return toc;
+}
+
+const { headings } = Astro.props;
+
+const tableOfContents = buildToc(headings);
+---
+
+<ul class="text-sm [&_li]:pt-2 list-disc underline underline-offset-4 decoration-black/30">
+  {
+    tableOfContents.map((heading) => (
+      <li class=" hover:text-blue-500">
+        <a href={"#" + heading.slug}>{heading.text}</a>
+        {heading.subheadings.length > 0 && (
+          <ul class="pl-5 list-disc ">
+            {heading.subheadings.map((heading) => (
+              <TOCHeading heading={heading} />
+            ))}
+          </ul>
+        )}
+      </li>
+    ))
+  }
+</ul>
