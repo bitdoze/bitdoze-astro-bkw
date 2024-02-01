@@ -19,7 +19,7 @@ const sf = theme.fonts.font_family.secondary;
 
 // types for frontmatters
 export interface Props {
-  title: string;
+  title?: string;
   meta_title?: string;
   description?: string;
   image?: string;
@@ -43,14 +43,14 @@ const {
 } = Astro.props;
 const canonicalURL = `${config.site.base_url}/${Astro.url.pathname.replace(
   "/",
-  ""
+  "",
 )}`;
 
 const mytitle = plainify(
-  meta_title ? meta_title : title ? title : config.site.title
+  meta_title ? meta_title : title ? title : config.site.title,
 );
 const mydescription = plainify(
-  description ? description : config.metadata.meta_description
+  description ? description : config.metadata.meta_description,
 );
 
 const myimage = `${config.site.base_url}${image}`;
@@ -76,7 +76,7 @@ const schema = {
 };
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />

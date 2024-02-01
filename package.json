@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^2.0.0",
-    "@astrojs/rss": "^4.0.1",
+    "@astrojs/rss": "^4.0.4",
     "astro": "^4.0.3",
     "astro-analytics": "^2.7.0",
     "astro-seo": "^0.8.0",
