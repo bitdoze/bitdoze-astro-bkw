@@ -1,0 +1,205 @@
+---
+date: 2024-02-06T00:00:00Z
+title: "How to Install Outline Wiki on Docker"
+description: "Learn how you can install Outline Wiki with docker compose to have a self hosted notion alternative."
+image: "../../assets/images/24/02/outline-install.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["self-hosted"]
+canonical: "https://www.bitdoze.com/outline-install/"
+---
+
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import img1 from "../../assets/images/24/02/slack-oauth.jpeg";
+
+[Outline](https://www.getoutline.com/) is a modern team knowledge base and wiki designed to help teams organize their internal documentation, product specs, support answers, meeting notes, onboarding materials, and more. It is positioned as a more focused alternative to Notion, which is an all-in-one workspace that includes a wider range of features such as project management, databases, and content management systems.
+
+## Outline Overview
+
+### Key Features
+
+- Intuitive Editing Experience: Outline offers a fast editor with markdown support, slash commands, and interactive embeds.
+- Simple Integrations: It integrates with tools like Slack, Figma, and Loom, and also provides an open API for additional integrations.
+- Language Support: Outline supports right-to-left (RTL) text and is available in 17 languages.
+- Open Source: The source code for Outline is publicly available, and it can be self-hosted on your own infrastructure.
+- Real-time Collaboration: The platform is designed for real-time collaboration, making document editing and sharing seamless.
+- Dark Mode: A dark mode is available for users who prefer it.
+- Security & Permissions: Outline allows for detailed management of user permissions.
+
+### Outline as a Notion Alternative
+
+- Focus on Knowledge Base: Outline is primarily a knowledge base and documentation platform, whereas Notion is an all-in-one workspace.
+- Open Source: For those who prefer open-source solutions, Outline is a strong contender.
+- Simplicity: Outline is considered to be simpler and more straightforward compared to Notion, which has a steeper learning curve due to its extensive features.
+- Real-time Collaboration: Outline emphasizes real-time collaboration and has been described as closer to a wiki in terms of its functionality.
+
+### Considerations
+
+- Limited Use Cases: Outline is more limited in scope compared to Notion, focusing mainly on documentation and knowledge sharing.
+- Self-Hosting: Outline can be self-hosted, which is an important consideration for teams with specific privacy or infrastructure requirements.
+- No Mobile Apps: As of the knowledge cutoff date, Outline does not have mobile apps, which may be a limitation for some users.
+
+In summary, Outline is a streamlined, open-source knowledge base and wiki that can serve as a simpler, more focused alternative to Notion for teams looking to organize their internal documentation and collaborate in real-time. It is particularly appealing to those who prefer open-source software and want to avoid the complexity of an all-in-one tool like Notion.
+
+Outline can be deployed on a server that has a minimum of 1 CPU and 512MB of RAM. It's light weight and can be installed anywhere.
+
+## What you Should know Before Installing Outline
+
+Below are some of the things that you should keep in mind if you are trying to install Outline
+
+- **Authentication** - to authenticate in the app you will need a 3PP, you can use Google Authentication (if you are a Workspace user), Slack or Microsoft, you can also use your own image with oidc-server
+- **Storage** - files can be stored on S3 buckets or locally, you can use Amazon S3 or Minio image to store files.
+- **Databases** - it uses Redis and Postgress SQL for databases.
+
+## How To Install Outline with Docker Compose
+
+In this section we are going to see what exactly we need to do to have Outline working on our docker compose as easely as possible. We are going to store the files localy as Outline is permitting this now.
+
+### 1. Prerequisites
+
+Before you begin, make sure you have the following prerequisites in place:
+
+- VPS where you can host Slash, you can use one from [Hetzner](https://go.bitdoze.com/hetzner)
+- Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
+- CloudFlare Tunnels configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
+
+Having all of this you will be ready to move to next step and add the container in dockge.
+
+### 2. Get A Slack credentials
+
+Slack is free to use and we are going to use Slack as an authentication method for our Outline. To do this you need to go in Slack in [Slack API Apps](https://api.slack.com/apps/) and you are going to create an app. In there under **OAuth & Permissions** you add your redirect URL it needs to be with `/auth/slack.callback` at the end, in my case:
+
+```
+https://docs.bitdoze.com/auth/slack.callback
+```
+
+<Picture
+  src={img1}
+  widths={[200, 400, 900]}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Slack Oauth"
+/>
+
+After you can go under **Basic Information** and get your `Client ID` and `Client Secret`. You will need them in the next section
+
+### 3. Docker Compose File
+
+Docker-compose file will make all of this possible and now we have the below file created for outline that can be used:
+
+```yaml
+version: "3.2"
+services:
+  outline:
+    image: docker.getoutline.com/outlinewiki/outline:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - ./storage-data:/var/lib/outline/data
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      PGSSLMODE: disable
+      SECRET_KEY: ${SECRET_KEY}
+      UTILS_SECRET: ${UTILS_SECRET}
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${SERVER_IP}:5432/${POSTGRES_DB}
+      REDIS_URL: redis://${SERVER_IP}:6379
+      URL: ${URL}
+      PORT: ${PORT}
+      FILE_STORAGE: local
+      FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data
+      FILE_STORAGE_UPLOAD_MAX_SIZE: 26214400
+      SLACK_CLIENT_ID: ${SLACK_CLIENT_ID}
+      SLACK_CLIENT_SECRET: ${SLACK_CLIENT_SECRET}
+    restart: unless-stopped
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis.conf:/redis.conf
+    command:
+      - redis-server
+      - /redis.conf
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      interval: 10s
+      timeout: 30s
+      retries: 3
+    restart: unless-stopped
+  postgres:
+    image: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./database-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD
+        - pg_isready
+      interval: 30s
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    restart: unless-stopped
+```
+
+This docker compose file for Outline it has all the require options to run Outline with local storage for images, all the secrets and details will be kept in the env file.
+
+The Outline environments are set to use a local storage and connections to DB's.
+
+The file has local disk for DB, Outline and Redis to store all the details. The recommandation is to use a exact version for images in case you don't want problems when you redeploy this and things update. You want to control your version so in case it gets updated to not mess everything for you.
+
+### 3. Create The outline env file.
+
+The `.env` file has all the secrets and variables to have this working in my case it's looking like below:
+
+```
+SERVER_IP=5.78.94.1
+POSTGRES_USER='user'
+POSTGRES_PASSWORD='pass'
+POSTGRES_DB='outline'
+SECRET_KEY=d1155bc02c5bfd6b2a4c3313113b0b5f0360366aa3b68c56c5299bc4da4efdf8
+UTILS_SECRET=14fec600b3d8b3524421785aef5711805a0a93d21f9ca7f251de88b675862eb
+URL=https://docs.bitdoze.com
+PORT=3000
+SLACK_CLIENT_ID=444642289953.6587112119140
+SLACK_CLIENT_SECRET=dbdcb40d85dc3097511179945e2a4bc7
+```
+
+In here you see you have:
+
+- SERVER_IP which is the public IP of the server, I couldn't make this work with the localhost you can try.
+- Postgres users and passwords
+- secrets for outline whick are generated with: `openssl rand -hex 32`
+- URL and Port - here you will use what you like for your application
+- Slack Details - the `Client ID` and `Client Secret` generated in setp 2 can be found here.
+
+Dockge has a UI where you can add all of this and change them in case you need.
+
+### 4. Deploy Outline
+
+Now you have the docker-compose file and .env details, what remains to be done is to go in dockde and add a name for your stack and hit deploy. Things should start.
+
+### 5. Grant Outline Permissions to Add images
+
+Only with this configs if you will try to upload an image will fail as you will not be able to write into the path where images are sored. nodejs user is used by app and needs access there. [Outline File Storage](https://docs.getoutline.com/s/hosting/doc/file-storage-N4M0T6Ypu7) documentation has some details about this. To make this working you will need to run:
+
+```sh
+cd /opt/stacks/outline
+chown 1001 ./storage-data
+```
+
+chown with 1001 on the disk path will make sure that the user has permissions there.
+
+### 6. Configure the CloudFlare Tunnels
+
+You need to let CloudFlare Tunel to know which port is using, you just need to go in the Access - Tunnels and choose the tunnel you created and add a hostname that will link a domain or subdomain and the service and port . This will need to be as for the URL you have set in the .env file.
+
+And that's about it, now you can use outline, test it and see how it works.
