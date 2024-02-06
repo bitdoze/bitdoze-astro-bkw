@@ -43,7 +43,7 @@ import img1 from "../../assets/images/24/02/slack-oauth.jpeg";
 
 In summary, Outline is a streamlined, open-source knowledge base and wiki that can serve as a simpler, more focused alternative to Notion for teams looking to organize their internal documentation and collaborate in real-time. It is particularly appealing to those who prefer open-source software and want to avoid the complexity of an all-in-one tool like Notion.
 
-Outline can be deployed on a server that has a minimum of 1 CPU and 512MB of RAM. It's light weight and can be installed anywhere.
+Outline can be deployed on a server that has a minimum of 1 CPU and 512MB of RAM. It's lightweight and can be installed anywhere.
 
 ## What you Should know Before Installing Outline
 
@@ -55,7 +55,12 @@ Below are some of the things that you should keep in mind if you are trying to i
 
 ## How To Install Outline with Docker Compose
 
-In this section we are going to see what exactly we need to do to have Outline working on our docker compose as easely as possible. We are going to store the files localy as Outline is permitting this now.
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/IY1jONuTEic"
+  label="Outline Install"
+/>
+
+In this section, we are going to see what exactly we need to do to have Outline working on our docker compose as easily as possible. We are going to store the files locally as Outline is permitting this now.
 
 ### 1. Prerequisites
 
@@ -63,11 +68,11 @@ Before you begin, make sure you have the following prerequisites in place:
 
 - VPS where you can host Slash, you can use one from [Hetzner](https://go.bitdoze.com/hetzner)
 - Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
-- CloudFlare Tunnels configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
+  CloudFlare Tunnels are configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
 
 Having all of this you will be ready to move to next step and add the container in dockge.
 
-### 2. Get A Slack credentials
+### 2. Get Slack credentials
 
 Slack is free to use and we are going to use Slack as an authentication method for our Outline. To do this you need to go in Slack in [Slack API Apps](https://api.slack.com/apps/) and you are going to create an app. In there under **OAuth & Permissions** you add your redirect URL it needs to be with `/auth/slack.callback` at the end, in my case:
 
@@ -150,13 +155,13 @@ services:
     restart: unless-stopped
 ```
 
-This docker compose file for Outline it has all the require options to run Outline with local storage for images, all the secrets and details will be kept in the env file.
+This docker compose file for Outline has all the required options to run Outline with local storage for images, all the secrets and details will be kept in the env file.
 
-The Outline environments are set to use a local storage and connections to DB's.
+The Outline environments are set to use local storage and connections to DB's.
 
-The file has local disk for DB, Outline and Redis to store all the details. The recommandation is to use a exact version for images in case you don't want problems when you redeploy this and things update. You want to control your version so in case it gets updated to not mess everything for you.
+The file has local disk for DB, Outline and Redis to store all the details. The recommendation is to use a exact version for images in case you don't want problems when you redeploy this and things update. You want to control your version so in case it gets updated to not mess everything for you.
 
-### 3. Create The outline env file.
+### 4. Create The outline env file.
 
 The `.env` file has all the secrets and variables to have this working in my case it's looking like below:
 
@@ -177,19 +182,30 @@ In here you see you have:
 
 - SERVER_IP which is the public IP of the server, I couldn't make this work with the localhost you can try.
 - Postgres users and passwords
-- secrets for outline whick are generated with: `openssl rand -hex 32`
+- secrets for outline which are generated with: `openssl rand -hex 32`
 - URL and Port - here you will use what you like for your application
 - Slack Details - the `Client ID` and `Client Secret` generated in setp 2 can be found here.
 
 Dockge has a UI where you can add all of this and change them in case you need.
 
-### 4. Deploy Outline
+### 5. Deploy Outline
 
 Now you have the docker-compose file and .env details, what remains to be done is to go in dockde and add a name for your stack and hit deploy. Things should start.
+If you just want to use docker compose to run this you just do:
 
-### 5. Grant Outline Permissions to Add images
+```sh
+docker-compose up -d
+```
 
-Only with this configs if you will try to upload an image will fail as you will not be able to write into the path where images are sored. nodejs user is used by app and needs access there. [Outline File Storage](https://docs.getoutline.com/s/hosting/doc/file-storage-N4M0T6Ypu7) documentation has some details about this. To make this working you will need to run:
+This will start all the stacks and you can verify them with:
+
+```sh
+docker ps
+```
+
+### 6. Grant Outline Permissions to Add images
+
+Only with these configs if you try to upload an image will fail as you will not be able to write into the path where images are stored. nodejs user is used by app and needs access there. [Outline File Storage](https://docs.getoutline.com/s/hosting/doc/file-storage-N4M0T6Ypu7) documentation has some details about this. To make this working you will need to run:
 
 ```sh
 cd /opt/stacks/outline
@@ -198,8 +214,12 @@ chown 1001 ./storage-data
 
 chown with 1001 on the disk path will make sure that the user has permissions there.
 
-### 6. Configure the CloudFlare Tunnels
+### 7. Configure the CloudFlare Tunnels
 
 You need to let CloudFlare Tunel to know which port is using, you just need to go in the Access - Tunnels and choose the tunnel you created and add a hostname that will link a domain or subdomain and the service and port . This will need to be as for the URL you have set in the .env file.
 
 And that's about it, now you can use outline, test it and see how it works.
+
+## Conclusions
+
+Outline documentation can be scary if you are a newbie in docker and Linux, this tutorial was simplified so you can start and install Outline as easy as possible to test it and use it. For other configurations and official doc you can check: [Outline Docker Installation](https://docs.getoutline.com/s/hosting/doc/docker-7pfeLP5a8t)
