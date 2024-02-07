@@ -1,0 +1,155 @@
+---
+date: 2024-02-07T01:00:00Z
+title: "Bun vs NPM, Yarn, PNPM, and Others"
+description: "Learn what Bun is, how it differs from other package managers like NPM, Yarn, and PNPM, and how to install and use it in your Node.js projects."
+image: "../../assets/images/24/02/bun-npm.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["bun"]
+canonical: "https://www.bitdoze.com/bun-package-manager/"
+---
+
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import img1 from "../../assets/images/24/02/bun-speed.webp";
+
+Bun is a fresh entrant in the JavaScript ecosystem, designed to be a comprehensive JavaScript runtime and package manager. It aims to provide a faster and more efficient alternative to existing tools like NPM, Yarn, and PNPM. Built from scratch, Bun leverages modern technologies such as Zig and JavaScriptCore to optimize performance and offer a seamless development experience.
+
+Bun has several advantages over other package managers, such as:
+
+- **Speed:** Bun installs packages in parallel, using multiple threads and processes. It also caches the packages locally, so that subsequent installs are faster. Bun can install packages up to 10 times faster than NPM, Yarn, or PNPM, according to its benchmarks.
+- **Simplicity:** Bun has a simple and intuitive command-line interface, with only a few commands and options. It does not require any configuration files, lock files, or scripts. It also has a minimal and consistent output, with clear and helpful error messages.
+- **Reliability:** Bun uses a flat and deterministic dependency tree, which means that every package has only one version and location in the node_modules folder. This avoids the problems of duplicate, conflicting, or missing packages that can occur with nested and non-deterministic dependency trees. Bun also verifies the integrity and authenticity of the packages, using checksums and signatures.
+
+Bun is compatible with most Node.js projects that use NPM, Yarn, or pnpm. It can read and write the package.json file, and install the packages from the same sources. It can also work alongside other package managers, as long as they use the same dependency resolution strategy.
+
+## Why Switch Away from NPM, PNPM, or Yarn to Bun?
+
+Switching from NPM, PNPM, or Yarn to Bun can be motivated by several factors, primarily revolving around performance. If you will test test bun you will see that the performance when installing packages can be **up to 30x** faster
+
+- your node dependencies will install faster
+- assets will compile faster
+
+> However, it's important to note that some developers express skepticism about the long-term viability of Bun, drawing parallels with the rise and fall of Yarn and questioning the necessity of Bun's features.
+
+## How to Install Bun
+
+Bun is easy to install and use, as it does not require any global installation or configuration. You can install Bun locally in your Node.js project.
+
+**Install Bun on MACOS**
+
+On Mac devices can be installed with brew, you just add the source and the install it as below:
+
+```sh
+brew tap oven-sh/bun
+brew install bun
+```
+
+**Install Bun on Linux**
+
+Linux installation is easy you just run:
+
+```sh
+curl -fsSL https://bun.sh/install | bash
+```
+
+> Linux users — The unzip package is required to install Bun. Use sudo apt install unzip to install unzip package. Kernel version 5.6 or higher is strongly recommended, but the minimum is 5.1. Use uname -r to check Kernel version.
+
+**Install Bun on Windows**
+
+Bun provides a limited, experimental native build for Windows. So it is recommended to use WLS to have it running on Windows.
+
+For the complete install doc check [bun.sh install](https://bun.sh/docs/installation)
+
+## Bun versus Node.js: Package Manager
+
+Bun and Node.js differ significantly in their approach to package management. While Node.js relies on npm as its default package manager, Bun incorporates its own package manager. This integrated package manager is designed to be faster and more efficient than npm, leveraging a global module cache to eliminate redundant downloads
+
+| Bun Command               | npm Command                   | Purpose                                         |
+| ------------------------- | ----------------------------- | ----------------------------------------------- |
+| `bun install`             | `npm install`                 | Install all dependencies from package.json      |
+| `bun add <package>`       | `npm install <package>`       | Add a new package to the project                |
+| `bun add <package> --dev` | `npm install <package> --dev` | Add a new development-only package              |
+| `bun remove <package>`    | `npm uninstall <package>`     | Remove a package from the project               |
+| `bun update <package>`    | `npm update <package>`        | Update a specific package to its latest version |
+| `bun run <script>`        | `npm run <script>`            | Execute a specified script from package.json    |
+
+`bun` and `npm` share similar commands for package management in JavaScript projects. Both install commands install dependencies listed in package.json. add and install commands add new packages, while add `--dev` and install `--dev` add development-only packages. remove and uninstall commands remove packages, and update commands update specific packages. Finally, run commands execute scripts from `package.json`. The key difference lies in the choice of package manager, with bun and npm serving as alternatives, each with its syntax for accomplishing these common development tasks.
+
+<Picture src={img1} sizes="(max-width: 900px) 100vw, 900px" alt="bun speed" />
+
+## How to replace NPM, Yarn, or PNPM with Bun
+
+To replace NPM, Yarn, or pnpm with Bun, you first need to remove the lock files of the existing package manager, as Bun uses its own lock file `bun.lockb`. Here are the commands to remove the lock files:
+
+```sh
+# If you were using NPM:
+rm package-lock.json
+
+# If you were using pnpm:
+rm pnpm-lock.yaml
+
+# If you were using Yarn:
+rm yarn.lock
+```
+
+After you just run `bun install` it will start installing everything.
+
+## Bun Install in Action
+
+I have done this exercise for my bitdoze.com blog that is using Astro, did the exact steps above and below are the results.
+
+I am using NPM which I think is the slowest and when :
+
+**Install the packages with dependencies**
+
+NPM:
+
+```sh
+➜  bitdoze-astro-bkw git:(main) time npm install
+
+
+npm install  13.22s user 3.82s system 23% cpu 1:13.89 total
+
+
+npm run build  55.96s user 3.41s system 126% cpu 46.776 total
+```
+
+Bun:
+
+```sh
+➜  bitdoze-astro-bkw git:(main) time bun install
+
+bun install  10.83s user 2.14s system 121% cpu 10.694 total
+
+bun run build  55.30s user 3.34s system 126% cpu 46.181 total
+```
+
+As can be seen above the install with bun took around **11 seconds** and npm install took 73 seconds which makes bun 7 times faster in this case. The build process was the same.
+
+## Bun Usage
+
+**Add a package using Bun**
+
+Like with another package manager you can add packages with `bun add`:
+
+```sh
+bun add tailwindcss autoprefixer postcss
+```
+
+**Remove a package using Bun**
+
+`bun remove` will do the trick also here:
+
+```sh
+bun remove tailwindcss
+```
+
+**Run your scripts using Bun**
+
+`bun run` will help you do this for instance for astro `bun run dev` will start astro and `bun run build` will build the app. Bun will check `package.json` to know what to do.
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/BsnCpESUEqM"
+  label="Bun Video Presentation"
+/>
