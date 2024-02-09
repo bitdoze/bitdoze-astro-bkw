@@ -1,0 +1,186 @@
+---
+date: 2024-02-09T00:00:00Z
+title: "How to Block AI Crawler Bots"
+description: "Let's see the various alternatives that exist to block all AI Crawler bots that try to access your website content."
+image: "../../assets/images/24/02/block-ai-crawlers.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["ai"]
+canonical: "https://www.bitdoze.com/block-ai-crawlers/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/02/cf-proxy.jpeg";
+import imag2 from "../../assets/images/24/02/cf-waf-bloc-ai.jpeg";
+import imag3 from "../../assets/images/24/02/cf-waf-ip-block.png";
+
+If you are a content writer you may not be happy with the fact that AI is using your content and you may want to block them. Lately, AI has taken off and there are a lot of AI-powered options that will try to use your content.
+
+Also, the development of AI-powered search responses started to kick off and you have tools like Perplexity, Microsoft Copilot, Gemini and ARC Browser in the future that will respond to your questions directly by crawling the best content and providing answers.
+
+This creates a problem for blog owners as the traffic is not sent to your site anymore, in this way you lose audience and money.
+
+> I am not saying that what websites have become now is good as most of them have 1000 ads, but still, some respect the visitors and are not bombarding you with all sorts of ads. Plus you have an option to use an add blocker.
+
+But with AI there is a risk that no one will write as they will not be incentivized in any way, the visitor will not subscribe to his social media, not join the newsletter or will not make the money anymore to pay his mortgage.
+
+In this article, we are going to see the various ways that exist and will help you block AI Crawler but let Search Engine Crawlers still index your content.
+
+## How to Block AI Crawler Bots To Access Website Content
+
+There are a few ways to protect your content from **AI Crawlers** and in this article, we will go through them and see how you can set them app.
+
+### 1. Block AI Crawler Bots via WAF
+
+WAF (Web Application Firewall) are gateways that stand between the visitor (AI Crawler) and your website, this is the best option that you can use to block AI Crawlers to reach your content.
+
+One free option that can be used in CloudFlare Free WAF, they have introduced a **Verified Bot Category** that will help you block various things like:
+
+- Search Engine Crawler
+- Aggregator
+- AI Crawler
+- Page Preview
+- Advertising
+- Academic Research
+- Accessibility
+- Feed Fetcher
+- Security
+- Webhooks
+
+[Clauflare WAF Bot Category](https://blog.cloudflare.com/ai-bots) can be checked for more details.
+
+To use CloudFlare Free WAF to block AI Crawlers you need to:
+
+**1. Website to use CloudFlare.**
+
+You need to use CloudFlare as a DNS provider and have your website go through them.
+
+**2. CloudFlare Proxy needs to be activated**
+
+The website needs to be proxied through CloudFlare otherwise will not work. So just as in below picture:
+
+<Picture
+  src={imag1}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Cloudflare Proxy"
+/>
+
+**3. Create the CloudFlare WAF Rule**
+
+In the Free WAF you have 3 rules that can be used and you can create 1 just for this. To activate it go to **Security - WAF** and hit create a new Rule. In there you need to set:
+
+- **Rule name** - add a name so you know what is used for
+- **Field** - choose Verified Bot Category
+- **Operator** - equals
+- **Value** - AI Crawler
+- **Choose action** - Block
+- **Deploy** - hit deploy
+
+The Expression Preview should be:
+
+```
+(cf.verified_bot_category eq "AI Crawler")
+```
+
+Just as in the image:
+
+<Picture
+  src={imag2}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Cloudflare WAF Block AI Crawler"
+/>
+
+Then let this for a couple of minutes to be active.
+
+Now you should be set to go, you can track the stats in the main WAF section and see how many were stopped after some time.
+
+### 2. Block AI Crawler Bots via robots.txt
+
+`robots.txt` is a file where you can specify what is allowed and what is not allowed to be fetched by crawlers. All the bots should check this file and see if they have access to fetch your content ( in theory). The major companies are doing this as otherwise they can have legal problems and they can be sued but don't expect everyone to do this.
+
+Because of the above, this is not a bulletproof solution to block AI Crawler and should be used in combination with a WAF, plus you will need to add the AI agents as they appear to catch them all.
+
+**Block AI Crawlers with `robots.txt`**
+
+The sintax for this is as bellow:
+
+```
+user-agent: {AI-Ccrawlers-Bot-Name-Here}
+disallow: /
+```
+
+You just need to replace the `AI-Ccrawlers-Bot-Name-Here` with the AI bot that you want to be blocked.
+
+An example for the OpenAI is:
+
+```
+User-agent: GPTBot
+Disallow: /
+User-agent: ChatGPT-User
+Disallow: /
+```
+
+This will block all the pages on your website, you can alter the `Disallow` , you can add specific pages and so on. To allow someting you just need to use `Allow` instead of `Disallow`
+
+```
+
+User-agent: GPTBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+```
+
+### 3. Block AI Crawler Bots via IP
+
+Another way to block AI Crawlers is to block the IP address of the bot in the firewall. When communication is happening between AI bot and your webserver it will use an IP, you have the option to block the IP address of the bots in the firewall.
+
+If you are self-hosting your website on a VPS on linux you have a firewall utility that can be used to block the IP's.
+
+**ufw**
+
+`ufw` is a utility that can help you with this. For instance if we are going to check the [openAI IPs](https://platform.openai.com/docs/plugins/bot) and block then you should run:
+
+```sh
+sudo ufw deny proto tcp from 23.98.142.176/28 to any port 80
+sudo ufw deny proto tcp from 23.98.142.176/28 to any port 443
+sudo ufw deny proto tcp from 40.84.180.224/28 to any port 80
+sudo ufw deny proto tcp from 40.84.180.224/28 to any port 443
+sudo ufw deny proto tcp from 40.84.180.224/28 to any port 80
+sudo ufw deny proto tcp from 13.65.240.240/28 to any port 443
+```
+
+> This method implies that you should know the IP addresses of all the AI bots so you can add them here. Also, they can change over time but in case you are seeing a lot of traffic you can check the logs and see the exact IP.
+
+**cPanel Firewall**
+
+If you are using cPanel or another hosting panel you should have a firewall option in there that can be used and block the IPs, so you are covered in case cPanel is used. Again you should know the IP's
+
+**CloudFlare WAF IP Access Rules**
+
+If you are on CloudFlare they got you covered, in **Security - WAF** section under **Tools** you have the option to block or allow certan IP's or ranges, all for free.
+
+<Picture
+  src={imag3}
+  sizes="(max-width: 900px) 100vw, 900px"
+  alt="Cloudflare WAF IP Block AI Crawler"
+/>
+
+### 4. Block AI Crawler via Content Tags
+
+Another option that can be used is to add a tag to your page directly that `should` prevent AI from crawling your pages. This is the same as for `robots.txt` the Bot should check it and not do anything if this is set.
+
+It should be added in the head section of your website or page that you don't want to be Crawl by AI:
+
+```html
+<meta name="”robots”" content="”noai," noimageai” />
+```
+
+The `noai` directive is intended to prevent all content on the page from being used by AI, while the `noimageai` directive is specifically aimed at preventing images from being used for AI training purposes.
+
+If you are on WordPress you can check your SEO plugin to see if this is enabled and if so you would be able to block the complete website or only pages. A WordPress plugin for WordPress that can do that in case your SEO plugin doesn't offer this is: [Simple NoAI and NoImageAI](https://wordpress.org/plugins/simple-noai-and-noimageai/)
+
+## Conclusions
+
+These are some of the ways that you can block AI Crawler Bots from using your content if you have a serious issue with AI using your content then you should use all to be protected, other then this you can check your access logs and see there who slips thru the cracks.
