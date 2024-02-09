@@ -1,6 +1,6 @@
 ---
 date: 2024-02-09T00:00:00Z
-title: "How to Block AI Crawler Bots"
+title: "Stop AI Crawler Bots: How to Safeguard Your Website"
 description: "Let's see the various alternatives that exist to block all AI Crawler bots that try to access your website content."
 image: "../../assets/images/24/02/block-ai-crawlers.jpeg"
 categories: ["cms"]
@@ -29,6 +29,11 @@ But with AI there is a risk that no one will write as they will not be incentivi
 In this article, we are going to see the various ways that exist and will help you block AI Crawler but let Search Engine Crawlers still index your content.
 
 ## How to Block AI Crawler Bots To Access Website Content
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/4s5I5Bz-IDE"
+  label="Stop AI Crawler Bots: How to Safeguard Your Website"
+/>
 
 There are a few ways to protect your content from **AI Crawlers** and in this article, we will go through them and see how you can set them app.
 
@@ -69,7 +74,7 @@ The website needs to be proxied through CloudFlare otherwise will not work. So j
 
 **3. Create the CloudFlare WAF Rule**
 
-In the Free WAF you have 3 rules that can be used and you can create 1 just for this. To activate it go to **Security - WAF** and hit create a new Rule. In there you need to set:
+In the Free WAF you have 5 rules that can be used and you can create 1 just for this. To activate it go to **Security - WAF** and hit create a new Rule. In there you need to set:
 
 - **Rule name** - add a name so you know what is used for
 - **Field** - choose Verified Bot Category
@@ -174,7 +179,7 @@ Another option that can be used is to add a tag to your page directly that `shou
 It should be added in the head section of your website or page that you don't want to be Crawl by AI:
 
 ```html
-<meta name="”robots”" content="”noai," noimageai” />
+<meta name="robots" content="noai, noimageai" />
 ```
 
 The `noai` directive is intended to prevent all content on the page from being used by AI, while the `noimageai` directive is specifically aimed at preventing images from being used for AI training purposes.
