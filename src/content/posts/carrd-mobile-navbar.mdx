@@ -20,6 +20,13 @@ However, creating a header that looks good on both desktop and mobile devices ca
 
 In this article, we will show you how to create a responsive header with a mobile navbar in Carrd.co using an embed widget and custom code option.
 
+<Button link="https://try.carrd.co/bitdoze" text="Carrd.co" />
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/PkZ7CYfKxSg"
+  label="How to Create A Carrd.co Mobile Responsive Navbar"
+/>
+
 Some Carrd Tutorials:
 
 - [Add Stickey Header Carrd](https://www.bitdoze.com/add-stickey-header-carrd/)
@@ -34,9 +41,9 @@ Some Carrd Tutorials:
 
 ## 1. Create a Container
 
-The header that will have the navigation menu will need to be inserted in a container, so you will need to add a container with 2 columns for this. In first column you will add you logo and in the second column you will add the embed code.
+The header that will have the navigation menu will need to be inserted in a container, so you will need to add a container with 2 columns for this. In the first column, you will add you logo and in the second column, you will add the embed code.
 
-You can split them as 25% - 75% and choose what background you want for you header, this will not impact the responsive nav bar. Check the video there I go in detail.
+You can split them as 25% - 75% and choose what background you want for your header, this will not impact the responsive nav bar. Check the video where I go in detail.
 
 ## 2. Add an Embed Widget
 
@@ -49,7 +56,7 @@ Below is the code that we are going to use to create the responsive navbar and m
 ```html
 <style>
   :root {
-    /*--main-font: Arial, sans-serif;*/
+    --main-font: Arial, sans-serif;
     --primary-color: #200eed;
     --secondary-color: #fff;
   }
@@ -69,7 +76,7 @@ Below is the code that we are going to use to create the responsive navbar and m
     align-items: center; /* Changed: Align items to the center vertically */
     justify-content: flex-end; /* Changed: Align items to the start (left) */
     align-content: flex-end; /* Not strictly necessary for this change */
-    /*-font-family: var(--main-font);*/
+    font-family: var(--main-font);
   }
 
   .menu {
@@ -176,6 +183,7 @@ Below is the code that we are going to use to create the responsive navbar and m
 
 - The `:root` selector defines CSS variables for font, primary color, and secondary color. `--primary-color` holds the color for your menu items and your hamburger menu.
   `--secondary-color` holds the color for the mobile drop-down. You can change the with what color you want.
+- the `--main-font` will have the font that will be used by menu, you can add what font you are using in Carrd for your page, you can fetch it with Inspect Element in your browser. The video has the details.
 - the `ul` elements in `<nav>` is holding the items that will be displayed on the menu you can change the `href="#"` and add the exact section where the menu should go and the Text is the name that will be displayed.
   effects, the menu has a nice underline effect that is added to be more pleasant to the visitors.
 
