@@ -1,0 +1,195 @@
+---
+date: 2024-02-14T00:00:00Z
+title: "How to Create A Carrd.co Mobile Responsive Navbar"
+description: "Learn how you can add a Responsive Navbar to your carrd website that has a mobile toggle."
+image: "../../assets/images/24/02/carrd-mobile-navbar.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["carrd"]
+canonical: "https://www.bitdoze.com/carrd-mobile-navbar/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+
+[Carrd.co](https://try.carrd.co/bitdoze) is a platform that allows you to create simple, responsive, and beautiful websites with just a few clicks. You can choose from a variety of templates, customize them with your own content, and publish them online for free or with a premium plan.
+
+One of the features that Carrd.co offers is the ability to create a header for your website, which is the top section that usually contains your logo, navigation menu, and other elements. A header can help your visitors navigate your website and access the most important information.
+
+However, creating a header that looks good on both desktop and mobile devices can be challenging, especially if you want to have a hamburger menu, which is a common design pattern for responsive websites. A hamburger menu is a button that consists of three horizontal lines, and when clicked, it reveals a hidden menu with more options.
+
+In this article, we will show you how to create a responsive header with a mobile navbar in Carrd.co using an embed widget and custom code option.
+
+Some Carrd Tutorials:
+
+- [Add Stickey Header Carrd](https://www.bitdoze.com/add-stickey-header-carrd/)
+- [Add Carrd Cookie Notice](https://www.bitdoze.com/add-cookie-notice-carrd/)
+- [How To Add Pricing Table to Carrd.co](https://www.bitdoze.com/carrd-add-pricing-table/)
+- [Carrd.co Review](https://www.bitdoze.com/carrd-review/)
+- [How To Add Accordion FAQs Drop-Down to Carrd.co](https://www.bitdoze.com/add-accordion-carrd/)
+
+> The responsive navigation menu will need **Pro Standard** plan as we are going to use a simple HTML and CSS code for this.
+
+<Button link="https://carrdme.com/" text="Carrd Plugins and Themes" />
+
+## 1. Create a Container
+
+The header that will have the navigation menu will need to be inserted in a container, so you will need to add a container with 2 columns for this. In first column you will add you logo and in the second column you will add the embed code.
+
+You can split them as 25% - 75% and choose what background you want for you header, this will not impact the responsive nav bar. Check the video there I go in detail.
+
+## 2. Add an Embed Widget
+
+In the second column of the container, you will need to add the embed widget that will hold the code. You just assign a name.
+
+## 3. Add the HTML/CSS code
+
+Below is the code that we are going to use to create the responsive navbar and menu items:
+
+```html
+<style>
+  :root {
+    /*--main-font: Arial, sans-serif;*/
+    --primary-color: #200eed;
+    --secondary-color: #fff;
+  }
+
+  /* Basic Reset and Body Styling */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* Navigation Styling */
+  nav {
+    color: var(--secondary-color);
+    padding: 15px;
+    display: flex;
+    align-items: center; /* Changed: Align items to the center vertically */
+    justify-content: flex-end; /* Changed: Align items to the start (left) */
+    align-content: flex-end; /* Not strictly necessary for this change */
+    /*-font-family: var(--main-font);*/
+  }
+
+  .menu {
+    list-style: none;
+    display: flex;
+  }
+
+  .menu li a {
+    display: block;
+    color: var(--secondary-color);
+    text-decoration: none;
+    padding: 10px 15px;
+    position: relative;
+  }
+
+  .menu li a::after {
+    /* Target a pseudo-element for the underline */
+    content: "";
+    position: absolute;
+    bottom: 2px; /* Distance from the text */
+    left: 50%; /* Center the underline */
+    width: 0; /* Initial width is 0 */
+    height: 2px;
+    background-color: var(--secondary-color);
+    transition: width 0.3s ease-in-out; /* Control the transition effect */
+  }
+
+  .menu li a:hover::after {
+    width: 100%; /* Expand to full width on hover */
+    left: 0; /* Start the underline from the left */
+  }
+
+  /* Hover effect for submenu items */
+  /* Hamburger Styling */
+  .hamburger {
+    display: none;
+    cursor: pointer;
+  }
+
+  .hamburger .bar {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--secondary-color);
+    margin: 5px 0;
+  }
+
+  /* Hide Checkbox */
+  #menu-toggle {
+    display: none;
+  }
+
+  /* Responsive - Media Queries (For Mobile) */
+  @media (max-width: 768px) {
+    /* Show the Hamburger */
+    .hamburger {
+      display: block;
+    }
+
+    /* Hide and Modify Menu on Mobile */
+    .menu {
+      position: absolute;
+      width: 100%;
+      top: calc(15px + 6em);
+      left: 0;
+      background-color: var(--primary-color);
+      text-align: center;
+      padding: 0;
+      display: none;
+    }
+
+    .menu li {
+      width: 100%;
+    }
+
+    .menu li a {
+      padding: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #menu-toggle:checked ~ .menu {
+      display: block;
+    }
+  }
+</style>
+
+<nav>
+  <input type="checkbox" id="menu-toggle" />
+  <label for="menu-toggle" class="hamburger">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+  </label>
+  <ul class="menu">
+    <li><a href="#">Home</a></li>
+    <li><a href="#">About</a></li>
+    <li><a href="#">Services</a></li>
+    <li><a href="#">Contact</a></li>
+  </ul>
+</nav>
+```
+
+**Code Explanation**
+
+- The `:root` selector defines CSS variables for font, primary color, and secondary color. `--primary-color` holds the color for your menu items and your hamburger menu.
+  `--secondary-color` holds the color for the mobile drop-down. You can change the with what color you want.
+- the `ul` elements in `<nav>` is holding the items that will be displayed on the menu you can change the `href="#"` and add the exact section where the menu should go and the Text is the name that will be displayed.
+  effects, the menu has a nice underline effect that is added to be more pleasant to the visitors.
+
+An exemple is below:
+
+```html
+<li><a href="#">Home</a></li>
+<li><a href="#about">About</a></li>
+<li><a href="#testimonials">Testimonials</a></li>
+<li><a href="#contact">Contact</a></li>
+```
+
+If you want to add an extra item just copy an `li` and add the `href` and name.
+
+The tutorial made on how you can [add a sticky header to carrd](https://www.bitdoze.com/add-stickey-header-carrd/) is working perfectly with this tutorial so you can use both.
+
+<Button link="https://carrdme.com/" text="Carrd Plugins and Themes" />
