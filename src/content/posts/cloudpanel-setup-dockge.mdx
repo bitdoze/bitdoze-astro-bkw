@@ -1,6 +1,6 @@
 ---
 date: 2024-02-13T00:00:00Z
-title: "Setup CloudPanel As Reverse Proxy with Dockge"
+title: "Setup CloudPanel As Reverse Proxy with Docker and Dockge"
 description: "Use CloudPanel as a reverse proxy with Dockge for managing your Docker containers."
 image: "../../assets/images/24/02/cloudpanel-dockge-setup.jpeg"
 categories: ["vps"]
@@ -46,7 +46,14 @@ You can use other alternatives as reverse proxy for your self-hosted apps but in
 - Minimum 2 GB RAM
 - 10 GB of disk space
 
-In this article, we are going to see how you can Install CloudPanel and Dockge and make the most of your VPS. [Dockge](https://dockge.kuma.pet/) is a panel that can help you host docker apps with just one click I have made an article here: [Dockge Install](https://www.bitdoze.com/dockge-install/) that will provide more details on the panel.
+In this article, we are going to see how you can Install CloudPanel Docker and Dockge and make the most of your VPS. [Dockge](https://dockge.kuma.pet/) is a panel that can help you host docker apps with just one click I have made an article here: [Dockge Install](https://www.bitdoze.com/dockge-install/) that will provide more details on the panel.
+
+CloudPanel will be used as a proxy server that will send the traffic to your Docker containers and Dockge will be the app that will help you administrate these docker containers and deploy apps easily.
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/BuoyvbDVBe0"
+  label="Setup CloudPanel As Reverse Proxy with Docker and Dockge"
+/>
 
 ## 1. Create a VPS server
 
