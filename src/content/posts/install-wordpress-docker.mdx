@@ -23,6 +23,7 @@ In this article, we are going to cover everything you need to do to have WordPre
 - **Database Backups**: a container that will use `sqldump` to create periodic backups to your WordPress database and do a cleanup of older backups in case something goes wrong to restore the backup. Backups will be stored in a local volume.
 - **SSL/Reverse Proxy**: CloudFlare Tunels will be used to set up a domain to the container and have SSL certificates + protection through CloudFlare free plan with WAF.
 - **Dockge for Manage Docker**: Dockge will be used to add our docker compose files and manage the containers, this can be done also with docker-compose commands but Dockge offers a better way to work with the containers thru a UI.
+- **Redis**: you can cache requests to your Database via Redis, you will see the configs needed to add Redis with WordPress to take advantage of Redis.
 
 > This being said we will get started and install WordPress in a Docker with docker-compose, I will use the `latest` for the image tags but you can use the exact version if you don't want surprises when a container moves to a next version.
 
@@ -226,7 +227,99 @@ total 16
 lrwxrwxrwx 1 10000 10000  44 Feb 21 09:32 latest-mysql_wordpress_wp-db -> mysql_wordpress_wp-db_20240221-093228.sql.gz
 ```
 
-### 11. What's Next
+### 11. Add Redis to WordPress Docker Compose file
+
+You can also add Redis to your docker compose file for better db performance, all the request that will be made to the mysql database will be cached in memory and will be a lot faster, to do so you just need to add:
+
+```yaml
+redis-wp:
+  image: redis
+  restart: unless-stopped
+```
+
+**Full YAML file with Redis:**
+
+```yaml
+version: "3"
+services:
+  wp:
+    image: wordpress:latest
+    restart: unless-stopped
+    ports:
+      - 5010:80
+    volumes:
+      - ./config/wp_php.ini:/usr/local/etc/php/conf.d/conf.ini
+      - ./wp-app:/var/www/html # Full wordpress project
+    environment:
+      WORDPRESS_DB_HOST: wp-db:3306
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - wp-db
+  wp-db:
+    image: mysql:latest
+    volumes:
+      - ./db_data:/var/lib/mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+  pma:
+    image: phpmyadmin:latest
+    ports:
+      - 5011:80
+    volumes:
+      - ./config/pma_php.ini:/usr/local/etc/php/conf.d/conf.ini
+      - ./config/pma_config.php:/etc/phpmyadmin/config.user.inc.php
+    restart: unless-stopped
+    environment:
+      # https://docs.phpmyadmin.net/en/latest/setup.html#docker-environment-variables
+      PMA_HOST: wp-db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      UPLOAD_LIMIT: 50M
+    depends_on:
+      - wp-db
+  wp-db-backup:
+    container_name: wp-db-backup
+    image: tiredofit/db-backup
+    volumes:
+      - ./backups:/backup
+    restart: unless-stopped
+    environment:
+      DB_TYPE: mysql
+      DB_HOST: wp-db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASSWORD}
+      DB_BACKUP_INTERVAL: 720
+      DB_CLEANUP_TIME: 72000
+      #DB_BACKUP_BEGIN: 1
+      CHECKSUM: SHA1
+      COMPRESSION: GZ
+      CONTAINER_ENABLE_MONITORING: false
+    depends_on:
+      - wp-db
+  redis-wp:
+    image: redis
+    restart: unless-stopped
+```
+
+After you edit the `wp-config.php` and add the host and port so request to be cached by Redis:
+
+`wp-config.php` is located into the volume you created for WordPress under `./wp-app`
+
+```php
+define('WP_REDIS_HOST', 'redis-wp');
+define('WP_REDIS_PORT', '6379');
+```
+
+This has the name of the service which is `redis-db` and the default port `6379`. After you just need to install the [WordPress Redis plugin](https://wordpress.org/plugins/redis-cache/) after you enable it you should have Redis set up for your WordPress installation on Docker.
+
+### 12. What's Next
 
 Now you should have everything up and running and you should be able to use the WordPress installation for your projects. You can go and see if everything is working as expected and install some themes and plugins.
 
