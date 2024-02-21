@@ -1,0 +1,237 @@
+---
+date: 2024-02-21T00:00:00Z
+title: "Install WordPress in a Docker Container with Docker Compose"
+description: "Use docker to install WordPress in a container with Docker Compose with phpMyAdmin and Database backups."
+image: "../../assets/images/24/02/install-wordpress-docker.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["self-hosted"]
+canonical: "https://www.bitdoze.com/install-wordpress-docker/"
+---
+
+import { Picture } from "astro:assets";
+import imag1 from "../../assets/images/24/01/cloudflare-tunel-setup.png";
+import imag2 from "../../assets/images/24/02/docker-wp-access.png";
+
+Docker is a powerful containerization platform that packages applications and their dependencies into containers. These containers can then be deployed across different environments, ensuring consistency and simplifying the deployment process.
+
+In this article, we are going to cover everything you need to do to have WordPress running in a docker container with the help of docker-compose. Here is what you will get by following the WordPress Docker Installation in this article:
+
+- **WordPress Container**: we are going to install the latest WordPress version with volums for WordPress installation and php.ini file that will allow you to modify the PHP settings like `memory_limit`, `upload_max_filesize`, `max_execution_time`, etc
+- **Database Container**: MYSQL latest version will be used with a volume to mysql data that will allow you to backup WordPress if needed.
+- **phpMyAdmin**: container with phpMyAdmin app that will allow you to connect to the database and do various things in there directly, `UPLOAD_LIMIT` can be set to accommodate big databases, access to phpMyAdmin config files to modify parameters in case you have custom things or databases are too big and you need custom PHP parameters
+- **Database Backups**: a container that will use `sqldump` to create periodic backups to your WordPress database and do a cleanup of older backups in case something goes wrong to restore the backup. Backups will be stored in a local volume.
+- **SSL/Reverse Proxy**: CloudFlare Tunels will be used to set up a domain to the container and have SSL certificates + protection through CloudFlare free plan with WAF.
+- **Dockge for Manage Docker**: Dockge will be used to add our docker compose files and manage the containers, this can be done also with docker-compose commands but Dockge offers a better way to work with the containers thru a UI.
+
+> This being said we will get started and install WordPress in a Docker with docker-compose, I will use the `latest` for the image tags but you can use the exact version if you don't want surprises when a container moves to a next version.
+
+## Steps to Install WordPress in Docker with Docker Compose
+
+### 1. Prerequisites
+
+Before you begin, make sure you have the following prerequisites in place:
+
+- VPS where you can host WordPress, you can use one from [Hetzner](https://go.bitdoze.com/hetzner)
+- Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
+- CloudFlare Tunnels are configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
+
+Having all of this you will be ready to move to next step and add the docker-compose file in Dockge.
+
+### 2. Docker Compose File
+
+The first thing is to have a docker-compose file with all the services we need: WordPress, Database, phpMyAdmin, DB backup.
+
+```yaml
+version: "3"
+services:
+  wp:
+    image: wordpress:latest
+    restart: unless-stopped
+    ports:
+      - 5010:80
+    volumes:
+      - ./config/wp_php.ini:/usr/local/etc/php/conf.d/conf.ini
+      - ./wp-app:/var/www/html # Full wordpress project
+    environment:
+      WORDPRESS_DB_HOST: wp-db:3306
+      WORDPRESS_DB_NAME: "${DB_NAME}"
+      WORDPRESS_DB_USER: "${DB_USER}"
+      WORDPRESS_DB_PASSWORD: "${DB_PASSWORD}"
+    depends_on:
+      - wp-db
+  wp-db:
+    image: mysql:latest
+    volumes:
+      - ./db_data:/var/lib/mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${DB_NAME}"
+      MYSQL_USER: "${DB_USER}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+  pma:
+    image: phpmyadmin:latest
+    ports:
+      - 5011:80
+    volumes:
+      - ./config/pma_php.ini:/usr/local/etc/php/conf.d/conf.ini
+      - ./config/pma_config.php:/etc/phpmyadmin/config.user.inc.php
+    restart: unless-stopped
+    environment:
+      # https://docs.phpmyadmin.net/en/latest/setup.html#docker-environment-variables
+      PMA_HOST: wp-db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      UPLOAD_LIMIT: 50M
+    depends_on:
+      - wp-db
+  wp-db-backup:
+    container_name: wp-db-backup
+    image: tiredofit/db-backup
+    volumes:
+      - ./backups:/backup
+    restart: unless-stopped
+    environment:
+      DB_TYPE: mysql
+      DB_HOST: wp-db
+      DB_NAME: "${DB_NAME}"
+      DB_USER: "${DB_USER}"
+      DB_PASS: "${DB_PASSWORD}"
+      DB_BACKUP_INTERVAL: 720
+      DB_CLEANUP_TIME: 72000
+      #DB_BACKUP_BEGIN: 1
+      CHECKSUM: SHA1
+      COMPRESSION: GZ
+      CONTAINER_ENABLE_MONITORING: "false"
+    depends_on:
+      - wp-db
+```
+
+This file defines four services: `wp` (WordPress), `wp-db`(MySQL database for WordPress), `pma` (phpMyAdmin for database management), and `wp-db-backup` (for database backups). Each service is configured with specific settings, such as image versions, ports, volumes for persistent storage, and environment variables for configuration.
+
+Port `5010` will be used for WordPress to get access to the application and `5011` for phpMyAdmin, they can be changed and used as per requirements. The DB users and password are set as environment variables to not keep them in the compose-file.
+
+`unless-stopped` is added to each container to restart automatically in case something goes wrong with the server and reboots.
+
+`DB_BACKUP_INTERVAL` and `DB_CLEANUP_TIME` can be altered as per needs to take backups and clean old ones, the time is in minutes.
+
+### 3. Setup .env File
+
+Variables with DB details that will be used by all containers will be stored in `.env` file, you can create one in the same location of your docker-compose file or add them in Dockge and save the config.
+
+```sh
+DB_NAME='wordpress'
+DB_USER='wp'
+DB_PASSWORD='password'
+DB_ROOT_PASSWORD=d1155bc02c5bfd6b2a4
+```
+
+You replace the values with the things you want for your installation, to make them as secure as possible.
+
+### 4. Create the Path to Config Files
+
+Docker it doesn't play well if you are trying to mount a file directly from host to container it will create directories instead of a file that can be altered. To be able to change the configs for your WordPress PHP settings and phpMyAdmin we are going to need to set up the files before, we can create some empty ones if we don't have values and alter them when we need.
+
+```sh
+#navigate where app stack will be set
+cd /opt/staks/wordpress
+#create the config directory
+mkdir config
+#Create the empty files
+touch ./config/wp_php.ini
+touch ./config/pma_php.ini
+touch ./config/pma_config.php
+```
+
+### 5. Start WordPress on Docker
+
+You can use the below command if you are using plain docker-compose and not Dockge:
+
+```sh
+docker compose up -d
+```
+
+If Dockge is used you just need to start the stack you created with the docker compose file after saving.
+
+### 6. Configure CloudFlare Tunnels
+
+You need to let CloudFlare Tunel know which port to use, you just need to go in **Access - Tunnels** and choose the tunnel you created and add a hostname that will link a domain or subdomain and the service and port.
+
+<Picture src={imag1} alt="Cloudflare Tunnel setup" />
+
+As we are using port `5010` in the compose file we should use that in CloudFlare Tunnels. We can add also another config to a subdomain for phpMyAdmin with `5011` port but we will be able to access it via port also.
+
+> You can also check [Setup CloudPanel as Reverse Proxy with Docker and Dokge](https://www.bitdoze.com/cloudpanel-setup-dockge/) to use CloudPanel as a reverse proxy to your Docker containers.
+
+### 7. Configure WordPress
+
+After the steps are done you will be able to access WordPress and set up the admin account. You should use the domain you set up in CloudFlare Tunells in the browser and you will be asked to choose a language and create a WordPress admin user as in the picture below:
+
+<Picture src={imag2} alt="WordPress Docker Setup" />
+
+After you add the details you will be able to access the admin area with the user and password that was set.
+
+If you don't want to add a domain you can access the installation with `IP:5011` or the port you have set up.
+
+After you can go and configure the permalinks and add themes and plugins to WordPress.
+
+### 8. Alter PHP Variables for WordPress in Docker
+
+**Modify WordPress PHP Variables in Docker**
+
+Edit the `./config/wp_php.ini`` file to customize PHP settings for WordPress:
+
+```ini
+file_uploads = On
+memory_limit = 256M
+upload_max_filesize = 64M
+post_max_size = 64M
+max_execution_time = 300
+max_input_time = 1000
+```
+
+You can add the PHP parameters you want to accommodate a big app if needed.
+
+**Restart the Container**
+
+After modifying the PHP configuration, restart the WordPress container to apply the changes:
+
+```sh
+docker compose restart wp
+```
+
+You can use also Dockge to restart the stack there is no way to restart only a container for now in the stack.
+
+### 9. Access phpMyAdmin
+
+If you want to check the database you can access phpMyAdmin directly with: `IP:5011` and input the user and password you have set in the point point 3 in `.env` file.
+
+If you set up phpMyAdmin with a CloudFlare Tunel you can go and access it from there.
+
+### 10. Verify Backups
+
+In the `backup` directory where you have the stack or docker compose file you should have a backup directory with database backups you should check and see if they were generated:
+
+Below is an example:
+
+```sh
+/opt/stacks/wordpress# cd backups/
+/opt/stacks/wordpress/backups# ls -ltr
+total 16
+-rw------- 1 10000 10000 495 Feb 21 09:26 mysql_wordpress_wp-db_20240221-092619.sql.gz
+-rw------- 1 10000 10000  87 Feb 21 09:26 mysql_wordpress_wp-db_20240221-092619.sql.gz.sha1
+-rw------- 1 10000 10000 495 Feb 21 09:32 mysql_wordpress_wp-db_20240221-093228.sql.gz
+-rw------- 1 10000 10000  87 Feb 21 09:32 mysql_wordpress_wp-db_20240221-093228.sql.gz.sha1
+lrwxrwxrwx 1 10000 10000  44 Feb 21 09:32 latest-mysql_wordpress_wp-db -> mysql_wordpress_wp-db_20240221-093228.sql.gz
+```
+
+### 11. What's Next
+
+Now you should have everything up and running and you should be able to use the WordPress installation for your projects. You can go and see if everything is working as expected and install some themes and plugins.
+
+You can also close access to the ports through a firewall if you are using CloudFlare Tunels or a reverse proxy so only the domain can be used for access.
+
+## Conclusions
+
+This is how you are setting up WordPress on top of docker, I hope the article helped and will get you started with WordPress.
