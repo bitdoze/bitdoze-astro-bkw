@@ -1,0 +1,144 @@
+---
+date: 2024-02-28T00:00:00Z
+title: "How to Add Back To Top Button on Carrd Website"
+description: "Learn how you can add a back to top on your carrd.co website."
+image: "../../assets/images/24/02/carrd-back-to-top-button.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["carrd"]
+canonical: "https://www.bitdoze.com/carrd-back-to-top-button/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/02/carrd-back-to-top-embed.png";
+
+[Carrd.co](https://go.bitdoze.com/carrd) offers a good way to build one-page websites but one-page websites can have a lot of elements and in case the visitors need to go back to the top they will scroll a lot. That's an issue for most websites but this can be fixed easily with the help of a code and embed functionality in carrd.
+
+<Button link="https://go.bitdoze.com/carrd" text="Carrd.co" />
+
+Some Carrd Tutorials:
+
+- [Add Stickey Header Carrd](https://www.bitdoze.com/add-stickey-header-carrd/)
+- [Add Carrd Cookie Notice](https://www.bitdoze.com/add-cookie-notice-carrd/)
+- [How To Add Pricing Table to Carrd.co](https://www.bitdoze.com/carrd-add-pricing-table/)
+- [Carrd.co Review](https://www.bitdoze.com/carrd-review/)
+- [How To Add Accordion FAQs Drop-Down to Carrd.co](https://www.bitdoze.com/add-accordion-carrd/)
+- [Carrd.co Mobile Responsive Navbar](https://www.bitdoze.com/carrd-mobile-navbar/)
+
+## How to Add Back To Top Button on Carrd Website
+
+### 1. Add an embed element anywhere on the website
+
+You just need to go on the `+` sign and add an Embed element anywhere on the website. Below you will
+
+- Type: Code
+- Style: Hidden, Head
+
+Just as in below picture:
+
+<Picture src={imag1} alt="Carrd back to top" />
+
+### 2. Use the HTML Code:
+
+Below is the code you should use with the explination:
+
+```html
+<style>
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* CSS Variables for customization */
+  :root {
+    --button-color: #555;
+    --button-hover-color: #333;
+    --arrow-color: white;
+  }
+
+  #scroll-to-top {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99;
+    width: 50px;
+    height: 50px;
+    background-color: var(--button-color);
+    color: var(--arrow-color);
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border-radius: 50%;
+  }
+
+  #scroll-to-top::before {
+    content: "\25b2";
+    font-size: 24px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  #scroll-to-top:hover {
+    background-color: var(--button-hover-color);
+  }
+</style>
+
+<button id="scroll-to-top" onclick="scrollToTop()"></button>
+
+<script>
+  window.onscroll = function () {
+    scrollFunction();
+  };
+
+  function scrollFunction() {
+    if (
+      document.body.scrollTop > 200 ||
+      document.documentElement.scrollTop > 200
+    ) {
+      document.getElementById("scroll-to-top").style.display = "block";
+    } else {
+      document.getElementById("scroll-to-top").style.display = "none";
+    }
+  }
+
+  function scrollToTop() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+  }
+</script>
+```
+
+**Colors**
+
+- **Background Colors:**
+
+  - Change the `--button-color` variable to modify the button's default background color.
+  - Change the `--button-hover-color` variable to modify the background color when you hover over the button.
+
+- **Arrow Color:**
+  - Change the `--arrow-color` variable to modify the color of the upward arrow within the button.
+
+**Size**
+
+- **Width & Height:**
+
+  - Find the CSS rule `#scroll-to-top` and adjust the `width` and `height` properties to control the button's size (they are currently set to 50px).
+
+- **Arrow Size:**
+  - Within the `#scroll-to-top::before` rule, modify the `font-size` property to adjust the size of the arrow symbol.
+
+**Position**
+
+- **Bottom & Right Offset:**
+
+  - In the `#scroll-to-top` rule, modify the `bottom` and `right` properties to control the button's distance from the bottom-right corner of the screen.
+
+  <Button link="https://go.bitdoze.com/carrd" text="Carrd.co" />
+
+## Conclusion
+
+This is how easy it is to add a back to top button on your Carrd website, you can customize it easily to fit your designs.
