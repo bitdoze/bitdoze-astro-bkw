@@ -1,0 +1,232 @@
+---
+date: 2024-03-07T00:00:00Z
+title: "NiceGUI For Beginners: Build An UI to Python App in 5 Minutes"
+description: "Master NiceGUI quickly! Learn to add a user interface to your Python app in just 5 minutes with our beginner-friendly guide."
+image: "../../assets/images/24/03/nicegui-beginners.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["nicegui", "python"]
+canonical: "https://www.bitdoze.com/nicegui-get-started/"
+---
+
+[NiceGUI](https://nicegui.io/) is a newer framework that aims to provide a simple and elegant way to create GUIs with Python. It uses Vue, Quasar, and Tailwind for its frontend, which allows you to create web-based GUIs with HTML, CSS, and JavaScript.
+
+Over time I have checked a few Python frameworks like Streamlit or Taipy that can help me build a Web UI for my Python application and in the end, I have decided to stick with NiceGUI as it provides a better speed and more customizations for my Python app. I have created some comparison articles that will help you see the exact differences: [Streamlit vs. NiceGUI](https://www.bitdoze.com/streamlit-vs-nicegui/) or [Streamlit vs Taipy](https://www.bitdoze.com/streamlit-vs-taipy/). There is also a master article with all the [Python Web UI frameworks](https://www.bitdoze.com/best-python-web-frameworks/) that you can use and there are a lot, you should choose in function of your needs.
+
+## NiceGUI Features
+
+In the below section I would like to highlight the most important features of NiceGUI and why I think is one of the best if you want to build a UI for your Python apps:
+
+- **Performance**: NiceGUI has a very good performance when it comes to interacting with the components, websites need to be fast otherwise visitors will not like it. NiceGUI uses Vue, Quasar, and Tailwind and makes things very fast, you will not even know that the website is using Python behind the hood.
+- **Customizations**: I like to have the option to customize the app the way I like even if it takes longer, the Tailwind classes, Quasar props and direct CSS styles will help you customize the app in the way you like. Also is very easy to change the default things and add JavaScript if you need.
+- **Easy to Use**: I am not a Python expert nor a CSS or HTML one I know some things so I need the framework to be easy to use. After a couple of days, I understood most of the things and NiceGUI documentation and examples will help you understand most of the things.
+- **Components**: NiceGUI provides the components you need to build the app, easily. You have `row`, `columns`, `markdown`, `images`, `sliders`, `cards` and a lot of other things that you can easily integrate with your Python code.
+
+These are some of the most important things for me, in function what you need to do you can check NiceGUI documentation and see if it has the things you need.
+
+## Getting Started With NiceGUI
+
+In the below section we are going to see how you can start with NiceGUI and what are some of the components and customizations you can use [Bitdoze Tools](https://tools.bitdoze.com/) is build with NiceGUI so you can take a look.
+
+### Install and Run NiceGUI
+
+NiceGui is easy to install and you just need to run a pip command:
+
+```python
+pip install nicegui
+```
+
+After you just need to create an `.py` file and start it:
+
+```python
+from nicegui import ui
+
+ui.label('Hello NiceGUI!')
+
+ui.run()
+```
+
+- first, you import the UI like most of the other frameworks `from nicegui import ui`
+- after you add your code with elements, `ui.label('Hello NiceGUI!')` will just add a text on the page, we will see next some of the other things.
+- after you add the `ui.run()` that will tell python to run it
+
+At the end you just need to run your `.py` file and NiceGUI will start the app on `8080` port:
+
+```python
+python3 main.py
+```
+
+### Add Markdown
+
+If you need to add text or other things that are formatted you can use the `ui.markdown` element:
+
+```python
+ui.markdown('# This is H1 Header')
+ui.markdown('## This is H2 Header')
+ui.markdown('#### This is H3 Header')
+```
+
+These lines demonstrate how to use markdown syntax to create headers of different levels (H1, H2, and H3) in the UI.
+
+### Add Rows
+
+```python
+# row element
+with ui.row():
+  ui.label(' First row item')
+  ui.label(' Second row item')
+  ui.label(' Third row item')
+```
+
+This block creates a row layout where labels (text elements) are arranged horizontally. You can add under it the elements you need.
+
+### Add Columns
+
+```python
+#Column element
+with ui.column():
+  ui.label(' First column item')
+  ui.label(' Second column item')
+  ui.label(' Third colum item')
+```
+
+This block creates a column layout where labels are stacked vertically.
+
+### Styling Components with Clases
+
+```python
+with ui.column():
+  ui.label(' First column item').classes('font-bold')
+  ui.label(' Second column item').classes('text-2xl')
+  ui.label(' Third column item').classes('text-red-600 text-2xl')
+```
+
+This block demonstrates how to add CSS classes to style text elements, such as making text bold, changing its size, or altering its color. You can use Tailwind classes to style the components in the way you like.
+
+### Inputs and Buttons
+
+```python
+with ui.row():
+    ui.input(label='Type Something').props('square outlined dense').classes('shadow-lg')
+    ui.button('Click Me')
+```
+
+This block adds an input field with a label and a button in a row layout. The input field has additional properties and classes for styling. You can use Tailwind classes in combination with Quasar props to style your components.
+
+### Add Images
+
+```python
+ui.image('https://www.bitdoze.com/_astro/streamlit-vs-nicegui.CbrH4KaA_2qjgFm.webp').classes('h-auto max-w-lg rounded-lg flex justify-center')
+```
+
+This line adds an image to the UI with a source URL and applies CSS classes for styling, such as setting the height automatically, limiting the maximum width, rounding the corners, and centering the image.
+
+### Add Header with Drawer Toggle
+
+```python
+with ui.header(elevated=True).style('background-color: #3874c8').classes('items-center justify-between'):
+        ui.label('HEADER')
+        ui.button(on_click=lambda: right_drawer.toggle(), icon='menu').props('flat color=white')
+```
+
+This block creates a header with a specific background color and styles. It includes a label for the header title and a button that toggles the visibility of a right-side drawer.
+
+### Add Right Sidebar/Drawer
+
+```python
+with ui.right_drawer(fixed=False).style('background-color: #ebf1fa').props('bordered') as right_drawer:
+        ui.label('RIGHT DRAWER')
+```
+
+This block defines a right-side drawer with a background color and border properties. It contains a label indicating it's the right drawer.
+
+### Add Footer
+
+```python
+with ui.footer().style('background-color: #3874c8'):
+        ui.label('FOOTER')
+```
+
+This block creates a footer with a specific background color and contains a label for the footer text. You can add the footer elements in here if you choose to, split them into columns,etc.
+
+### Add Code Into Header:
+
+```python
+ ui.add_head_html('''
+     <script></script>
+     ''')
+```
+
+This will make possible adding the code you like into header, you can add javascript or CSS code, you can add your analytics code in here.
+
+At the end you will have a file with all the elements that will look like this:
+
+```python
+from nicegui import ui
+
+#demonstrate h1 and others
+ui.markdown('# This is H1 Header')
+ui.markdown('## This is H2 Header')
+ui.markdown('#### This is H3 Header')
+
+ui.separator()
+
+#row element
+with ui.row():
+  ui.label(' First row item')
+  ui.label(' Second row item')
+  ui.label(' Third row item')
+
+
+ui.separator()
+#Column element
+with ui.column():
+  ui.label(' First column item')
+  ui.label(' Second column item')
+  ui.label(' Third colum item')
+
+#stile the text
+ui.separator()
+
+with ui.column():
+  ui.label(' First column item').classes('font-bold')
+  ui.label(' Second column item').classes('text-2xl')
+  ui.label(' Third column item').classes('text-red-600 text-2xl')
+
+#other elements
+ui.separator()
+with ui.row():
+    ui.input(label='Tipe Something').props('squere outlined dense').classes('shadow-lg')
+    ui.button('Click Me')
+
+
+#image add
+ui.separator()
+ui.image('https://www.bitdoze.com/_astro/streamlit-vs-nicegui.CbrH4KaA_2qjgFm.webp').classes('h-auto max-w-lg rounded-lg flex justify-center')
+
+
+## Header with right drawer
+
+with ui.header(elevated=True).style('background-color: #3874c8').classes('items-center justify-between'):
+        ui.label('HEADER')
+        ui.button(on_click=lambda: right_drawer.toggle(), icon='menu').props('flat color=white')
+with ui.right_drawer(fixed=False).style('background-color: #ebf1fa').props('bordered') as right_drawer:
+        ui.label('RIGHT DRAWER')
+
+# footer
+with ui.footer().style('background-color: #3874c8'):
+        ui.label('FOOTER')
+
+
+ui.run()
+```
+
+This is just scratching the surface of what NiceGUI can do but should be enough to understand the capabilities of NIceGUI. Next, you can add your Python functions and link them to buttons and input fields.
+
+## Why Some Will Probably Not Like NiceGUI
+
+NiceGUI offers some advanced options to create a Python UI that is fast and can be customized the way you like, for some this will not be OK as they need to use CSS code and customize the UI and if you are not used to this it can be scary in beginning. That's why they would prefer Streamlit as you just throw the code in there and STreamlit will take care of the rest. But if you want a performant Python app and options to customize it then NiceGUI is better.
+
+## Conclusions
+
+That's the introduction to NiceGUI and some of the things it has to offer. You can check [NiceGUI documentation](https://nicegui.io/documentation) if you want to understand all the options that NiceGUI has.
