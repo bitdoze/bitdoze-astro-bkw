@@ -1,0 +1,461 @@
+---
+date: 2024-03-14T00:00:00Z
+title: "Setup CloudPanel Remote Backups to OneDrive or Google Drive"
+description: "See how you can easily setup remote backups in CloudPanel to OneDrive or Google Drive"
+image: "../../assets/images/24/03/cloudpanel-remote-backups.png"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["cloudpanel"]
+canonical: "https://www.bitdoze.com/cloudpanel-remote-backups/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/03/cloudpanel-backup.png";
+
+Backup is a very important piece in every application, while self-hosting my own apps I need to make sure I have a good backup strategy so in case something happens with the website or the server I have a way to restore it. Your hosting provider account may be hacked and everything can be deleted, that's why you need to have a remote backup that you can rely on. Is not enough to backup your apps locally or in the same provider but you should have also a remote backup that you can use in case something goes wrong.
+
+[CloudPanel](https://www.cloudpanel.io/) is a good open source alternative that can help you self host your applications and offers a way to do [remote backups](https://www.cloudpanel.io/docs/v2/admin-area/backups/) automatically at certain periods so you can have a better sleep. It uses [Rclone](https://rclone.org/) behind the hood to do remote backups and you can choose various sources like Amazon S3, Wasabi, Digital Ocean Spaces, Dropbox, Google Drive, SFTP.
+
+Some of them are easy to configure like Digital Ocean Spaces, Dropbox, SFTP as you do it directly in the UI interface but for others like OneDrive or Personal Google Drive you need to run through the Rclone configurations.
+
+In this article and video we are going to go through all the steps you need to do to configure remote backups in CloudPanel to OneDrive or Google Drive. The process should be the same and in the end you will have a scheduled backup that will run and store your files securely.
+
+In case you are interested on CloudPanel articles you can check:
+
+- [Setup CloudPanel As Reverse Proxy with Docker and Dockge](https://www.bitdoze.com/cloudpanel-setup-dockge/)
+- [Install CloudPanel and Host Node.js Apps](https://www.bitdoze.com/install-cloudpanel-host-nodejs/)
+
+## How to Setup CloudPanel Remote Backups to OneDrive or Google Drive
+
+Let's go through all the steps you need to have remote backups enabled on CloudPanel and have them run automaticaly.
+
+### 1. Create the folder in OneDrive or Google Drive
+
+First thing will be to go into your cloud provider that you have chosen to do the backups and create a folder where the backups will be stored. I have seen there are issues if the folder does not exist so that's why you should create one from the start. For this tutorial I will create one called `dragos-cloudpanel-backups` that I will use.
+
+### 2. Connect to the Server with SSH Tunnel
+
+As for configuring the OneDrive or Google Drive you will need to authenticate via Browser you will need to configure an SSH Tunel to your server that will be used. To do this you just need to run:
+
+```sh
+ssh -L localhost:53682:localhost:53682 username@remote_server
+```
+
+You just need to change `username` with your user of the server and `remote_server` with the server IP this will connect your local to the server and with `localhost:53682` you can access the browser to get the token. You can check more on [Rclone doc for remote setup](https://rclone.org/remote_setup/)
+
+This will work well on Mac, for Windows you should use Putty and do there the port forwarding, the WSL can also work. You can check: [How to Use SSH Port Forwarding & PuTTY](https://www.redswitches.com/blog/ssh-port-forwarding/)
+
+### 3. Run Rclone config for OneDrive
+
+Rclone config needs to be run to set this up as you don't have any option in the CloudPanel UI
+
+to do this you just run :
+
+```sh
+rclone config
+```
+
+and follow the configs as below:
+
+```sh
+root@cp-dg:~# rclone config
+2024/03/14 13:27:43 NOTICE: Config file "/root/.config/rclone/rclone.conf" not found - using defaults
+No remotes found - make a new one
+n) New remote
+s) Set configuration password
+q) Quit config
+n/s/q> n
+name> remote
+Type of storage to configure.
+Enter a string value. Press Enter for the default ("").
+Choose a number from below, or type in your own value
+ 1 / 1Fichier
+   \ "fichier"
+ 2 / Alias for an existing remote
+   \ "alias"
+ 3 / Amazon Drive
+   \ "amazon cloud drive"
+ 4 / Amazon S3 Compliant Storage Provider (AWS, Alibaba, Ceph, Digital Ocean, Dreamhost, IBM COS, Minio, Tencent COS, etc)
+   \ "s3"
+ 5 / Backblaze B2
+   \ "b2"
+ 6 / Box
+   \ "box"
+ 7 / Cache a remote
+   \ "cache"
+ 8 / Citrix Sharefile
+   \ "sharefile"
+ 9 / Dropbox
+   \ "dropbox"
+10 / Encrypt/Decrypt a remote
+   \ "crypt"
+11 / FTP Connection
+   \ "ftp"
+12 / Google Cloud Storage (this is not Google Drive)
+   \ "google cloud storage"
+13 / Google Drive
+   \ "drive"
+14 / Google Photos
+   \ "google photos"
+15 / Hubic
+   \ "hubic"
+16 / In memory object storage system.
+   \ "memory"
+17 / Jottacloud
+   \ "jottacloud"
+18 / Koofr
+   \ "koofr"
+19 / Local Disk
+   \ "local"
+20 / Mail.ru Cloud
+   \ "mailru"
+21 / Microsoft Azure Blob Storage
+   \ "azureblob"
+22 / Microsoft OneDrive
+   \ "onedrive"
+23 / OpenDrive
+   \ "opendrive"
+24 / OpenStack Swift (Rackspace Cloud Files, Memset Memstore, OVH)
+   \ "swift"
+25 / Pcloud
+   \ "pcloud"
+26 / Put.io
+   \ "putio"
+27 / SSH/SFTP Connection
+   \ "sftp"
+28 / Sugarsync
+   \ "sugarsync"
+29 / Transparently chunk/split large files
+   \ "chunker"
+30 / Union merges the contents of several upstream fs
+   \ "union"
+31 / Webdav
+   \ "webdav"
+32 / Yandex Disk
+   \ "yandex"
+33 / http Connection
+   \ "http"
+34 / premiumize.me
+   \ "premiumizeme"
+35 / seafile
+   \ "seafile"
+Storage> 22
+** See help for onedrive backend at: https://rclone.org/onedrive/ **
+
+OAuth Client Id
+Leave blank normally.
+Enter a string value. Press Enter for the default ("").
+client_id>
+OAuth Client Secret
+Leave blank normally.
+Enter a string value. Press Enter for the default ("").
+client_secret>
+Edit advanced config? (y/n)
+y) Yes
+n) No (default)
+y/n>
+Remote config
+Use auto config?
+ * Say Y if not sure
+ * Say N if you are working on a remote or headless machine
+y) Yes (default)
+n) No
+y/n>
+If your browser doesn't open automatically go to the following link: http://127.0.0.1:53682/auth?state=LK_cdbrOrIT
+Log in and authorize rclone for access
+Waiting for code...
+Got code
+Choose a number from below, or type in an existing value
+ 1 / OneDrive Personal or Business
+   \ "onedrive"
+ 2 / Root Sharepoint site
+   \ "sharepoint"
+ 3 / Type in driveID
+   \ "driveid"
+ 4 / Type in SiteID
+   \ "siteid"
+ 5 / Search a Sharepoint site
+   \ "search"
+Your choice> 1
+Found 1 drives, please select the one you want to use:
+0:  (personal) id=f9f661d3066d45ed
+Chose drive to use:> 0
+Found drive 'root' of type 'personal', URL: https://onedrive.live.com/?cid=f9f661d3066d45ed
+Is that okay?
+y) Yes (default)
+n) No
+y/n>
+--------------------
+[remote]
+token = {"access_token":"EwCIA8l6BAAUTTy6dbu0OLf3Lzl3R/vfUXxq8g8AAYnaLJ3lAxqLzQiNrimK2Z60ZwmFXVR0Buqhnisc5QEW4tUHFH5eFg+/AUNEWMmTptERPkQh4BU3paTlktMnqX4oG4/6LSUPJmRAQZvQrUX5K4tGHzJ/t$","expiry":"2024-03-14T14:28:23.186484017Z"}
+drive_id = f9f661d3066d45ed
+drive_type = personal
+--------------------
+y) Yes this is OK (default)
+e) Edit this remote
+d) Delete this remote
+y/e/d>
+Current remotes:
+
+Name                 Type
+====                 ====
+remote               onedrive
+
+e) Edit existing remote
+n) New remote
+d) Delete remote
+r) Rename remote
+c) Copy remote
+s) Set configuration password
+q) Quit config
+e/n/d/r/c/s/q> q
+```
+
+In the above you will see that the below have been chosen:
+
+- **n) New remote** - to create a new config file
+- **name> remote** - you need to provide this exact name otherwise CloudPanel will not know what to do
+- **Storage> 22** - this is for Microsoft One Drive
+- **client_id - client_secret** - just enter, nothing to do
+- **Edit advanced config? - n) No (default)** - the default which is No
+- **Use auto config? - y) Yes (default)** - the yes default one
+- **http://127.0.0.1:53682/auth?state=LK_cdbrOrITOdn9V** - link with a state will be provided that you need to use in the browser to get the token, just open it in browser.
+- **1 / OneDrive Personal or Business** - choose the personal
+- **Chose drive to use:> 0** - the 0 drive
+- **y) Yes this is OK (default)** - the default in here
+- \*_e/n/d/r/c/s/q> q_ - q to finish with settings
+
+This would link Rclone to one drive.
+
+### 4. Run Rclone config for Google Drive
+
+As for OneDrive you need to run the same:
+
+```sh
+rclone config
+```
+
+And then choose the Google Drive options:
+
+```sh
+root@cp-dg:~/.config/rclone# rclone config
+2024/03/14 13:54:24 NOTICE: Config file "/root/.config/rclone/rclone.conf" not found - using defaults
+No remotes found - make a new one
+n) New remote
+s) Set configuration password
+q) Quit config
+n/s/q> n
+name> remote
+Type of storage to configure.
+Enter a string value. Press Enter for the default ("").
+Choose a number from below, or type in your own value
+ 1 / 1Fichier
+   \ "fichier"
+ 2 / Alias for an existing remote
+   \ "alias"
+ 3 / Amazon Drive
+   \ "amazon cloud drive"
+ 4 / Amazon S3 Compliant Storage Provider (AWS, Alibaba, Ceph, Digital Ocean, Dreamhost, IBM COS, Minio, Tencent COS, etc)
+   \ "s3"
+ 5 / Backblaze B2
+   \ "b2"
+ 6 / Box
+   \ "box"
+ 7 / Cache a remote
+   \ "cache"
+ 8 / Citrix Sharefile
+   \ "sharefile"
+ 9 / Dropbox
+   \ "dropbox"
+10 / Encrypt/Decrypt a remote
+   \ "crypt"
+11 / FTP Connection
+   \ "ftp"
+12 / Google Cloud Storage (this is not Google Drive)
+   \ "google cloud storage"
+13 / Google Drive
+   \ "drive"
+14 / Google Photos
+   \ "google photos"
+15 / Hubic
+   \ "hubic"
+16 / In memory object storage system.
+   \ "memory"
+17 / Jottacloud
+   \ "jottacloud"
+18 / Koofr
+   \ "koofr"
+19 / Local Disk
+   \ "local"
+20 / Mail.ru Cloud
+   \ "mailru"
+21 / Microsoft Azure Blob Storage
+   \ "azureblob"
+22 / Microsoft OneDrive
+   \ "onedrive"
+23 / OpenDrive
+   \ "opendrive"
+24 / OpenStack Swift (Rackspace Cloud Files, Memset Memstore, OVH)
+   \ "swift"
+25 / Pcloud
+   \ "pcloud"
+26 / Put.io
+   \ "putio"
+27 / SSH/SFTP Connection
+   \ "sftp"
+28 / Sugarsync
+   \ "sugarsync"
+29 / Transparently chunk/split large files
+   \ "chunker"
+30 / Union merges the contents of several upstream fs
+   \ "union"
+31 / Webdav
+   \ "webdav"
+32 / Yandex Disk
+   \ "yandex"
+33 / http Connection
+   \ "http"
+34 / premiumize.me
+   \ "premiumizeme"
+35 / seafile
+   \ "seafile"
+Storage> 13
+** See help for drive backend at: https://rclone.org/drive/ **
+
+Google Application Client Id
+Setting your own is recommended.
+See https://rclone.org/drive/#making-your-own-client-id for how to create your own.
+If you leave this blank, it will use an internal key which is low performance.
+Enter a string value. Press Enter for the default ("").
+client_id>
+OAuth Client Secret
+Leave blank normally.
+Enter a string value. Press Enter for the default ("").
+client_secret>
+Scope that rclone should use when requesting access from drive.
+Enter a string value. Press Enter for the default ("").
+Choose a number from below, or type in your own value
+ 1 / Full access all files, excluding Application Data Folder.
+   \ "drive"
+ 2 / Read-only access to file metadata and file contents.
+   \ "drive.readonly"
+   / Access to files created by rclone only.
+ 3 | These are visible in the drive website.
+   | File authorization is revoked when the user deauthorizes the app.
+   \ "drive.file"
+   / Allows read and write access to the Application Data folder.
+ 4 | This is not visible in the drive website.
+   \ "drive.appfolder"
+   / Allows read-only access to file metadata but
+ 5 | does not allow any access to read or download file content.
+   \ "drive.metadata.readonly"
+scope> 1
+ID of the root folder
+Leave blank normally.
+
+Fill in to access "Computers" folders (see docs), or for rclone to use
+a non root folder as its starting point.
+
+Enter a string value. Press Enter for the default ("").
+root_folder_id>
+Service Account Credentials JSON file path
+Leave blank normally.
+Needed only if you want use SA instead of interactive login.
+
+Leading `~` will be expanded in the file name as will environment variables such as `${RCLONE_CONFIG_DIR}`.
+
+Enter a string value. Press Enter for the default ("").
+service_account_file>
+Edit advanced config? (y/n)
+y) Yes
+n) No (default)
+y/n>
+Remote config
+Use auto config?
+ * Say Y if not sure
+ * Say N if you are working on a remote or headless machine
+y) Yes (default)
+n) No
+y/n>
+If your browser doesn't open automatically go to the following link: http://127.0.0.1:53682/auth?state=lJ52bPvVGaG
+Log in and authorize rclone for access
+Waiting for code...
+Got code
+Configure this as a team drive?
+y) Yes
+n) No (default)
+y/n>
+
+--------------------
+[remote]
+scope = drive
+token = {"access_token":"ya29.a0Ad52N3_J72wn8dG4c","token_type":"Bearer","refresh_token":"1//0czUgUBU95R8GCgYIARAAG-JK9klco7JLyA","expiry":"2024-03-14T14:55:20.87391752Z"}
+--------------------
+y) Yes this is OK (default)
+e) Edit this remote
+d) Delete this remote
+y/e/d>
+Current remotes:
+
+Name                 Type
+====                 ====
+remote               drive
+
+e) Edit existing remote
+n) New remote
+d) Delete remote
+r) Rename remote
+c) Copy remote
+s) Set configuration password
+q) Quit config
+e/n/d/r/c/s/q> q
+```
+
+In the above you will see that the below have been chosen:
+
+- **n) New remote** - to create a new config file
+- **name> remote** - you need to provide this exact name otherwise CloudPanel will not know what to do
+- **Storage> 13** - this is for Google Drive
+- **client_id - client_secret** - just enter, nothing to do
+- **scope> 1** - Full access all files, excluding Application Data Folder.
+- **Edit advanced config? - n) No (default)** - the default which is No
+- **root_folder_id - service_account_file** - just hit enter
+- **Use auto config? - y) Yes (default)** - the yes default one
+- **http://127.0.0.1:53682/auth?state=LK_cdbrOrI** - link with a state will be provided that you need to use in the browser to get the token, just open it in browser.
+- **y) Yes this is OK (default)** - the default in here
+- \*_e/n/d/r/c/s/q> q_ - q to finish with settings
+
+And after Rclone is linked to Google Drive and you can configure in CloudPanel UI.
+
+### 5. Configure CloudPanel Remote Backups
+
+Login to CloudPanel and in **Admin Area** - **Backups** choose **Custom Rclone Config**
+
+In there, you will have the settings where you choose the Frequency, Time, Retention Period (Days) and Storage Directory, the one you created earlier.
+
+<Picture src={imag1} alt="CloudPanel Create a Reverse Proxy" />
+
+After you save this you can hit Create Backup so one to start now.
+
+### 6. Check That Backup has been done in OneDrive or Google Drive.
+
+In couple of minutes you should see that files started to be seen in the directory you created, in my case `dragos-cloudpanel-backups`. In function of the size you have for your apps it can take several minutes to 1h, it depends.
+
+### 7. Alter the default backup schedule for CloudPanel
+
+In case you need to have more often backups for the app or for the database you have the file `/etc/cron.d/clp`
+
+In here you have the below 2 options that can be altered to change the schedulers, just be careful:
+
+```sh
+15 3 * * * clp /usr/bin/bash -c "/usr/bin/clpctl db:backup --ignoreDatabases='db1,db2' --retentionPeriod=7" &> /dev/null
+15 4 * * * clp /home/clp/scripts/create_backup.sh &> /dev/null
+```
+
+They can be altered in function of your needs to have more often DB backups for your applications.
+
+## Conclusions
+
+This is how easy it is to configure the CloudPanel backups, in a couple of minutes you will enable remote backups in CloudPanel and will be protected in case bad things happens.
