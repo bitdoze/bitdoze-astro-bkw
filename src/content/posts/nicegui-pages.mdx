@@ -1,0 +1,194 @@
+---
+date: 2024-03-18T00:00:00Z
+title: "How To Add Multiple Pages to NiceGUI"
+description: "Learn how you can add multiple pages to NiceGUI"
+image: "../../assets/images/24/03/nicegui_multiple-pages.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["nicegui", "python"]
+canonical: "https://www.bitdoze.com/nicegui-pages/"
+---
+
+NiceGUI is a powerful framework that can help you build UIs to your Python App. In this article we are going to see how you can add multiple pages to your NiceGUI website and display them in a sidebar and header. You can check: [NiceGUI For Beginners](https://www.bitdoze.com/nicegui-get-started/) to install NiceGUI and see exactly how easy it is to use it.
+
+We will create a modular multi page layout that will inherit the elements you add in there.
+
+## 1. Create the theme.py with the layout
+
+```python
+from contextlib import contextmanager
+
+from menu import menu
+
+from nicegui import ui
+
+
+@contextmanager
+def frame(navtitle: str):
+    """Custom page frame to share the same styling and behavior across all pages"""
+    ui.colors(primary='#6E93D6', secondary='#53B689', accent='#111B1E', positive='#53B689')
+    with ui.column().classes('absolute-center items-center h-screen no-wrap p-9 w-full'):
+        yield
+    with ui.header().classes(replace='row items-center') as header:
+        ui.button(on_click=lambda: left_drawer.toggle(), icon='menu').props('flat color=white')
+        ui.label('Getting Started').classes('font-bold')
+
+    with ui.footer(value=False) as footer:
+        ui.label('Footer')
+    with ui.left_drawer().classes('bg-blue-100') as left_drawer:
+        ui.label('Menu')
+        with ui.column():
+            menu()
+    with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
+        ui.button(on_click=footer.toggle, icon='contact_support').props('fab')
+
+```
+
+The `@contextmanager` decorator in the provided code is used to define a context manager function called `frame`. This function is designed to set up a consistent layout and styling for pages in a web application using the NiceGUI framework. The context manager is responsible for setting up the environment before the body of the `with` statement is executed and for cleaning up afterwards.
+
+Here's a breakdown of what happens in the `frame` function:
+
+1. The `ui.colors` function is called to set the color scheme for the UI elements.
+2. A header is created using `ui.header()` which is styled to justify content between elements and set the text color to white.
+3. Inside the header, two labels are created: one for the title of the application and another for the navigation title (`navtitle`) passed as an argument to the `frame` function.
+4. A row is created to include the navigation menu by calling the `menu()` function.
+5. A column is created to center the content that will be placed inside the context manager's block.
+
+The `yield` statement is the point at which the function will pause and return control back to the block of code that is using the `frame` context manager. This allows the caller to insert custom content into the column that was set up. After the block of code using the `frame` context manager is executed, the function will resume if there were any cleanup actions to perform, which in this case, there are none.
+
+This will result in a page with a header containing the application title, the specified page title, and the navigation menu, followed by the custom content centered on the page. The `@contextmanager` decorator makes it easy to reuse this layout across different pages of the application, ensuring a consistent look and feel.
+
+## 2. Create the menu.py with the pages
+
+This file will contain the pages that will be displayed in NiceGUI
+
+```python
+from nicegui import ui
+
+
+def menu() -> None:
+    ui.link('Home', '/').classes(replace='text-black')
+    ui.link('YouTube Titles', '/youtube-title-generator/').classes(replace='text-black')
+    ui.link('YouTube Script Generator', '/youtube-script/').classes(replace='text-black')
+```
+
+The above code will create a menu function with the pages that we want, you can add your desired ones in here, the `classes` it hold the text color
+
+## 3. Create the `pages` in NiceGUI
+
+In this section we are going to create our actual pages under a `page` folder, they will be used to store the pages code. Here we are going to create 2 files `title_generator.py` and `script_generator.py` that will have the code that will run on the pages.
+
+**title_generator.py**
+
+```python
+import theme
+from nicegui import ui
+
+
+def title_generator():
+    with theme.frame('YouTube Title Generator'):
+        ui.page_title('YouTube Title Generator')
+        ui.markdown('# This is My Title Generator Page')
+```
+
+**script_generator.py**
+
+```python
+import theme
+from nicegui import ui
+
+
+def script_generator():
+    with theme.frame('YouTube Script Generator'):
+        ui.page_title('YouTube Script Generator')
+        ui.markdown('# This is My YouTube Script Generator Page')
+```
+
+## 4. Create the `all_pages` in NiceGUI
+
+We will create an `all_pages.py` file that will fetch the code for our all pages.
+
+```python
+from nicegui import ui
+from pages.title_generator import title_generator
+from pages.script_generator import script_generator
+
+def create() -> None:
+    ui.page('/youtube-title-generator/')(title_generator)
+    ui.page('/youtube-script/')(script_generator)
+
+if __name__ == '__main__':
+    create()
+```
+
+This Python code defines a function `create()` that uses the NiceGUI library to set up routing for a web application. It maps specific URL paths to functions that generate content for those pages. For example, visiting `/youtube-title-generator/` in the application will execute the `title_generator` function from the `title_generator` module within the `pages` package. Similarly, other paths are mapped to their respective content-generating functions (`script_generator`, `description_generator`, and `script_generator2`). The `if __name__ == '__main__':` block ensures that `create()` is called to set up the routes when the script is run directly.
+
+## 5. Create the `home_page` in NiceGUI
+
+This file will be the one that will hold the home page details we are just going to create the file and add a markdown.
+
+```python
+from nicegui import ui
+
+def content() -> None:
+    with ui.column():
+        ui.markdown('''
+
+            Elevate your YouTube content creation with Bitdoze's suite of intelligent AI tools.
+
+            ## Catchy Titles and Descriptions
+
+            Struggling to find the perfect title or description? Bitdoze's AI analyzes trending topics and keywords to generate ideas that are both engaging and optimized for search.
+
+            ## Compelling Video Scripts
+
+            Need help crafting a video script? Our AI script generator can:
+
+             - Outline key points for your video
+             - Suggest hooks and captivating introductions
+             - Provide creative transitions and calls-to-action
+
+            ## And More!
+
+            Bitdoze is continuously expanding its AI capabilities for YouTubers. Stay tuned for exciting new features!
+
+            **Transform your YouTube workflow with BitDoze. Try it today!**
+
+            ''')
+
+
+```
+
+## 6. Create the `main.py` in NiceGUI
+
+What remains is to create the `main.py` that will stick everything together.
+
+```python
+import all_pages
+import home_page
+import theme
+
+from nicegui import app, ui
+
+
+# here we use our custom page decorator directly and just put the content creation into a separate function
+@ui.page('/')
+def index_page() -> None:
+    with theme.frame('Homepage'):
+        home_page.content()
+
+
+# this call shows that you can also move the whole page creation into a separate file
+all_pages.create()
+
+
+ui.run(title='Getting Started With NiceGUI)
+```
+
+This code snippet sets up a web application using the NiceGUI library. It defines a homepage (`index_page`) using a custom decorator `@ui.page('/')`, which maps the root URL (`'/'`) to this function. Inside this function, it uses a custom frame from the `theme` module to style the page and calls `home_page.content()` to populate it with content. Additionally, it imports and executes `all_pages.create()` to define more pages, likely mapping other URLs to their respective content functions. Finally, `ui.run(title='Getting Started With NiceGUI')` starts the web server, setting the title of the application to 'Getting Started With NiceGUI'.
+
+## Conclusions
+
+This is how you can add multiple pages in NiceGUI, the code was created based on [NiceGUI examples](https://github.com/zauberzeug/nicegui/tree/main/examples/) so you can check their examples for more things that you may want.
+
+You can check the [NiceGUI Starter Theme](https://github.com/bitdoze/nicegui-starter) to have the updated code. I will add the future things here, who want to help are welcome.
