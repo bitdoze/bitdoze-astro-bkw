@@ -1,0 +1,101 @@
+---
+date: 2024-03-19T01:00:00Z
+title: "How to Migrate Astro to Bun on CloudFlare"
+description: "Learn how you can migrate your Astro project to Bun in CloudFlare Pages"
+image: "../../assets/images/24/03/migrate-astro-bun.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["bun", "astro"]
+canonical: "https://www.bitdoze.com/migrate-astro-bun/"
+---
+
+Bun is a fast all-in-one JavaScript runtime that can significantly speed up your Astro projects. With Cloudflare now providing native support for Bun, it's easier than ever to deploy Astro apps powered by Bun. This guide walks through the steps to migrate an existing Astro project from Node.js to Bun and deploy it on Cloudflare Pages.
+
+## 1. Install Bun
+
+First, install Bun on your development machine. You can install it with a single command:
+
+```sh
+curl -fsSL https://bun.sh/install | bash
+```
+
+This will download and install the latest version of Bun.
+
+You can check [Bun vs NPM, Yarn, PNPM, and Others](https://www.bitdoze.com/bun-package-manager/) to see some details and benchmark for Bun.
+
+## 2. Remove Existing Lock Files
+
+If your Astro project used a different package manager like npm or Yarn, remove the existing lock files:
+
+```sh
+# If you were using NPM:
+rm package-lock.json
+
+# If you were using pnpm:
+rm pnpm-lock.yaml
+
+# If you were using Yarn:
+rm yarn.lock
+```
+
+This ensures Bun can cleanly install dependencies without conflicts from other package manager lock files.
+
+## 3. Install Dependencies with Bun
+
+Now use Bun to install your project's dependencies:
+
+```sh
+bun install
+```
+
+Bun will read your package.json and download the required packages much faster than Node.js.
+
+## 4. Test Your Astro Project Locally
+
+Start the Astro development server using Bun:
+
+```sh
+bun run dev
+```
+
+Open http://localhost:4321 and verify your project works as expected.
+
+You can also test building your project for production:
+
+```sh
+bun run build
+```
+
+Fix any issues before proceeding to deployment.
+
+## 5. Update the Cloudflare Build Command
+
+Log into the Cloudflare dashboard and go to your Astro project's settings.
+
+Change the build command to use Bun:
+
+```
+bun astro build
+```
+
+This tells Cloudflare to use Bun to build your Astro project.
+
+## 6. Deploy to Cloudflare
+
+Commit your changes and push to your Git repository.
+
+```sh
+git add .
+git commit -m "Migrate to Bun"
+git push
+```
+
+Cloudflare should automatically detect the update and begin building and deploying your Astro project with Bun.
+
+## 7. Check the Cloudflare Logs
+
+After pushing your changes, Cloudflare will attempt to build your project using the new settings. Monitor the build logs in the Cloudflare dashboard to ensure that the build completes successfully and that there are no errors during the process.
+
+## Conclusion
+
+Migrating your Astro project to use Bun on Cloudflare can lead to faster build times and a more efficient development process. By following the steps outlined in this article, you can smoothly transition to Bun and take advantage of its performance benefits. Remember to test your project thoroughly after migration and monitor the Cloudflare build logs for any potential issues. With Bun, you're now set to enjoy a modern and speedy JavaScript runtime for your Astro projects on Cloudflare.
