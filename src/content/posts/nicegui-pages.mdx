@@ -9,9 +9,16 @@ tags: ["nicegui", "python"]
 canonical: "https://www.bitdoze.com/nicegui-pages/"
 ---
 
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+
 NiceGUI is a powerful framework that can help you build UIs to your Python App. In this article we are going to see how you can add multiple pages to your NiceGUI website and display them in a sidebar and header. You can check: [NiceGUI For Beginners](https://www.bitdoze.com/nicegui-get-started/) to install NiceGUI and see exactly how easy it is to use it.
 
 We will create a modular multi page layout that will inherit the elements you add in there.
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/bW3ifL2hdfc"
+  label="How To Add Multiple Pages to NiceGUI"
+/>
 
 ## 1. Create the theme.py with the layout
 
@@ -182,7 +189,7 @@ def index_page() -> None:
 all_pages.create()
 
 
-ui.run(title='Getting Started With NiceGUI)
+ui.run(title='Getting Started With NiceGUI')
 ```
 
 This code snippet sets up a web application using the NiceGUI library. It defines a homepage (`index_page`) using a custom decorator `@ui.page('/')`, which maps the root URL (`'/'`) to this function. Inside this function, it uses a custom frame from the `theme` module to style the page and calls `home_page.content()` to populate it with content. Additionally, it imports and executes `all_pages.create()` to define more pages, likely mapping other URLs to their respective content functions. Finally, `ui.run(title='Getting Started With NiceGUI')` starts the web server, setting the title of the application to 'Getting Started With NiceGUI'.
