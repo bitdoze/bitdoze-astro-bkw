@@ -1,0 +1,137 @@
+---
+date: 2024-03-25T00:00:00Z
+title: "How To Run Any Python App in Docker with Docker Compose"
+description: "Learn how Run Any Python App in Docker with Docker Compose and add an SSL certificate thru CloudFlare tunnels"
+image: "../../assets/images/24/03/python-docker.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["docker", "python"]
+canonical: https://www.bitdoze.com/docker-run-python/
+---
+
+Running Python apps in Docker containers using Docker Compose makes deployment simple, reproducible and scalable. In this article, we'll guide you through the process of running any Python application in Docker using Docker Compose, targeting both beginners and intermediate users. We'll cover everything from creating a Dockerfile and Docker Compose file to adding new PIP packages and setting up a domain with SSL using Cloudflare Tunnels.
+
+## Prerequisites
+
+Before we dive into the details, ensure you have the following prerequisites covered:
+
+- VPS where you can host WordPress, you can use one from [Hetzner](https://go.bitdoze.com/hetzner)
+- Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
+- CloudFlare Tunnels are configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
+- **Docker and Docker Compose Installed**: Docker to run containers and Docker Compose to define and share multi-container applications. Installation guides can be found on: [How To Install Docker & Docker-compose](https://www.bitdoze.com/install-docker-ubuntu-arm/)
+
+## Create a Dockerfile
+
+The Dockerfile is a text document that contains all the commands a user could call on the command line to assemble an image. Here's a simple Dockerfile for a Python application:
+
+```yaml
+FROM python:3.12
+
+WORKDIR /app
+COPY ./my-app/requirements.txt /app
+
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+```
+
+- `FROM python:3.12`: This line tells Docker to use the official Python 3.12 image as the base image for your application.
+- `WORKDIR /app`: Sets the working directory inside the container to `/app`.
+- `COPY ./my-app/requirements.txt /app`: Copies the `requirements.txt` file from your project into the `/app` directory in the container.
+- `RUN pip install --upgrade pip`: Upgrades pip to its latest version inside the container.
+- `RUN pip install --no-cache-dir -r requirements.txt`: Installs the Python dependencies defined in `requirements.txt` without storing the cache, to keep the image size small.
+
+## Create a my-app directory with your Python scripts and requirements.txt
+
+To prepare your Python application for Docker:
+
+1. **Create a `requirements.txt` file** with the following content:
+
+   ```
+   nicegui
+   streamlit
+   ```
+
+   This file lists all the Python packages your application needs. In this case, `nicegui` and `streamlit`.
+
+2. **Create a `main.py` file** with a simple NiceGUI application:
+
+   ```python
+   from nicegui import ui
+
+   ui.label('Hello NiceGUI!')
+
+   ui.run()
+   ```
+
+   This script creates a web interface with a label displaying "Hello NiceGUI!".
+
+## Create a docker compose file `compose.yml`
+
+Docker Compose allows you to define and run multi-container Docker applications. Here's how to set up your `compose.yml` for a basic Python web server:
+
+```yaml
+version: "3"
+services:
+  web:
+    container_name: python-server
+    command: python main.py
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./my-app:/app
+    ports:
+      - "5021:8080"
+    restart: unless-stopped
+```
+
+For running Streamlit, modify the `command` and `ports`:
+
+```yaml
+command: streamlit hello
+ports:
+  - "5021:8501"
+```
+
+- `version: "3"`: Specifies the version of the Docker Compose file format.
+- `services`: Defines the services your application consists of. In this case, just one service named `web`.
+- `container_name`: Names your container for easier reference.
+- `command`: The command that runs your application. For NiceGUI, it's `python main.py`. For Streamlit, it's `streamlit hello`.
+- `build`: Instructions to build the Docker image. It uses the current directory (`.`) and the Dockerfile named `Dockerfile`.
+- `volumes`: Maps the `./my-app` directory on your host to `/app` in the container, allowing for live updates without rebuilding the image.
+- `ports`: Maps port `5021` on your host to port `8080` (for NiceGUI) or `8501` (for Streamlit) in the container, making your application accessible via `http://localhost:5021`.
+
+## Start the docker compose file
+
+To start your application, run:
+
+```sh
+docker-compose up -d --force-recreate --build
+```
+
+This command builds the images if they don't exist, starts the containers in detached mode, forces recreation of the containers, and rebuilds the images even if they exist.
+
+## Add new PIP Package
+
+To add a new PIP package:
+
+1. **Update the `requirements.txt`** with the package you want.
+2. **Rebuild and restart your containers** with the same command:
+
+   ```sh
+   docker-compose up -d --force-recreate --build
+   ```
+
+This ensures your application always runs with the latest dependencies.
+
+## Add domain with SSL with Cloudflare Tunnels
+
+You need to let CloudFlare Tunel to know which port is using, you just need to go in the Access - Tunnels and choose the tunnel you created and add a hostname that will link a domain or subdomain and the service and port . This will need to be as for the URL you have set in the .env file.
+
+> You can also check [Setup CloudPanel as Reverse Proxy with Docker and Dokge](https://www.bitdoze.com/cloudpanel-setup-dockge/) to use CloudPanel as a reverse proxy to your Docker containers.
+
+And that's about it, now you can use your Python app, test it and see how it works.
+
+## Conclusions
+
+Running a Python application in Docker using Docker Compose simplifies dependency management, ensures consistency across environments, and makes your application easy to deploy and scale. By following the steps outlined in this article, you can containerize any Python application, from simple scripts to complex web applications, and enjoy the benefits of Docker's containerization technology. Whether you're a beginner or an intermediate user, the process is straightforward and significantly enhances your development and deployment workflows.
