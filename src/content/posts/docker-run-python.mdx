@@ -9,6 +9,8 @@ tags: ["docker", "python"]
 canonical: https://www.bitdoze.com/docker-run-python/
 ---
 
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+
 Running Python apps in Docker containers using Docker Compose makes deployment simple, reproducible and scalable. In this article, we'll guide you through the process of running any Python application in Docker using Docker Compose, targeting both beginners and intermediate users. We'll cover everything from creating a Dockerfile and Docker Compose file to adding new PIP packages and setting up a domain with SSL using Cloudflare Tunnels.
 
 ## Prerequisites
@@ -19,6 +21,11 @@ Before we dive into the details, ensure you have the following prerequisites cov
 - Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
 - CloudFlare Tunnels are configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
 - **Docker and Docker Compose Installed**: Docker to run containers and Docker Compose to define and share multi-container applications. Installation guides can be found on: [How To Install Docker & Docker-compose](https://www.bitdoze.com/install-docker-ubuntu-arm/)
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/7Nu7r8y_bDA"
+  label="How To Run Any Python App in Docker with Docker Compose"
+/>
 
 ## Create a Dockerfile
 
