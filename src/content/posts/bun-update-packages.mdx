@@ -1,0 +1,238 @@
+---
+date: 2024-03-26T01:00:00Z
+title: "How To Update Node Packages to Last Version in Bun.sh"
+description: "Learn how you can update node packages to last version with Bun.sh including the package.json"
+image: "../../assets/images/24/03/bun-update-packages.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["bun"]
+canonical: "https://www.bitdoze.com/bun-update-packages/"
+---
+
+In the fast-paced world of web development, keeping your Node.js packages up to date is crucial for security, performance, and access to the latest features. Bun.sh, a JavaScript runtime like Node.js, provides a set of commands to streamline the update process. This article will guide you through the steps to upgrade your Node packages to the latest version using Bun.sh.
+
+If you want to check more on Bun.sh you can check [Bun vs NPM, Yarn, PNPM, and Others](https://www.bitdoze.com/bun-package-manager/). In case you want to migrate your Astro project to Bun see: [How to Migrate Astro to Bun on CloudFlare](https://www.bitdoze.com/migrate-astro-bun/)
+
+## Upgrade Bun to the Latest Version
+
+To ensure you're using the latest features and improvements of Bun itself, you should start by upgrading Bun to the latest version. This can be done with a simple command:
+
+```sh
+bun upgrade
+```
+
+This command checks for the latest version of Bun and upgrades it accordingly.
+
+## Update Bun Packages without package.json
+
+If you want to update the packages in your current project and you don't have a `package.json` file, or you simply want to update globally installed packages, you can use the following command:
+
+```sh
+bun update
+```
+
+After running this command, you'll see an output similar to:
+
+```sh
+bun update v1.0.35 (940448d6)
+
+ + @types/react@18.2.71
+ + postcss@8.4.38
+ + sharp@0.33.3
+ + @astrojs/mdx@2.2.1
+ + astro@4.5.9
+```
+
+This output lists the packages that have been updated along with their new versions.
+
+## Force Update Bun packages
+
+Sometimes, you may encounter situations where a simple update does not fetch the latest versions due to version locking or other constraints. In such cases, you can force update the packages:
+
+```sh
+bun update --force
+```
+
+This command ignores the current versions and forcefully updates all packages to their latest versions. The output will list all the packages that were updated, including those that were not updated in a regular update process.
+
+The output will indicate that the packages have been forcefully updated:
+
+```sh
+❯ bun update --force
+bun update v1.0.35 (940448d6)
+
+ + @astrojs/react@3.1.0
+ + @astrojs/sitemap@3.1.1
+ + @astrojs/tailwind@5.1.0
+ + @tailwindcss/forms@0.5.7
+ + @tailwindcss/typography@0.5.10
+ + @types/marked@6.0.0
+ + @types/react@18.2.71
+ + postcss@8.4.38
+ + prettier@3.2.5
+ + prettier-plugin-astro@0.13.0
+ + prettier-plugin-tailwindcss@0.5.12
+ + react@18.2.0
+ + react-dom@18.2.0
+ + sass@1.72.0
+ + sharp@0.33.3
+ + tailwind-bootstrap-grid@5.1.0
+ + tailwindcss@3.4.1
+ + @astrojs/mdx@2.2.1
+ + @astrojs/partytown@2.0.4
+ + @astrojs/rss@4.0.5
+ + astro@4.5.9
+ + astro-analytics@2.7.0
+ + astro-seo@0.8.3
+ + date-fns@3.6.0
+ + fuse.js@7.0.0
+ + github-slugger@2.0.0
+ + marked@12.0.1
+ + react-icons@4.12.0 (v5.0.1 available)
+```
+
+Note that using `--force` will not update the `package.json` file. It will remain as is:
+
+```json
+{
+  "name": "bitdoze.com",
+  "version": "1",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "format": "prettier -w ."
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^2.2.0",
+    "@astrojs/partytown": "^2.0.4",
+    "@astrojs/rss": "^4.0.5",
+    "astro": "^4.5.2",
+    "astro-analytics": "^2.7.0",
+    "astro-seo": "^0.8.3",
+    "date-fns": "^3.4.0",
+    "fuse.js": "^7.0.0",
+    "github-slugger": "^2.0.0",
+    "marked": "^12.0.1",
+    "react-icons": "^4.12.0"
+  },
+  "devDependencies": {
+    "@astrojs/react": "^3.1.0",
+    "@astrojs/sitemap": "^3.1.1",
+    "@astrojs/tailwind": "^5.1.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/marked": "^6.0.0",
+    "@types/react": "^18.2.65",
+    "postcss": "^8.4.35",
+    "prettier": "^3.2.5",
+    "prettier-plugin-astro": "^0.13.0",
+    "prettier-plugin-tailwindcss": "^0.5.12",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sass": "^1.71.1",
+    "sharp": "^0.33.2",
+    "tailwind-bootstrap-grid": "^5.1.0",
+    "tailwindcss": "^3.4.1"
+  }
+}
+```
+
+## Update package.json with Bun
+
+To update the `package.json` file with the latest versions of your packages, you'll need to use a utility like `npm-check-updates`. First, install it globally if you haven't already:
+
+```sh
+npm install -g npm-check-updates
+```
+
+Then, run `npm-check-updates` with Bun to update your `package.json`:
+
+```sh
+bunx npm-check-updates -ui
+```
+
+This command will check for updates and interactively allow you to choose which packages to upgrade. After confirming the selections, npm-check-updates will update your package.json to reflect the latest versions.
+
+```sh
+❯ bunx npm-check-updates -ui
+
+Using bun
+Upgrading /Users/dbalota/websites/bitdoze-astro-bkw_test/package.json
+[====================] 29/29 100%
+
+? Choose which packages to update ›
+  ↑/↓: Select a package
+  Space: Toggle selection
+  a: Toggle all
+  Enter: Upgrade
+
+  ◉ @astrojs/mdx    ^2.2.0  →    ^2.2.1
+  ◉ @types/react  ^18.2.65  →  ^18.2.71
+  ◉ astro           ^4.5.2  →    ^4.5.9
+  ◉ date-fns        ^3.4.0  →    ^3.6.0
+  ◉ postcss        ^8.4.35  →   ^8.4.38
+❯ ◯ react-icons    ^4.12.0  →    ^5.0.1
+  ◉ sass           ^1.71.1  →   ^1.72.0
+  ◉ sharp          ^0.33.2  →   ^0.33.3
+```
+
+After confirming the updates, check your `package.json` to see that it has been updated with the new versions:
+
+```json
+{
+  "name": "bitdoze.com",
+  "version": "1",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "format": "prettier -w ."
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^2.2.1",
+    "@astrojs/partytown": "^2.0.4",
+    "@astrojs/rss": "^4.0.5",
+    "astro": "^4.5.9",
+    "astro-analytics": "^2.7.0",
+    "astro-seo": "^0.8.3",
+    "date-fns": "^3.6.0",
+    "fuse.js": "^7.0.0",
+    "github-slugger": "^2.0.0",
+    "marked": "^12.0.1",
+    "npm-check-updates": "^16.14.18",
+    "react-icons": "^4.12.0"
+  },
+  "devDependencies": {
+    "@astrojs/react": "^3.1.0",
+    "@astrojs/sitemap": "^3.1.1",
+    "@astrojs/tailwind": "^5.1.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/marked": "^6.0.0",
+    "@types/react": "^18.2.71",
+    "postcss": "^8.4.38",
+    "prettier": "^3.2.5",
+    "prettier-plugin-astro": "^0.13.0",
+    "prettier-plugin-tailwindcss": "^0.5.12",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sass": "^1.72.0",
+    "sharp": "^0.33.3",
+    "tailwind-bootstrap-grid": "^5.1.0",
+    "tailwindcss": "^3.4.1"
+```
+
+## Check and see that your project is working
+
+After updating your packages, it's essential to verify that your project still works as expected. Run your project's build and test commands to ensure that the updates haven't introduced any breaking changes.
+
+## Conclusions
+
+Keeping your Bun environment and packages up to date is essential for the health and security of your projects. Regularly upgrading Bun, updating packages, and ensuring your package.json reflects the latest versions can help leverage the latest features and improvements while minimizing potential security vulnerabilities. Always test your project thoroughly after updates to ensure compatibility and stability.

@@ -1,0 +1,138 @@
+---
+date: 2024-03-26T00:00:00Z
+title: "How To Install, Upgrade Python and Run VENV on MAC"
+description: "Learn how install, upgrade Python on MAC and use VENV for your projects with this easy steps."
+image: "../../assets/images/24/03/install-upgrade-python-mac.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["python"]
+canonical: https://www.bitdoze.com/install-upgrade-python-mac/
+---
+
+Virtual environments in Python are a crucial tool for managing project-specific dependencies and avoiding conflicts with system-wide installations. They allow developers to work with isolated Python environments, ensuring that each project has its own set of dependencies that do not interfere with others. This article will guide you through the process of installing, upgrading, and running Python virtual environments (venv) on macOS using Homebrew, a popular package manager for macOS.
+
+## Install Brew on MAC
+
+Homebrew is an open-source package manager for macOS that simplifies the installation of software on Apple's operating system. To install Homebrew, open the Terminal app and enter the following command:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+This command downloads and runs the Homebrew installation script.
+
+## Install Latest Python on MAC with BREW
+
+Once Homebrew is installed, you can easily install the latest version of Python. To do so, run the following command in your terminal:
+
+```bash
+brew install python
+```
+
+This command installs the latest stable version of Python, along with pip, setuptools, and wheel, which are tools for managing Python packages.
+
+Check the version that is in use:
+
+```sh
+❯ python3 -V
+Python 3.11.6
+```
+
+## Install Specific Version of Python on MAC with BREW
+
+If you need a specific version of Python, Homebrew can help you install it. First, search for the available Python versions using:
+
+```bash
+brew search python
+```
+
+Output:
+
+```sh
+❯ brew search python
+==> Formulae
+app-engine-python          python-argcomplete         python-gdbm@3.12           python-packaging           python-tabulate            python-yq                  wxpython
+boost-python3              python-build               python-idna                python-ply                 python-tk@3.10             python@3.10 ✔              pythran
+bpython                    python-chardet             python-kiwisolver          python-psutil              python-tk@3.11             python@3.11 ✔              jython
+cyclonedx-python           python-charset-normalizer  python-launcher            python-pyparsing           python-tk@3.12             python@3.12 ✔              cython
+ipython                    python-cycler              python-lsp-server          python-pytz ✔              python-tk@3.9              python@3.7
+meson-python               python-dateutil            python-lxml                python-requests            python-trove-classifiers   python@3.8
+micropython                python-flit-core           python-markdown            python-setuptools ✔        python-typing-extensions   python@3.9 ✔
+ptpython                   python-gdbm@3.11           python-matplotlib          python-setuptools-scm      python-urllib3             reorder-python-imports
+```
+
+Then, install the desired version, for example, Python 3.10:
+
+```bash
+brew install python@3.10
+```
+
+After installation, you may need to link the Python version if it's not already in your PATH:
+
+```bash
+brew link python@3.10
+```
+
+Then you can use the version to run your python app with:
+
+```sh
+❯  python3.10 -V
+Python 3.10.14
+```
+
+## Upgrade Python to Latest Version on MAC
+
+To upgrade Python to the latest version available in Homebrew, first update Homebrew itself:
+
+```bash
+brew update
+```
+
+Then, upgrade Python:
+
+```bash
+brew upgrade python
+```
+
+Output:
+
+```sh
+❯ python3 -V
+Python 3.12.2
+```
+
+This will upgrade Python to the latest version provided by Homebrew.
+
+If you are interested in creating some Python projects you can check the below article to get started:
+
+- [NiceGUI For Beginners: Build An UI to Python App in 5 Minutes](https://www.bitdoze.com/nicegui-get-started/)
+- [How To Add Multiple Pages to NiceGUI](https://www.bitdoze.com/nicegui-pages/)
+- [How To Run Any Python App in Docker with Docker Compose](https://www.bitdoze.com/docker-run-python/)
+
+## Run Python in VENV on MAC
+
+To create a virtual environment in Python, navigate to your project directory and run the following command:
+
+```bash
+python3 -m venv myenv
+```
+
+Replace `myenv` with your preferred environment name. This command creates a new virtual environment directory `myenv` within your project[6].
+
+To activate the virtual environment, use:
+
+```bash
+source myenv/bin/activate
+```
+
+Once activated, your terminal prompt will change to indicate that you are working inside the virtual environment. You can now install packages locally within this environment without affecting the global Python installation.
+
+To deactivate the virtual environment and return to the global Python context, simply run:
+
+```bash
+deactivate
+```
+
+## Conclusions
+
+Managing Python environments with venv on macOS is straightforward, especially with the help of Homebrew. By following the steps outlined in this article, you can install and manage multiple versions of Python, create isolated environments for your projects, and ensure a clean and conflict-free development experience. Remember to activate the appropriate virtual environment before working on a project to keep dependencies organized and projects running smoothly.
