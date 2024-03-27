@@ -1,0 +1,193 @@
+---
+date: 2024-03-27T00:00:00Z
+title: "How to Install FlowiseAI with Docker Compose"
+description: "Learn how you can FlowiseAI with docker compose  and Postgres DB and take advantage of no-code AI flows."
+image: "../../assets/images/24/03/flowiseai-install.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["self-hosted"]
+canonical: "https://www.bitdoze.com/flowiseai-install/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/01/cloudflare-tunel-setup.png";
+import imag2 from "../../assets/images/24/03/flowise_flow.png";
+import imag3 from "../../assets/images/24/03/flowise-usechat.png";
+
+[FlowiseAI](https://flowiseai.com/) is an open-source platform that allows you to build and deploy custom AI workflows using a drag-and-drop interface. It provides a user-friendly way to integrate various AI models, APIs, and data sources into your applications without writing complex code. FlowiseAI is built on top of Node.js and React, making it easy to extend and customize.
+
+In this tutorial, we are going to see how easy is to host FlowiseAI on your VPS server with docker-compose and have an SSL certificate. I will include also an option to backup the database with [Docker DB Backup](https://github.com/tiredofit/docker-db-backup) to have the SQL dumps in case something goes wrong and you can't use the volumes.
+
+We are going to use [Dockge](https://www.bitdoze.com/dockge-install/) to administrate the docker-compose file and as reverse proxy CloudFlare Tunnels. You can also use docker-compose to deploy as it will work the same on whatever reverse proxy you prefer.
+
+## How to Install FlowiseAI with Docker and Docker Compose
+
+### 1. Prerequisites
+
+Before you begin, make sure you have the following prerequisites in place:
+
+- VPS where you can host FlowiseAI, you can use one from [Hetzner](https://go.bitdoze.com/hetzner)
+- Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
+- CloudFlare Tunnels are configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
+- OR reverse proxy with CloudPanel you can check: [Setup CloudPanel As Reverse Proxy with Docker and Dockge](https://www.bitdoze.com/cloudpanel-setup-dockge/)
+
+Having all of this you will be ready to move to next step and add the containers in Dockge.
+
+### 2. Create Docker Compose File
+
+The first step is to create a Docker Compose file that defines the services required to run FlowiseAI. Here's an example `docker-compose.yml` file:
+
+```yaml
+version: "3.9"
+services:
+  flowise-db:
+    image: postgres:16-alpine
+    hostname: flowise-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./flowise-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  flowise:
+    image: flowiseai/flowise:latest
+    command: /bin/sh -c "sleep 3; flowise start"
+    container_name: flowiseai
+    hostname: flowise
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:${PORT}
+    ports:
+      - 5023:${PORT}
+    volumes:
+      - ./flowiseai:/root/.flowise
+    environment:
+      DEBUG: false
+      PORT: ${PORT}
+      FLOWISE_USERNAME: ${FLOWISE_USERNAME}
+      FLOWISE_PASSWORD: ${FLOWISE_PASSWORD}
+      DATABASE_PATH: /root/.flowise
+      APIKEY_PATH: /root/.flowise
+      SECRETKEY_PATH: /root/.flowise
+      LOG_LEVEL: info
+      LOG_PATH: /root/.flowise/logs
+      DATABASE_TYPE: postgres
+      DATABASE_PORT: 5432
+      DATABASE_HOST: flowise-db
+      DATABASE_NAME: ${POSTGRES_DB}
+      DATABASE_USER: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: on-failure:5
+    depends_on:
+      flowise-db:
+        condition: service_healthy
+```
+
+This Compose file defines two services:
+
+1. `flowise-db`: A PostgreSQL database service used by FlowiseAI to store data.
+2. `flowise`: The FlowiseAI service itself, which depends on the `flowise-db` service.
+
+The `flowise` service uses the official `flowiseai/flowise:latest` Docker image and exposes port 3000 (configurable via the `PORT` environment variable). It also mounts a volume at `/root/.flowise` to persist data across container restarts.
+
+The Compose file also includes a healthcheck for the `flowise` service, which checks if the FlowiseAI application is running and accessible on `http://localhost:3000`.
+
+If you want to include a backup solution for the PostgreSQL database, you can add a third service to the Compose file:
+
+```yaml
+flowise-db-backup:
+  container_name: flowise-db-backup
+  image: tiredofit/db-backup
+  volumes:
+    - ./backups:/backup
+  environment:
+    DB_TYPE: postgres
+    DB_HOST: flowise-db
+    DB_NAME: ${POSTGRES_DB}
+    DB_USER: ${POSTGRES_USER}
+    DB_PASS: ${POSTGRES_PASSWORD}
+    DB_BACKUP_INTERVAL: 720
+    DB_CLEANUP_TIME: 72000
+    CHECKSUM: SHA1
+    COMPRESSION: GZ
+    CONTAINER_ENABLE_MONITORING: false
+  depends_on:
+    flowise-db:
+      condition: service_healthy
+  restart: unless-stopped
+```
+
+This service uses the `tiredofit/db-backup` image to create regular backups of the PostgreSQL database. The backups are stored in the `./backups` directory on the host machine.
+
+### 3. Create .env file with credentials
+
+Next, create a `.env` file in the same directory as your `docker-compose.yml` file and add the required environment variables:
+
+```sh
+PORT=3000
+POSTGRES_USER='user'
+POSTGRES_PASSWORD='pass'
+POSTGRES_DB='flowise'
+FLOWISE_USERNAME=bitdoze
+FLOWISE_PASSWORD=bitdoze
+```
+
+Replace the values with your desired credentials and database name.
+
+### 4. Deploy FlowiseAI
+
+With the Docker Compose file and the `.env` file in place, you can now deploy FlowiseAI using Docker Compose:
+
+```sh
+docker-compose up -d
+```
+
+This command will start the services defined in the Compose file in detached mode (running in the background).
+
+To check if the containers are running, use the following command:
+
+```sh
+docker ps
+```
+
+You should see the `flowise` and `flowise-db` containers listed as running.
+
+### 5. Configure the CloudFlare Tunnels for SSL and Domain access
+
+To access FlowiseAI securely over the internet, you can set up CloudFlare Tunnels. CloudFlare Tunnels provide a secure way to expose your FlowiseAI instance to the internet without exposing your server's IP address.
+
+Go in **Access - Tunnels** and choose the tunnel you created and add a hostname that will link a domain or subdomain and the service and port.
+
+<Picture src={imag1} alt="Cloudflare Tunnel setup" />
+
+> You can also check [Setup CloudPanel as Reverse Proxy with Docker and Dokge](https://www.bitdoze.com/cloudpanel-setup-dockge/) to use CloudPanel as a reverse proxy to your Docker containers.
+
+### 6. Create your first FlowiseAI flow
+
+Once your FlowiseAI instance is up and running, you can access the web interface by navigating to `http://localhost:3000` (or the domain you configured with CloudFlare Tunnels).
+
+From the FlowiseAI interface, you can start creating your first AI workflow by dragging and dropping nodes, connecting them, and configuring their settings.
+
+<Picture src={imag2} alt="FlowiseAI add flow" />
+
+You have also a marketplace with flows that can be used.
+
+### 7. Use the FlowiseAI Chatflow Externally
+
+After you finish designing your flow, you can go and use it externally with few options like Embed, Python, JavaScript, CURL or just share it.
+
+<Picture src={imag3} alt="Use the FlowiseAI Chatflow Externally" />
+
+## Conclusions
+
+By following this guide, you've learned how to deploy FlowiseAI to Docker using Docker Compose. You've created a Docker Compose file that defines the required services, set up environment variables, and started the FlowiseAI instance. Additionally, you've learned how to configure CloudFlare Tunnels to access your FlowiseAI instance securely over the internet.
+
+With FlowiseAI running in Docker, you can easily manage and scale your AI workflows, while taking advantage of Docker's portability and isolation features. The Docker Compose setup also makes it easy to include additional services, such as a database backup solution, in your deployment.
