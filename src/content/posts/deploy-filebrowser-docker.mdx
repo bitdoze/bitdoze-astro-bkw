@@ -1,0 +1,141 @@
+---
+date: 2024-04-25T00:00:00Z
+title: "Simplify File Management with Docker Filebrowser: Easy Setup Guide"
+description: "Learn how you can deploy Filebrowser with the help of Docker to manage your server files with a UI"
+image: "../../assets/images/24/04/easy-file-management.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["self-hosted"]
+canonical: "https://www.bitdoze.com/deploy-filebrowser-docker/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/01/cloudflare-tunel-setup.png";
+
+[Filebrowser](https://filebrowser.org/) is a powerful web-based file manager that allows you to easily manage your files and folders from any device with a web browser. It provides a user-friendly interface for uploading, deleting, previewing, renaming, and editing files, as well as creating and managing user accounts with customizable permissions.
+
+One of the best ways to set up Filebrowser is by using Docker, which simplifies the installation and deployment process. In this guide, we'll walk you through the steps to set up Filebrowser with Docker Compose, a tool that makes it easy to manage and deploy multi-container Docker applications.
+
+## How To Set Up Filebrowser with Docker Compose
+
+### 1. Prerequisites
+
+Before you begin, make sure you have the following prerequisites in place:
+
+- VPS where you can host FlowiseAI, you can use one from [Hetzner](https://go.bitdoze.com/hetzner)
+- Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
+- CloudFlare Tunnels are configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
+
+Having all of this you will be ready to move to next step and add the containers in Dockge.
+
+### 2. Create A Docker Compose File
+
+Create a new file named `docker-compose.yml` in your preferred directory and add the following configuration:
+
+```yaml
+version: "3"
+services:
+  filebrowser:
+    image: filebrowser/filebrowser:v2-s6
+    container_name: filebrowser
+    restart: unless-stopped
+    volumes:
+      - /opt/stacks:/srv # Change to match your directory
+      - ./filebrowser.db:/database/filebrowser.db # Change to match your directory
+      - ./settings.json:/config/settings.json # Change to match your directory
+    environment:
+      - PUID=$(id -u)
+      - PGID=$(id -g)
+    ports:
+      - 5040:80 # Change the port if needed
+```
+
+In this configuration, we're using the `filebrowser/filebrowser:v2-s6` Docker image, which is the latest stable version of Filebrowser. The `volumes` section maps the necessary directories and files for Filebrowser to function, including the file storage directory (`/opt/stacks`), the database file (`filebrowser.db`), and the settings file (`settings.json`). You'll need to update these paths to match your own setup.
+
+The `environment` section sets the user and group IDs for the Filebrowser container, which is important for file permissions. The `ports` section exposes the Filebrowser web interface on port `5040`, which you can change if needed.
+
+### 3. Create the `filebrowser.db` and `settings.json`
+
+In the same directory as your `docker-compose.yml` file, create the following files:
+
+**filebrowser.db:**
+
+```sh
+touch filebrowser.db
+```
+
+**settings.json:**
+Fetch the [Filebrowser settings file](https://github.com/filebrowser/filebrowser/blob/master/docker/root/defaults/settings.json) and create one with:
+
+```sh
+vi settings.json
+```
+
+Then paste the following configuration:
+
+```json
+{
+  "port": 80,
+  "baseURL": "",
+  "address": "",
+  "log": "stdout",
+  "database": "/database/filebrowser.db",
+  "root": "/srv"
+}
+```
+
+In case you are seeing the bellow error:
+
+```sh
+filebrowser  | 2024/04/25 07:17:26 Using database: /database/filebrowser.db
+filebrowser  | 2024/04/25 07:17:26 open /database/filebrowser.db: permission denied
+```
+
+Just grant the `filebrowser.db` the rights you are seeing in the startup of the container, this happens when you are running with root the docker install:
+
+```sh
+filebrowser  | GID/UID
+filebrowser  | ───────────────────────────────────────
+filebrowser  |
+filebrowser  | User UID:    911
+filebrowser  | User GID:    1001
+filebrowser  | ───────────────────────────────────────
+```
+
+```sh
+chmod 911:1001 filebrowser.db
+```
+
+### 4. Deploy Filebrowser
+
+In the same directory as your `docker-compose.yml` file, run the following command to start the Filebrowser container:
+
+```sh
+docker-compose up -d
+```
+
+You can check that the container is running with the following command:
+
+```sh
+docker ps | grep -i filebrowser
+```
+
+### 5. Configure the CloudFlare Tunnels for SSL and Domain Access
+
+To securely access your Filebrowser instance from the internet, you'll need to set up a reverse proxy like CloudFlare Tunnels. This will provide SSL/TLS encryption and allow you to access Filebrowser using a domain or subdomain.
+
+Go in **Access - Tunnels** and choose the tunnel you created and add a hostname that will link a domain or subdomain and the service and port.
+
+<Picture src={imag1} alt="Cloudflare Tunnel setup" />
+
+> You can also check [Setup CloudPanel as Reverse Proxy with Docker and Dokge](https://www.bitdoze.com/cloudpanel-setup-dockge/) to use CloudPanel as a reverse proxy to your Docker containers.
+
+### 6. Access the Filebrowser UI
+
+Once you've set up the CloudFlare Tunnels (or another reverse proxy), you can access the Filebrowser web interface using the domain or subdomain you configured. The default login credentials are `admin/admin`, but you should change the password immediately after your first login.
+
+## Conclusion
+
+By following this guide, you've successfully set up Filebrowser using Docker Compose, which simplifies the installation and deployment process. Filebrowser provides a user-friendly way to manage your files and folders, and the Docker-based setup ensures that it's easy to maintain and scale as your needs grow.
