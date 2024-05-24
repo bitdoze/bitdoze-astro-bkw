@@ -1,0 +1,96 @@
+---
+date: 2024-05-24T0:00:00Z
+title: "Fix Cannot Open Packages Database In /var/lib/rpm DB_RUNRECOVERY: Fatal error"
+description: "Learn how to fix the common Cannot Open Packages Database In /var/lib/rpm DB_RUNRECOVERY: Fatal error and install packages."
+image: "../../assets/images/24/05/fix-rpmdb-error-bdb0087-db_runrecovery.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["linux"]
+canonical: https://www.bitdoze.com/fix-rpmdb-error-bdb0087-db_runrecovery/
+---
+
+If you are encountering the below error message that is not allowing you to install `rpm` or `yum` packages:
+
+```sh
+error: rpmdb: BDB0113 Thread/process 21929/140612494501952 failed: BDB1507 Thread died in Berkeley DB library
+error: db5 error(-30973) from dbenv->failchk: BDB0087 DB_RUNRECOVERY: Fatal error, run database recovery
+error: cannot open Packages index using db5 - (-30973)
+error: cannot open Packages database in /var/lib/rpm
+error: rpmdb: BDB0113 Thread/process 21929/140612494501952 failed: BDB1507 Thread died in Berkeley DB library
+error: db5 error(-30973) from dbenv->failchk: BDB0087 DB_RUNRECOVERY: Fatal error, run database recovery
+error: cannot open Packages database in /var/lib/rpm
+```
+
+indicates that the RPM database (rpmdb) is corrupted. This corruption can occur due to several reasons, including interrupted package installations, updates, or removals, power failures, or other system interruptions.
+
+## Causes of RPM Database Corruption
+
+1. **Interrupted Operations**: The most common cause is the interruption of package management operations such as installation, update, or removal. This can happen if the process is manually stopped or if the system loses power during the operation.
+2. **Stale Lock Files**: If `rpm`, `yum`, or `dnf` commands do not exit cleanly, they can leave behind lock files in `/var/lib/rpm`, which can cause subsequent operations to fail.
+3. **Hardware Issues**: Failing memory or disk can also lead to database corruption. This is less common but should be considered if the problem persists.
+4. **Software Bugs**: There may be bugs in the RPM or Berkeley DB software that cause corruption under certain conditions.
+
+## Steps to Resolve the Issue
+
+To fix the corrupted RPM database, you can follow these steps:
+
+1. **Backup the Current RPM Database**:
+
+   ```bash
+   mkdir /var/lib/rpm/backup
+   cp -a /var/lib/rpm/__db* /var/lib/rpm/backup/
+   ```
+
+2. **Remove the Corrupted Database Files**:
+
+   ```bash
+   rm -f /var/lib/rpm/__db.[0-9][0-9]*
+   ```
+
+3. **Rebuild the RPM Database**:
+
+   ```bash
+   rpm --rebuilddb
+   ```
+
+4. **Clean the Yum Cache**:
+
+   ```bash
+   yum clean all
+   ```
+
+5. **Verify the Integrity of the Packages File** (Optional):
+
+   ```bash
+   db_verify /var/lib/rpm/Packages
+   ```
+
+6. **Check for Hardware Issues** (Optional):
+   Review system logs for any hardware-related errors that might indicate failing memory or disk.
+
+## Example Commands
+
+Here is a consolidated set of commands to perform the above steps:
+
+```bash
+# Backup the current RPM database
+mkdir /var/lib/rpm/backup
+cp -a /var/lib/rpm/__db* /var/lib/rpm/backup/
+
+# Remove the corrupted database files
+rm -f /var/lib/rpm/__db.[0-9][0-9]*
+
+# Rebuild the RPM database
+rpm --rebuilddb
+
+# Clean the Yum cache
+yum clean all
+```
+
+## Additional Considerations
+
+- **Ensure Uninterrupted Operations**: Make sure that package management operations are not interrupted. Use a UPS to prevent power failures during critical operations.
+- **Check for Automation Issues**: If you are using automation tools, ensure they are not terminating package management processes abruptly.
+- **Monitor System Logs**: Regularly check system logs for any signs of hardware issues or other anomalies that could lead to database corruption.
+
+By following these steps, you should be able to resolve the RPM database corruption and prevent it from recurring. If the problem persists, consider investigating deeper into hardware issues or potential software bugs.
