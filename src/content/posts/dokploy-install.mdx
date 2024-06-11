@@ -1,0 +1,96 @@
+---
+date: 2024-06-11T00:00:00Z
+title: "Dokploy Install - Ditch Vercel, Heroku and Self-Host Your SaaS"
+description: "Dokploy install and presentation an alternative to serverless like Vercel, Heroku, etc"
+image: "../../assets/images/24/05/dokploy-install.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["dokploy", "tutorials"]
+canonical: https://www.bitdoze.com/dokploy-install/
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import { Picture } from "astro:assets";
+import img1 from "../../assets/images/24/05/dokploy-app.png";
+
+[Dokploy](https://dokploy.com/) is an open-source, self-hostable Platform as a Service (PaaS) that simplifies the deployment and management of applications and databases using Docker and Traefik. It serves as a free alternative to popular platforms like Vercel, Heroku, and Netlify, offering robust features for developers who prefer to manage their own infrastructure.
+
+## Dokploy Features
+
+- **Applications**: Deploy any type of application (Node.js, PHP, Python, Go, Ruby, etc.) with ease.
+- **Databases**: Create and manage databases with support for MySQL, PostgreSQL, MongoDB, MariaDB, Redis, and more.
+- **Docker Management**: Easily deploy and manage Docker containers.
+- **Traefik Integration**: Automatically integrates with Traefik for routing and load balancing.
+- **Real-time Monitoring**: Monitor CPU, memory, storage, and network usage.
+- **Database Backups**: Automate backups with support for multiple storage destinations.
+
+## Install Dokploy
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/XohTt3lh9qg"
+  label="Dokploy Installation"
+/>
+
+### Setup A VPS
+
+To get started with Dokploy, you need a Virtual Private Server (VPS).
+In the video, we go into detail about how you can do that on Hetzner. You can check this [Hetzner Review](https://www.wpdoze.com/hetzner-cloud-review/) for more details if you are not aware of Hetzner and what it can do.
+
+<Button link="https://go.bitdoze.com/hetzner" text="Hetzner €⁠20 Free" />
+
+```sh
+ssh username@your_vps_ip
+```
+
+### Add SWAP
+
+Adding swap space can help improve the performance of your VPS by providing additional virtual memory. Follow these steps to add a 2GB swap file:
+
+```sh
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+### Install Dokploy
+
+Once your VPS is set up and swap space is added, you can install Dokploy using the following command:
+
+```sh
+curl -sSL https://dokploy.com/install.sh | sh
+```
+
+This command will download and run the Dokploy installation script, setting up Dokploy and its dependencies on your server.
+
+### Point Your Domain or Subdomain to Dokploy
+
+To access your Dokploy instance via a custom domain or subdomain, you need to configure your DNS settings:
+
+1. **Log in to your DNS provider**: Access the DNS management console of your domain registrar.
+2. **Create an A Record**: Point your domain or subdomain to the IP address of your VPS.
+
+For example, to point `app.yourdomain.com` to your VPS:
+
+```
+Type: A
+Name: app
+Value: your_vps_ip
+TTL: 3600
+```
+
+## Start Deploying Apps
+
+<Picture src={img1} alt="Dokploy App" />
+
+With Dokploy installed and your domain configured, you can start deploying applications. Dokploy supports a wide range of applications and databases, making it easy to manage your projects from a single platform.
+
+1. **Access Dokploy Dashboard**: Open your web browser and navigate to `http://your-ip-from-your-vps:3000`.
+2. **Create an Admin Account**: Follow the on-screen instructions to set up your administrative account.
+3. **Deploy Applications**: Use the Dokploy dashboard to deploy and manage your applications and databases.
+
+### Conclusions
+
+Dokploy offers a powerful and flexible solution for developers looking to self-host their applications. By leveraging Docker and Traefik, Dokploy simplifies the deployment process while providing robust features for application and database management. Whether you're working on personal projects or managing large-scale applications, Dokploy provides the tools you need to streamline your deployment workflow.
