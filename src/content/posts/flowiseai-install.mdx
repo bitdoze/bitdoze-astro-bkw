@@ -65,7 +65,6 @@ services:
 
   flowise:
     image: flowiseai/flowise:latest
-    command: /bin/sh -c "sleep 3; flowise start"
     container_name: flowiseai
     hostname: flowise
     healthcheck:
@@ -93,6 +92,7 @@ services:
     depends_on:
       flowise-db:
         condition: service_healthy
+    entrypoint: /bin/sh -c "sleep 3; flowise start"
 ```
 
 This Compose file defines two services:
