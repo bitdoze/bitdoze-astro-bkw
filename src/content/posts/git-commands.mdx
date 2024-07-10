@@ -1,0 +1,806 @@
+---
+date: 2024-07-10T00:00:00Z
+title: "Top 100+ GIT Commands You MUST Know"
+description: "Discover the top 100+ GIT commands every developer must know to streamline version control and boost productivity. "
+image: "../../assets/images/24/07/git-commands.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["git"]
+canonical: "https://www.bitdoze.com/git-commands/"
+---
+
+Git, a distributed version control system, has become an indispensable tool for developers and DevOps professionals worldwide. Its ability to track changes, manage code versions, and facilitate collaboration on projects makes it a cornerstone of modern software development. Whether you're working on a solo project or contributing to a large team, mastering Git commands is essential for efficient and effective version control.
+
+In this article, we will cover 100+ essential Git commands that every developer should know. These commands range from basic operations to advanced techniques, providing a comprehensive guide to navigating and utilizing Git. Each command will be explained with examples to help you understand its usage and practical applications.
+
+## Section 1: Basic Git Commands
+
+### 1.1 git init
+
+The `git init` command is used to initialize a new Git repository. This command sets up all the necessary files and directories that Git needs to track changes in your project.
+
+**Example Usage:**
+
+```bash
+$ mkdir my_project
+$ cd my_project
+$ git init
+Initialized empty Git repository in /path/to/my_project/.git/
+```
+
+**Explanation:**
+
+- `mkdir my_project`: Creates a new directory named `my_project`.
+- `cd my_project`: Changes the current directory to `my_project`.
+- `git init`: Initializes a new Git repository in the current directory. After running this command, a `.git` directory is created, which contains all the metadata and object database for the repository.
+
+### 1.2 git clone
+
+The `git clone` command is used to create a copy of an existing repository. This is particularly useful when you want to contribute to a project or use an existing project as a starting point.
+
+**Example Usage:**
+
+```bash
+$ git clone https://github.com/user/repository.git
+Cloning into 'repository'...
+remote: Enumerating objects: 10, done.
+remote: Counting objects: 100% (10/10), done.
+remote: Compressing objects: 100% (8/8), done.
+remote: Total 10 (delta 2), reused 10 (delta 2), pack-reused 0
+Unpacking objects: 100% (10/10), done.
+```
+
+**Explanation:**
+
+- `git clone https://github.com/user/repository.git`: Clones the repository located at the specified URL into a new directory named `repository`. The command downloads all the files, branches, and commits from the remote repository.
+
+### 1.3 git status
+
+The `git status` command shows the current state of the working directory and the staging area. It lets you see which changes have been staged, which haven't, and which files aren't being tracked by Git.
+
+**Example Usage:**
+
+```bash
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+    newfile.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+```
+
+**Explanation:**
+
+- `git status`: Displays the status of the working directory and staging area. In this example, it shows that there is an untracked file named `newfile.txt`.
+
+### 1.4 git add
+
+The `git add` command adds file contents to the staging area. This command is used to prepare changes for the next commit.
+
+**Example Usage:**
+
+```bash
+$ git add newfile.txt
+```
+
+**Explanation:**
+
+- `git add newfile.txt`: Adds the file `newfile.txt` to the staging area. This means that the changes in `newfile.txt` will be included in the next commit.
+
+### 1.5 git commit
+
+The `git commit` command records changes to the repository. It takes a snapshot of the changes in the staging area and saves them in the repository.
+
+**Example Usage:**
+
+```bash
+$ git commit -m "Add newfile.txt"
+[main 1a2b3c4] Add newfile.txt
+ 1 file changed, 1 insertion(+)
+ create mode 100644 newfile.txt
+```
+
+**Explanation:**
+
+- `git commit -m "Add newfile.txt"`: Creates a new commit with the message "Add newfile.txt". The commit includes the changes that were staged with `git add`.
+
+### 1.6 git config
+
+The `git config` command is used to configure Git settings. It can set user information, such as name and email, and other preferences.
+
+**Example Usage:**
+
+```bash
+$ git config --global user.name "John Doe"
+$ git config --global user.email "johndoe@example.com"
+```
+
+**Explanation:**
+
+- `git config --global user.name "John Doe"`: Sets the global Git user name to "John Doe".
+- `git config --global user.email "johndoe@example.com"`: Sets the global Git user email to "johndoe@example.com".
+
+By mastering these basic Git commands, you can start managing your projects more effectively. These commands form the foundation of Git usage, enabling you to initialize repositories, track changes, and commit updates. In the next section, we will explore branching and merging, which are crucial for managing different versions of your code.
+
+## Section 2: Branching and Merging
+
+Branching and merging are fundamental concepts in Git that allow developers to work on different features or fixes simultaneously without interfering with the main codebase. This section will cover essential commands for managing branches and merging changes.
+
+### 2.1 git branch
+
+The `git branch` command is used to list, create, or delete branches. Branches are pointers to specific commits, allowing you to isolate your work.
+
+**Example Usage:**
+
+```bash
+# List all branches
+$ git branch
+* main
+  feature-branch
+
+# Create a new branch
+$ git branch new-feature
+
+# Delete a branch
+$ git branch -d feature-branch
+Deleted branch feature-branch (was 1a2b3c4).
+```
+
+**Explanation:**
+
+- `git branch`: Lists all the branches in the repository. The `*` indicates the current branch.
+- `git branch new-feature`: Creates a new branch named `new-feature`.
+- `git branch -d feature-branch`: Deletes the branch named `feature-branch`.
+
+### 2.2 git checkout
+
+The `git checkout` command is used to switch branches or restore working tree files. This command changes the current branch to the specified branch.
+
+**Example Usage:**
+
+```bash
+# Switch to an existing branch
+$ git checkout new-feature
+Switched to branch 'new-feature'
+
+# Create and switch to a new branch
+$ git checkout -b another-feature
+Switched to a new branch 'another-feature'
+```
+
+**Explanation:**
+
+- `git checkout new-feature`: Switches the current branch to `new-feature`.
+- `git checkout -b another-feature`: Creates a new branch named `another-feature` and switches to it.
+
+### 2.3 git merge
+
+The `git merge` command is used to merge changes from one branch into another. This is typically done to integrate changes from a feature branch into the main branch.
+
+**Example Usage:**
+
+```bash
+# Switch to the main branch
+$ git checkout main
+Switched to branch 'main'
+
+# Merge changes from 'new-feature' into 'main'
+$ git merge new-feature
+Updating 1a2b3c4..5d6e7f8
+Fast-forward
+ newfile.txt | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 newfile.txt
+```
+
+**Explanation:**
+
+- `git checkout main`: Switches to the `main` branch.
+- `git merge new-feature`: Merges the changes from the `new-feature` branch into the `main` branch. The output shows the details of the merge, including the commit range and the files affected.
+
+### 2.4 git rebase
+
+The `git rebase` command is used to reapply commits on top of another base tip. This command is useful for maintaining a linear project history.
+
+**Example Usage:**
+
+```bash
+# Switch to the feature branch
+$ git checkout feature-branch
+Switched to branch 'feature-branch'
+
+# Rebase onto the main branch
+$ git rebase main
+First, rewinding head to replay your work on top of it...
+Applying: Add new feature
+```
+
+**Explanation:**
+
+- `git checkout feature-branch`: Switches to the `feature-branch`.
+- `git rebase main`: Reapplies the commits from `feature-branch` on top of the `main` branch. This process rewinds the commits in `feature-branch`, applies the changes from `main`, and then replays the commits from `feature-branch`.
+
+### 2.5 git branch -d
+
+The `git branch -d` command is used to delete a branch. This command ensures that the branch being deleted has been fully merged before deletion.
+
+**Example Usage:**
+
+```bash
+# Delete a fully merged branch
+$ git branch -d feature-branch
+Deleted branch feature-branch (was 1a2b3c4).
+
+# Force delete an unmerged branch
+$ git branch -D unmerged-branch
+Deleted branch unmerged-branch (was 5d6e7f8).
+```
+
+**Explanation:**
+
+- `git branch -d feature-branch`: Deletes the `feature-branch` if it has been fully merged.
+- `git branch -D unmerged-branch`: Force deletes the `unmerged-branch` even if it hasn't been merged.
+
+By understanding and utilizing these branching and merging commands, you can effectively manage different versions of your code and collaborate with other developers. These commands provide the flexibility to work on multiple features simultaneously and integrate changes seamlessly.
+
+## Section 3: Remote Repositories
+
+Remote repositories are versions of your project that are hosted on the internet or another network. They allow you to collaborate with other developers, share your code, and keep your work synchronized across multiple locations. This section covers essential commands for managing remote repositories.
+
+### 3.1 git remote
+
+The `git remote` command is used to manage the set of tracked repositories. It allows you to add, remove, and view remote repositories.
+
+**Example Usage:**
+
+```bash
+# List all remote repositories
+$ git remote -v
+origin  https://github.com/user/repository.git (fetch)
+origin  https://github.com/user/repository.git (push)
+
+# Add a new remote repository
+$ git remote add upstream https://github.com/another-user/repository.git
+
+# Remove a remote repository
+$ git remote remove upstream
+```
+
+**Explanation:**
+
+- `git remote -v`: Lists all the remote repositories along with their URLs. The output shows the remote name (`origin`) and the URL for fetching and pushing.
+- `git remote add upstream https://github.com/another-user/repository.git`: Adds a new remote repository named `upstream` with the specified URL.
+- `git remote remove upstream`: Removes the remote repository named `upstream`.
+
+### 3.2 git fetch
+
+The `git fetch` command downloads objects and refs from another repository. It updates your local copy with the latest changes from the remote repository without merging them into your working directory.
+
+**Example Usage:**
+
+```bash
+$ git fetch origin
+remote: Enumerating objects: 5, done.
+remote: Counting objects: 100% (5/5), done.
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 5 (delta 2), reused 5 (delta 2), pack-reused 0
+Unpacking objects: 100% (5/5), done.
+From https://github.com/user/repository
+   1a2b3c4..5d6e7f8  main       -> origin/main
+```
+
+**Explanation:**
+
+- `git fetch origin`: Fetches the latest changes from the remote repository named `origin`. The output shows the objects that were downloaded and the branches that were updated.
+
+### 3.3 git pull
+
+The `git pull` command fetches from and integrates with another repository or a local branch. It is a combination of `git fetch` and `git merge`, allowing you to update your local branch with the latest changes from the remote repository.
+
+**Example Usage:**
+
+```bash
+$ git pull origin main
+remote: Enumerating objects: 5, done.
+remote: Counting objects: 100% (5/5), done.
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 5 (delta 2), reused 5 (delta 2), pack-reused 0
+Unpacking objects: 100% (5/5), done.
+From https://github.com/user/repository
+ * branch            main       -> FETCH_HEAD
+Updating 1a2b3c4..5d6e7f8
+Fast-forward
+ newfile.txt | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 newfile.txt
+```
+
+**Explanation:**
+
+- `git pull origin main`: Fetches the latest changes from the `main` branch of the remote repository named `origin` and merges them into the current branch. The output shows the objects that were downloaded and the details of the merge.
+
+### 3.4 git push
+
+The `git push` command updates remote refs along with associated objects. It is used to upload your local changes to a remote repository.
+
+**Example Usage:**
+
+```bash
+$ git push origin main
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 300 bytes | 300.00 KiB/s, done.
+Total 3 (delta 2), reused 0 (delta 0)
+To https://github.com/user/repository.git
+   1a2b3c4..5d6e7f8  main -> main
+```
+
+**Explanation:**
+
+- `git push origin main`: Pushes the changes from the local `main` branch to the `main` branch of the remote repository named `origin`. The output shows the objects that were uploaded and the branches that were updated.
+
+### 3.5 git remote -v
+
+The `git remote -v` command shows the URLs of the remote repositories. It is useful for verifying the remote repositories that are configured for your project.
+
+**Example Usage:**
+
+```bash
+$ git remote -v
+origin  https://github.com/user/repository.git (fetch)
+origin  https://github.com/user/repository.git (push)
+```
+
+**Explanation:**
+
+- `git remote -v`: Lists all the remote repositories along with their URLs for fetching and pushing.
+
+By mastering these commands for managing remote repositories, you can efficiently collaborate with other developers and keep your work synchronized across multiple locations. These commands allow you to fetch updates, push your changes, and manage remote repositories with ease.
+
+## Section 4: Viewing and Exploring History
+
+Understanding the history of your project is crucial for tracking changes, debugging issues, and collaborating with team members. Git provides several commands to view and explore the commit history, which can help you gain insights into the evolution of your codebase.
+
+### 4.1 git log
+
+The `git log` command shows the commit logs, providing a detailed history of changes made to the repository. It displays the commit hash, author, date, and commit message.
+
+**Example Usage:**
+
+```bash
+$ git log
+commit 5d6e7f8 (HEAD -> main, origin/main)
+Author: John Doe <johndoe@example.com>
+Date:   Mon Oct 18 14:00:00 2021 -0400
+
+    Add new feature
+
+commit 1a2b3c4
+Author: Jane Smith <janesmith@example.com>
+Date:   Sun Oct 17 10:00:00 2021 -0400
+
+    Fix bug in feature
+```
+
+**Explanation:**
+
+- `git log`: Displays the commit history in reverse chronological order. Each commit includes the commit hash, author, date, and message.
+
+### 4.2 git diff
+
+The `git diff` command shows the differences between commits, the working directory, and the staging area. It highlights the changes made to files, making it easier to review modifications.
+
+**Example Usage:**
+
+```bash
+# Show changes between working directory and staging area
+$ git diff
+
+# Show changes between two commits
+$ git diff 1a2b3c4 5d6e7f8
+```
+
+**Explanation:**
+
+- `git diff`: Displays the changes between the working directory and the staging area.
+- `git diff 1a2b3c4 5d6e7f8`: Shows the differences between the commits with hashes `1a2b3c4` and `5d6e7f8`.
+
+### 4.3 git show
+
+The `git show` command displays various types of objects, including commits, trees, and blobs. It is commonly used to view the details of a specific commit.
+
+**Example Usage:**
+
+```bash
+$ git show 5d6e7f8
+commit 5d6e7f8 (HEAD -> main, origin/main)
+Author: John Doe <johndoe@example.com>
+Date:   Mon Oct 18 14:00:00 2021 -0400
+
+    Add new feature
+
+diff --git a/newfile.txt b/newfile.txt
+new file mode 100644
+index 0000000..e69de29
+```
+
+**Explanation:**
+
+- `git show 5d6e7f8`: Displays the details of the commit with hash `5d6e7f8`, including the commit message and the changes made to files.
+
+### 4.4 git blame
+
+The `git blame` command shows what revision and author last modified each line of a file. This command is useful for identifying the origin of changes and understanding the history of specific lines in a file.
+
+**Example Usage:**
+
+```bash
+$ git blame newfile.txt
+5d6e7f8e (John Doe 2021-10-18 14:00:00 -0400 1) Line 1 of newfile.txt
+```
+
+**Explanation:**
+
+- `git blame newfile.txt`: Displays the commit hash, author, date, and content of each line in `newfile.txt`. This information helps track the origin of changes.
+
+### 4.5 git shortlog
+
+The `git shortlog` command summarizes the `git log` output, grouping commits by author and providing a count of commits per author. It is useful for generating a summary of contributions.
+
+**Example Usage:**
+
+```bash
+$ git shortlog -sn
+    10  John Doe
+     5  Jane Smith
+```
+
+**Explanation:**
+
+- `git shortlog -sn`: Displays a summary of commits, grouped by author, with the number of commits made by each author. The `-s` option shows the commit count, and the `-n` option sorts the output by the number of commits.
+
+By mastering these commands for viewing and exploring history, you can gain valuable insights into your project's development and make informed decisions based on the commit history. These commands help you track changes, understand the evolution of your codebase, and collaborate more effectively with your team.
+
+## Section 5: Undoing Changes
+
+In the course of development, it's common to make mistakes or need to revert changes. Git provides several commands to undo changes, whether you need to reset your working directory, revert commits, or clean up untracked files. This section covers essential commands for undoing changes in your repository.
+
+### 5.1 git reset
+
+The `git reset` command is used to reset the current HEAD to a specified state. It can modify the staging area and working directory to match the specified commit.
+
+**Example Usage:**
+
+```bash
+# Soft reset: move HEAD to the specified commit, but leave the changes in the working directory and staging area
+$ git reset --soft HEAD~1
+
+# Mixed reset: move HEAD to the specified commit and update the staging area, but leave the working directory unchanged
+$ git reset --mixed HEAD~1
+
+# Hard reset: move HEAD to the specified commit and update both the staging area and working directory
+$ git reset --hard HEAD~1
+```
+
+**Explanation:**
+
+- `git reset --soft HEAD~1`: Moves HEAD to the previous commit (`HEAD~1`), but keeps the changes in the working directory and staging area.
+- `git reset --mixed HEAD~1`: Moves HEAD to the previous commit and updates the staging area to match, but leaves the working directory unchanged.
+- `git reset --hard HEAD~1`: Moves HEAD to the previous commit and updates both the staging area and working directory to match, effectively discarding any changes.
+
+### 5.2 git revert
+
+The `git revert` command creates a new commit that undoes the changes introduced by a previous commit. This is useful for safely undoing changes without altering the commit history.
+
+**Example Usage:**
+
+```bash
+$ git revert 5d6e7f8
+[main 9a8b7c6] Revert "Add new feature"
+ 1 file changed, 1 deletion(-)
+```
+
+**Explanation:**
+
+- `git revert 5d6e7f8`: Creates a new commit that undoes the changes introduced by the commit with hash `5d6e7f8`. The output shows the details of the revert commit.
+
+### 5.3 git clean
+
+The `git clean` command removes untracked files from the working directory. This is useful for cleaning up files that are not tracked by Git and not needed in the repository.
+
+**Example Usage:**
+
+```bash
+# Show which files would be removed
+$ git clean -n
+Would remove untracked_file.txt
+
+# Remove untracked files
+$ git clean -f
+Removing untracked_file.txt
+```
+
+**Explanation:**
+
+- `git clean -n`: Displays which untracked files would be removed without actually removing them.
+- `git clean -f`: Removes untracked files from the working directory.
+
+### 5.4 git stash
+
+The `git stash` command temporarily saves changes in a dirty working directory without committing them. This is useful for quickly switching branches or pulling updates without losing your current work.
+
+**Example Usage:**
+
+```bash
+# Stash changes
+$ git stash
+Saved working directory and index state WIP on main: 1a2b3c4 Add new feature
+
+# List stashed changes
+$ git stash list
+stash@{0}: WIP on main: 1a2b3c4 Add new feature
+
+# Apply stashed changes
+$ git stash apply
+```
+
+**Explanation:**
+
+- `git stash`: Saves the current changes in the working directory and staging area to a new stash.
+- `git stash list`: Lists all stashed changes.
+- `git stash apply`: Applies the most recent stash to the working directory.
+
+### 5.5 git cherry-pick
+
+The `git cherry-pick` command applies the changes introduced by an existing commit to the current branch. This is useful for selectively applying specific commits.
+
+**Example Usage:**
+
+```bash
+$ git cherry-pick 5d6e7f8
+[main 9a8b7c6] Add new feature
+ 1 file changed, 1 insertion(+)
+ create mode 100644 newfile.txt
+```
+
+**Explanation:**
+
+- `git cherry-pick 5d6e7f8`: Applies the changes introduced by the commit with hash `5d6e7f8` to the current branch. The output shows the details of the cherry-picked commit.
+
+By mastering these commands for undoing changes, you can effectively manage and correct mistakes in your repository. These commands provide the flexibility to reset, revert, clean, stash, and cherry-pick changes, ensuring that your project remains in a stable and consistent state.
+
+## Section 6: Advanced Git Commands
+
+Advanced Git commands provide powerful tools for more complex tasks such as debugging, managing submodules, and creating archives. Mastering these commands can significantly enhance your ability to manage large projects and troubleshoot issues efficiently.
+
+### 6.1 git bisect
+
+The `git bisect` command uses a binary search algorithm to find the commit that introduced a bug. This command is invaluable for debugging and pinpointing the exact commit where things went wrong.
+
+**Example Usage:**
+
+```bash
+# Start the bisect process
+$ git bisect start
+
+# Mark the current commit as bad
+$ git bisect bad
+
+# Mark an earlier commit as good
+$ git bisect good 1a2b3c4
+
+# Git will now check out a commit halfway between the good and bad commits
+# Test the code and mark the commit as bad or good
+$ git bisect bad
+
+# Repeat the process until the offending commit is found
+```
+
+**Explanation:**
+
+- `git bisect start`: Starts the bisect process.
+- `git bisect bad`: Marks the current commit as bad.
+- `git bisect good 1a2b3c4`: Marks the commit with hash `1a2b3c4` as good.
+- Git will then check out a commit halfway between the good and bad commits. You need to test the code and mark the commit as bad or good until the offending commit is found.
+
+### 6.2 git tag
+
+The `git tag` command is used to create, list, delete, or verify a tag object signed with GPG. Tags are useful for marking specific points in the project’s history, such as releases.
+
+**Example Usage:**
+
+```bash
+# Create a lightweight tag
+$ git tag v1.0
+
+# Create an annotated tag
+$ git tag -a v1.0 -m "Version 1.0 release"
+
+# List all tags
+$ git tag
+
+# Delete a tag
+$ git tag -d v1.0
+```
+
+**Explanation:**
+
+- `git tag v1.0`: Creates a lightweight tag named `v1.0`.
+- `git tag -a v1.0 -m "Version 1.0 release"`: Creates an annotated tag named `v1.0` with a message.
+- `git tag`: Lists all tags in the repository.
+- `git tag -d v1.0`: Deletes the tag named `v1.0`.
+
+### 6.3 git submodule
+
+The `git submodule` command is used to initialize, update, or inspect submodules. Submodules allow you to keep a Git repository as a subdirectory of another Git repository.
+
+**Example Usage:**
+
+```bash
+# Add a submodule
+$ git submodule add https://github.com/user/repository.git path/to/submodule
+
+# Initialize submodules
+$ git submodule init
+
+# Update submodules
+$ git submodule update
+
+# Remove a submodule
+$ git submodule deinit -f path/to/submodule
+$ rm -rf .git/modules/path/to/submodule
+$ git rm -f path/to/submodule
+```
+
+**Explanation:**
+
+- `git submodule add https://github.com/user/repository.git path/to/submodule`: Adds a submodule located at the specified URL to the specified path.
+- `git submodule init`: Initializes the submodules.
+- `git submodule update`: Updates the submodules to match the commit specified in the superproject.
+- `git submodule deinit -f path/to/submodule`: Deinitializes the submodule.
+- `rm -rf .git/modules/path/to/submodule`: Removes the submodule's directory.
+- `git rm -f path/to/submodule`: Removes the submodule from the repository.
+
+### 6.4 git archive
+
+The `git archive` command is used to create an archive of files from a named tree. This can be useful for creating backups or distributing a specific version of the project.
+
+**Example Usage:**
+
+```bash
+# Create a tar archive of the current branch
+$ git archive --format=tar --output=archive.tar HEAD
+
+# Create a zip archive of a specific commit
+$ git archive --format=zip --output=archive.zip 1a2b3c4
+```
+
+**Explanation:**
+
+- `git archive --format=tar --output=archive.tar HEAD`: Creates a tar archive of the current branch and saves it as `archive.tar`.
+- `git archive --format=zip --output=archive.zip 1a2b3c4`: Creates a zip archive of the commit with hash `1a2b3c4` and saves it as `archive.zip`.
+
+### 6.5 git reflog
+
+The `git reflog` command is used to manage the reference logs, which record when the tips of branches and other references were updated in the local repository.
+
+**Example Usage:**
+
+```bash
+# Show the reflog for the current branch
+$ git reflog
+
+# Show the reflog for a specific branch
+$ git reflog show main
+
+# Delete the reflog entries older than a specified time
+$ git reflog expire --expire=90.days.ago --all
+```
+
+**Explanation:**
+
+- `git reflog`: Displays the reflog for the current branch.
+- `git reflog show main`: Displays the reflog for the `main` branch.
+- `git reflog expire --expire=90.days.ago --all`: Deletes the reflog entries older than 90 days for all references.
+
+By mastering these advanced Git commands, you can handle more complex tasks and troubleshoot issues more effectively. These commands provide powerful tools for debugging, managing submodules, creating archives, and maintaining a clean and organized repository.
+
+## Section 7: Collaboration and Contribution
+
+Collaboration and contribution are key aspects of using Git, especially in team environments. Git provides several commands that facilitate working with others, applying patches, and generating summaries of changes. This section covers essential commands for collaboration and contribution.
+
+### 7.1 git cherry
+
+The `git cherry` command is used to find commits that have not yet been applied upstream. This is useful for identifying changes that need to be pushed or reviewed.
+
+**Example Usage:**
+
+```bash
+$ git cherry -v
++ 5d6e7f8 Add new feature
+- 1a2b3c4 Fix bug in feature
+```
+
+**Explanation:**
+
+- `git cherry -v`: Lists commits that are in the current branch but not in the upstream branch. The `+` indicates commits that are unique to the current branch, while `-` indicates commits that are already in the upstream branch.
+
+### 7.2 git apply
+
+The `git apply` command applies a patch to files and/or to the index. This is useful for applying changes that have been shared as patches.
+
+**Example Usage:**
+
+```bash
+# Apply a patch file
+$ git apply patch.diff
+```
+
+**Explanation:**
+
+- `git apply patch.diff`: Applies the changes from the patch file `patch.diff` to the working directory.
+
+### 7.3 git format-patch
+
+The `git format-patch` command prepares patches for email submission. It generates patch files from commits, which can be shared and applied using `git apply`.
+
+**Example Usage:**
+
+```bash
+# Generate patch files for the last 3 commits
+$ git format-patch -3
+0001-Add-new-feature.patch
+0002-Fix-bug-in-feature.patch
+0003-Update-documentation.patch
+```
+
+**Explanation:**
+
+- `git format-patch -3`: Creates patch files for the last 3 commits. Each patch file contains the changes from a single commit.
+
+### 7.4 git send-email
+
+The `git send-email` command sends a collection of patches as emails. This is useful for submitting patches to a mailing list or a project maintainer.
+
+**Example Usage:**
+
+```bash
+# Send patch files via email
+$ git send-email *.patch
+```
+
+**Explanation:**
+
+- `git send-email *.patch`: Sends all patch files in the current directory as emails. The command prompts for email configuration and recipient information.
+
+### 7.5 git request-pull
+
+The `git request-pull` command generates a summary of pending changes, which can be sent to a project maintainer to request a pull. This is useful for formally requesting that your changes be merged into the upstream repository.
+
+**Example Usage:**
+
+```bash
+$ git request-pull origin/main https://github.com/user/repository.git main
+The following changes since commit 1a2b3c4:
+  Fix bug in feature (2021-10-17 10:00:00 -0400)
+
+are available in the Git repository at:
+  https://github.com/user/repository.git main
+
+for you to fetch changes up to 5d6e7f8:
+  Add new feature (2021-10-18 14:00:00 -0400)
+
+----------------------------------------------------------------
+Add new feature
+```
+
+**Explanation:**
+
+- `git request-pull origin/main https://github.com/user/repository.git main`: Generates a summary of changes from the `main` branch in the local repository that are not in the `origin/main` branch. The summary includes a description of the changes and a link to the repository.
+
+By mastering these commands for collaboration and contribution, you can effectively work with other developers, share your changes, and request that your contributions be reviewed and merged. These commands facilitate a smooth workflow for team projects and open-source contributions.

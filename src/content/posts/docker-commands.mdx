@@ -1,0 +1,903 @@
+---
+date: 2024-07-10T00:00:00Z
+title: "Top 50+ Docker Commands You MUST Know"
+description: "Master Docker with our comprehensive guide to 50+ essential commands. From basic operations to advanced container management, this resource covers everything DevOps professionals and Docker enthusiasts need to know."
+image: "../../assets/images/24/07/docker-commands.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["docker"]
+canonical: "https://www.bitdoze.com/docker-commands/"
+---
+
+Docker has revolutionized the way software is developed, shipped, and deployed. By providing a consistent environment across different stages of development, Docker ensures that applications run seamlessly from development to production. This containerization technology has become a cornerstone in modern DevOps practices, enabling developers and system administrators to work more efficiently and reliably.
+
+Knowing Docker commands is essential for anyone involved in software development or system administration. These commands allow you to manage containers, images, networks, and volumes with ease, providing you with the tools needed to build, deploy, and maintain applications effectively. This article aims to provide a comprehensive list of the top 50+ Docker commands that are crucial for effective container management. Whether you are a beginner or an experienced user, mastering these commands will enhance your productivity and streamline your workflows.
+
+## Section 1: Basic Docker Commands
+
+### 1.1 Docker Version and Info
+
+Understanding the version and system-wide information of Docker installed on your machine is the first step in mastering Docker commands. Here are the essential commands:
+
+- `docker --version`: This command displays the version of Docker installed on your system. It's a quick way to verify that Docker is installed and to check which version you are running.
+
+  ```sh
+  $ docker --version
+  Docker version 20.10.7, build f0df350
+  ```
+
+- `docker version`: This command provides detailed version information about the Docker client and server. It includes the version number, Git commit, and build date.
+
+  ```sh
+  $ docker version
+  Client:
+   Version:           20.10.7
+   API version:       1.41
+   Go version:        go1.13.15
+   Git commit:        f0df350
+   Built:             Wed Jun  2 11:56:24 2021
+   OS/Arch:           linux/amd64
+   Context:           default
+   Experimental:      true
+
+  Server:
+   Engine:
+    Version:          20.10.7
+    API version:      1.41 (minimum version 1.12)
+    Go version:       go1.13.15
+    Git commit:       b0f5bc3
+    Built:            Wed Jun  2 11:55:04 2021
+    OS/Arch:          linux/amd64
+    Experimental:     false
+  ```
+
+- `docker info`: This command displays system-wide information about Docker, including the number of containers, images, and the storage driver in use. It's useful for getting a comprehensive overview of your Docker environment.
+
+  ```sh
+  $ docker info
+  Client:
+   Context:    default
+   Debug Mode: false
+
+  Server:
+   Containers: 2
+    Running: 1
+    Paused: 0
+    Stopped: 1
+   Images: 5
+   Storage Driver: overlay2
+   Logging Driver: json-file
+   Cgroup Driver: cgroupfs
+   Plugins:
+    Volume: local
+    Network: bridge host ipvlan macvlan null overlay
+    Log: awslogs fluentd gcplogs gelf journald json-file local logentries splunk syslog
+   Swarm: inactive
+   Runtimes: runc
+   Default Runtime: runc
+   Init Binary: docker-init
+   containerd version: 7ad184331fa3e55e52b890ea95e65ba581ae3429
+   runc version: b9ee9c6314599f1b4a7f497e1f1f856fe433d3b7
+   init version: de40ad0
+   Security Options:
+    seccomp
+     Profile: default
+   Kernel Version: 5.8.0-53-generic
+   Operating System: Ubuntu 20.04.2 LTS
+   OSType: linux
+   Architecture: x86_64
+   CPUs: 4
+   Total Memory: 7.771GiB
+   Name: docker-desktop
+   ID: 3Z4Q:KZ3F:3Z4Q:KZ3F:3Z4Q:KZ3F:3Z4Q:KZ3F
+   Docker Root Dir: /var/lib/docker
+   Debug Mode: false
+   Registry: https://index.docker.io/v1/
+   Labels:
+   Experimental: false
+   Insecure Registries:
+    127.0.0.0/8
+   Live Restore Enabled: false
+  ```
+
+### 1.2 Docker Help
+
+Docker provides built-in help commands to assist you in understanding the usage and options of various Docker commands:
+
+- `docker --help`: This command displays a list of all available Docker commands along with a brief description of each. It's a handy reference for quickly finding the command you need.
+
+  ```sh
+  $ docker --help
+
+  Usage:  docker [OPTIONS] COMMAND
+
+  A self-sufficient runtime for containers
+
+  Options:
+    --config string      Location of client config files (default
+                         "/root/.docker")
+    -D, --debug          Enable debug mode
+    -H, --host list      Daemon socket(s) to connect to
+    -l, --log-level string   Set the logging level (debug, info, warn, error, fatal)
+                             (default "info")
+    --tls                Use TLS; implied by --tlsverify
+    --tlscacert string   Trust certs signed only by this CA (default
+                         "/root/.docker/ca.pem")
+    --tlscert string     Path to TLS certificate file (default
+                         "/root/.docker/cert.pem")
+    --tlskey string      Path to TLS key file (default "/root/.docker/key.pem")
+    --tlsverify          Use TLS and verify the remote
+    -v, --version        Print version information and quit
+
+  Management Commands:
+    builder     Manage builds
+    config      Manage Docker configs
+    container   Manage containers
+    context     Manage contexts
+    engine      Manage the docker engine
+    image       Manage images
+    network     Manage networks
+    node        Manage Swarm nodes
+    plugin      Manage plugins
+    secret      Manage Docker secrets
+    service     Manage services
+    stack       Manage Docker stacks
+    swarm       Manage Swarm
+    system      Manage Docker
+    trust       Manage trust on Docker images
+    volume      Manage volumes
+
+  Commands:
+    attach      Attach local standard input, output, and error streams to a running container
+    build       Build an image from a Dockerfile
+    commit      Create a new image from a container's changes
+    cp          Copy files/folders between a container and the local filesystem
+    create      Create a new container
+    diff        Inspect changes to files or directories on a container's filesystem
+    events      Get real time events from the server
+    exec        Run a command in a running container
+    export      Export a container's filesystem as a tar archive
+    history     Show the history of an image
+    images      List images
+    import      Import the contents from a tarball to create a filesystem image
+    info        Display system-wide information
+    inspect     Return low-level information on Docker objects
+    kill        Kill one or more running containers
+    load        Load an image from a tar archive or STDIN
+    login       Log in to a Docker registry
+    logout      Log out from a Docker registry
+    logs        Fetch the logs of a container
+    pause       Pause all processes within one or more containers
+    port        List port mappings or a specific mapping for the container
+    ps          List containers
+    pull        Pull an image or a repository from a registry
+    push        Push an image or a repository to a registry
+    rename      Rename a container
+    restart     Restart one or more containers
+    rm          Remove one or more containers
+    rmi         Remove one or more images
+    run         Run a command in a new container
+    save        Save one or more images to a tar archive (streamed to STDOUT by default)
+    search      Search the Docker Hub for images
+    start       Start one or more stopped containers
+    stats       Display a live stream of container(s) resource usage statistics
+    stop        Stop one or more running containers
+    tag         Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE
+    top         Display the running processes of a container
+    unpause     Unpause all processes within one or more containers
+    update      Update configuration of one or more containers
+    version     Show the Docker version information
+    wait        Block until one or more containers stop, then print their exit codes
+
+  Run 'docker COMMAND --help' for more information on a command.
+  ```
+
+- `docker <command> --help`: This command provides detailed help for a specific Docker command, including its usage, options, and examples. For instance, if you want to learn more about the `docker run` command, you can use:
+
+  ```sh
+  $ docker run --help
+
+  Usage:  docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+
+  Run a command in a new container
+
+  Options:
+    -d, --detach                         Run container in background and print container ID
+    --name string                        Assign a name to the container
+    -p, --publish list                   Publish a container's port(s) to the host
+    -v, --volume list                    Bind mount a volume
+    --rm                                 Automatically remove the container when it exits
+    -i, --interactive                    Keep STDIN open even if not attached
+    -t, --tty                            Allocate a pseudo-TTY
+    --network string                     Connect a container to a network
+    --restart string                     Restart policy to apply when a container exits
+    --env list                           Set environment variables
+    --label list                         Set metadata on a container
+    --log-driver string                  Logging driver for the container
+    --log-opt list                       Log driver options
+    --privileged                         Give extended privileges to this container
+    --user string                        Username or UID (format: <name|uid>[:<group|gid>])
+    --workdir string                     Working directory inside the container
+    --entrypoint string                  Overwrite the default ENTRYPOINT of the image
+    --cpus decimal                       Number of CPUs
+    --memory string                      Memory limit
+    --memory-swap string                 Swap limit equal to memory plus swap: '-1' to enable unlimited swap
+    --memory-reservation string          Memory soft limit
+    --cpu-shares int                     CPU shares (relative weight)
+    --cpu-period int                     Limit CPU CFS (Completely Fair Scheduler) period
+    --cpu-quota int                      Limit CPU CFS (Completely Fair Scheduler) quota
+    --cpuset-cpus string                 CPUs in which to allow execution (0-3, 0,1)
+    --cpuset-mems string                 MEMs in which to allow execution (0-3, 0,1)
+  ```
+
+These basic commands form the foundation of working with Docker, providing you with essential information and help to get started.
+
+## Section 2: Working with Docker Images
+
+### 2.1 Pulling Images
+
+Docker images are the blueprints for containers, and pulling images from a registry is often the first step in using Docker. Here are the key commands for pulling images:
+
+- `docker pull <image>`: This command downloads an image from a Docker registry (such as Docker Hub). If no tag is specified, Docker defaults to pulling the `latest` tag.
+
+  ```sh
+  $ docker pull ubuntu
+  Using default tag: latest
+  latest: Pulling from library/ubuntu
+  6d28e14ab8c8: Pull complete
+  1c9383292a8f: Pull complete
+  6c0b1f2a1dcd: Pull complete
+  Digest: sha256:4e9f2cdfd5d6b3e5d5e5c5e5d5e5e5d5e5d5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5
+  ```
+
+- `docker pull <image>:<tag>`: This command downloads a specific version of an image from a Docker registry. Tags are used to specify different versions of an image.
+
+  ```sh
+  $ docker pull nginx:alpine
+  alpine: Pulling from library/nginx
+  6d28e14ab8c8: Pull complete
+  1c9383292a8f: Pull complete
+  6c0b1f2a1dcd: Pull complete
+  Digest: sha256:4e9f2cdfd5d6b3e5d5e5c5e5d5e5e5d5e5d5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e
+  ```
+
+### 2.2 Listing Images
+
+Once you have pulled images, you may want to list them to see what is available on your local system. Docker provides commands to list all images:
+
+- `docker images`: This command lists all images on the local system, including their repository, tag, image ID, creation date, and size.
+
+  ```sh
+  $ docker images
+  REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+  ubuntu              latest              4e9f2cdfd5d6        2 weeks ago         72.9MB
+  nginx               alpine              6d28e14ab8c8        3 weeks ago         22.3MB
+  ```
+
+### 2.3 Removing Images
+
+Managing disk space is crucial, especially when dealing with multiple images. Docker provides commands to remove images that are no longer needed:
+
+- `docker rmi <image>`: This command removes one or more images by their image ID or repository name and tag. You can specify multiple images to remove by separating them with spaces.
+
+  ```sh
+  $ docker rmi nginx:alpine
+  Untagged: nginx:alpine
+  Deleted: sha256:6d28e14ab8c8
+  ```
+
+- `docker rmi $(docker images -q)`: This command removes all images on the local system. The `-q` flag with `docker images` outputs only the image IDs, which are then passed to `docker rmi` for removal.
+
+  ```sh
+  $ docker rmi $(docker images -q)
+  Untagged: ubuntu:latest
+  Deleted: sha256:4e9f2cdfd5d6
+  ```
+
+### 2.4 Building Images
+
+Building custom images from a Dockerfile is a common practice in Docker. Here are the commands to build images:
+
+- `docker build -t <image>:<tag> <path>`: This command builds an image from a Dockerfile located at the specified path. The `-t` flag tags the image with a name and optional tag.
+
+  ```sh
+  $ docker build -t myapp:1.0 .
+  Sending build context to Docker daemon  2.048kB
+  Step 1/3 : FROM ubuntu
+   ---> 4e9f2cdfd5d6
+  Step 2/3 : COPY . /app
+   ---> Using cache
+   ---> 1c9383292a8f
+  Step 3/3 : CMD ["python", "/app/app.py"]
+   ---> Using cache
+   ---> 6c0b1f2a1dcd
+  Successfully built 6c0b1f2a1dcd
+  Successfully tagged myapp:1.0
+  ```
+
+- `docker build --no-cache -t <image>:<tag> <path>`: This command builds an image without using the cache. It's useful when you want to ensure that all steps in the Dockerfile are executed fresh.
+
+  ```sh
+  $ docker build --no-cache -t myapp:1.0 .
+  Sending build context to Docker daemon  2.048kB
+  Step 1/3 : FROM ubuntu
+   ---> 4e9f2cdfd5d6
+  Step 2/3 : COPY . /app
+   ---> 1c9383292a8f
+  Step 3/3 : CMD ["python", "/app/app.py"]
+   ---> 6c0b1f2a1dcd
+  Successfully built 6c0b1f2a1dcd
+  Successfully tagged myapp:1.0
+  ```
+
+These commands cover the essential operations for working with Docker images, from pulling and listing to removing and building them.
+
+## Section 3: Managing Docker Containers
+
+### 3.1 Running Containers
+
+Running containers is one of the core functionalities of Docker. Here are the key commands for running containers:
+
+- `docker run <image>`: This command runs a container from a specified image. If the image is not available locally, Docker will pull it from the registry.
+
+  ```sh
+  $ docker run ubuntu
+  ```
+
+- `docker run -d <image>`: This command runs a container in detached mode, meaning it runs in the background.
+
+  ```sh
+  $ docker run -d nginx
+  5d8c5c4b5b6a
+  ```
+
+- `docker run -it <image>`: This command runs a container in interactive mode with a terminal attached. It's useful for debugging or running commands inside the container.
+
+  ```sh
+  $ docker run -it ubuntu
+  root@5d8c5c4b5b6a:/#
+  ```
+
+### 3.2 Listing Containers
+
+To manage running and stopped containers, Docker provides commands to list them:
+
+- `docker ps`: This command lists all running containers, displaying their container ID, image, command, creation time, status, ports, and names.
+
+  ```sh
+  $ docker ps
+  CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS     NAMES
+  5d8c5c4b5b6a   nginx     "nginx -g 'daemon of..."   2 minutes ago   Up 2 minutes   80/tcp    amazing_bell
+  ```
+
+- `docker ps -a`: This command lists all containers, including stopped ones. It provides a comprehensive view of all containers on the system.
+
+  ```sh
+  $ docker ps -a
+  CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS                     PORTS     NAMES
+  5d8c5c4b5b6a   nginx     "nginx -g 'daemon of..."   2 minutes ago   Up 2 minutes               80/tcp    amazing_bell
+  1c9383292a8f   ubuntu    "/bin/bash"              5 minutes ago   Exited (0) 3 minutes ago             compassionate_morse
+  ```
+
+### 3.3 Stopping and Starting Containers
+
+Managing the state of containers involves stopping, starting, and restarting them:
+
+- `docker stop <container>`: This command stops a running container. You can specify the container by its ID or name.
+
+  ```sh
+  $ docker stop amazing_bell
+  amazing_bell
+  ```
+
+- `docker start <container>`: This command starts a stopped container.
+
+  ```sh
+  $ docker start amazing_bell
+  amazing_bell
+  ```
+
+- `docker restart <container>`: This command restarts a running or stopped container.
+
+  ```sh
+  $ docker restart amazing_bell
+  amazing_bell
+  ```
+
+### 3.4 Removing Containers
+
+To free up system resources, you can remove stopped containers:
+
+- `docker rm <container>`: This command removes a stopped container. You can specify the container by its ID or name.
+
+  ```sh
+  $ docker rm compassionate_morse
+  compassionate_morse
+  ```
+
+- `docker rm $(docker ps -a -q)`: This command removes all stopped containers. The `-q` flag with `docker ps -a` outputs only the container IDs, which are then passed to `docker rm` for removal.
+
+  ```sh
+  $ docker rm $(docker ps -a -q)
+  compassionate_morse
+  amazing_bell
+  ```
+
+These commands cover the essential operations for managing Docker containers, from running and listing to stopping, starting, and removing them.
+
+## Section 4: Inspecting and Logging
+
+### 4.1 Inspecting Containers and Images
+
+Inspecting containers and images allows you to retrieve detailed information about their configuration and state. Here are the key commands for inspection:
+
+- `docker inspect <container>`: This command provides detailed information about a container in JSON format. It includes details such as the container's configuration, state, network settings, and more.
+
+  ```sh
+  $ docker inspect amazing_bell
+  [
+      {
+          "Id": "5d8c5c4b5b6a",
+          "Created": "2021-06-02T11:56:24.123456789Z",
+          "Path": "nginx",
+          "Args": [
+              "-g",
+              "daemon off;"
+          ],
+          "State": {
+              "Status": "running",
+              "Running": true,
+              "Paused": false,
+              "Restarting": false,
+              "OOMKilled": false,
+              "Dead": false,
+              "Pid": 1234,
+              "ExitCode": 0,
+              "Error": "",
+              "StartedAt": "2021-06-02T11:56:25.123456789Z",
+              "FinishedAt": "0001-01-01T00:00:00Z"
+          },
+          "Image": "sha256:6d28e14ab8c8",
+          "ResolvConfPath": "/var/lib/docker/containers/5d8c5c4b5b6a/resolv.conf",
+          "HostnamePath": "/var/lib/docker/containers/5d8c5c4b5b6a/hostname",
+          "HostsPath": "/var/lib/docker/containers/5d8c5c4b5b6a/hosts",
+          "LogPath": "/var/lib/docker/containers/5d8c5c4b5b6a/5d8c5c4b5b6a-json.log",
+          "Name": "/amazing_bell",
+          "RestartCount": 0,
+          "Driver": "overlay2",
+          "Platform": "linux",
+          "MountLabel": "",
+          "ProcessLabel": "",
+          "AppArmorProfile": "",
+          "ExecIDs": null,
+          "HostConfig": {
+              "Binds": null,
+              "ContainerIDFile": "",
+              "LogConfig": {
+                  "Type": "json-file",
+                  "Config": {}
+              },
+              "NetworkMode": "default",
+              "PortBindings": {},
+              "RestartPolicy": {
+                  "Name": "no",
+                  "MaximumRetryCount": 0
+              },
+              "AutoRemove": false,
+              "VolumeDriver": "",
+              "VolumesFrom": null,
+              "CapAdd": null,
+              "CapDrop": null,
+              "Dns": [],
+              "DnsOptions": [],
+              "DnsSearch": [],
+              "ExtraHosts": null,
+              "GroupAdd": null,
+              "IpcMode": "private",
+              "Cgroup": "",
+              "Links": null,
+              "OomScoreAdj": 0,
+              "PidMode": "",
+              "Privileged": false,
+              "PublishAllPorts": false,
+              "ReadonlyRootfs": false,
+              "SecurityOpt": null,
+              "UTSMode": "",
+              "UsernsMode": "",
+              "ShmSize": 67108864,
+              "Runtime": "runc",
+              "ConsoleSize": [
+                  0,
+                  0
+              ],
+              "Isolation": "",
+              "CpuShares": 0,
+              "Memory": 0,
+              "NanoCpus": 0,
+              "CgroupParent": "",
+              "BlkioWeight": 0,
+              "BlkioWeightDevice": null,
+              "BlkioDeviceReadBps": null,
+              "BlkioDeviceWriteBps": null,
+              "BlkioDeviceReadIOps": null,
+              "BlkioDeviceWriteIOps": null,
+              "CpuPeriod": 0,
+              "CpuQuota": 0,
+              "CpuRealtimePeriod": 0,
+              "CpuRealtimeRuntime": 0,
+              "CpusetCpus": "",
+              "CpusetMems": "",
+              "Devices": [],
+              "DeviceCgroupRules": null,
+              "DeviceRequests": null,
+              "KernelMemory": 0,
+              "KernelMemoryTCP": 0,
+              "MemoryReservation": 0,
+              "MemorySwap": 0,
+              "MemorySwappiness": null,
+              "OomKillDisable": false,
+              "PidsLimit": null,
+              "Ulimits": null,
+              "CpuCount": 0,
+              "CpuPercent": 0,
+              "IOMaximumIOps": 0,
+              "IOMaximumBandwidth": 0,
+              "MaskedPaths": [
+                  "/proc/asound",
+                  "/proc/acpi",
+                  "/proc/kcore",
+                  "/proc/keys",
+                  "/proc/latency_stats",
+                  "/proc/timer_list",
+                  "/proc/timer_stats",
+                  "/proc/sched_debug",
+                  "/proc/scsi",
+                  "/sys/firmware"
+              ],
+              "ReadonlyPaths": [
+                  "/proc/bus",
+                  "/proc/fs",
+                  "/proc/irq",
+                  "/proc/sys",
+                  "/proc/sysrq-trigger"
+              ]
+          },
+          "GraphDriver": {
+              "Data": {
+                  "LowerDir": "/var/lib/docker/overlay2/6d28e14ab8c8/lower",
+                  "MergedDir": "/var/lib/docker/overlay2/6d28e14ab8c8/merged",
+                  "UpperDir": "/var/lib/docker/overlay2/6d28e14ab8c8/upper",
+                  "WorkDir": "/var/lib/docker/overlay2/6d28e14ab8c8/work"
+              },
+              "Name": "overlay2"
+          },
+          "Mounts": [],
+          "Config": {
+              "Hostname": "5d8c5c4b5b6a",
+              "Domainname": "",
+              "User": "",
+              "AttachStdin": false,
+              "AttachStdout": false,
+              "AttachStderr": false,
+              "ExposedPorts": {
+                  "80/tcp": {}
+              },
+              "Tty": false,
+              "OpenStdin": false,
+              "StdinOnce": false,
+              "Env": [
+                  "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+              ],
+              "Cmd": [
+                  "nginx",
+                  "-g",
+                  "daemon off;"
+              ],
+              "Image": "nginx",
+              "Volumes": null,
+              "WorkingDir": "",
+              "Entrypoint": null,
+              "OnBuild": null,
+              "Labels": {},
+              "StopSignal": "SIGTERM",
+              "StopTimeout": null,
+              "Shell": null
+          },
+          "NetworkSettings": {
+              "Bridge": "",
+              "SandboxID": "6d28e14ab8c8",
+              "HairpinMode": false,
+              "LinkLocalIPv6Address": "",
+              "LinkLocalIPv6PrefixLen": 0,
+              "Ports": {
+                  "80/tcp": [
+                      {
+                          "HostIp": "0.0.0.0",
+                          "HostPort": "32768"
+                      }
+                  ]
+              },
+              "SandboxKey": "/var/run/docker/netns/6d28e14ab8c8",
+              "SecondaryIPAddresses": null,
+              "SecondaryIPv6Addresses": null,
+              "EndpointID": "6d28e14ab8c8",
+              "Gateway": "172.17.0.1",
+              "GlobalIPv6Address": "",
+              "GlobalIPv6PrefixLen": 0,
+              "IPAddress": "172.17.0.2",
+              "IPPrefixLen": 16,
+              "IPv6Gateway": "",
+              "MacAddress": "02:42:ac:11:00:02",
+              "Networks": {
+                  "bridge": {
+                      "IPAMConfig": null,
+                      "Links": null,
+                      "Aliases": null,
+                      "NetworkID": "6d28e14ab8c8",
+                      "EndpointID": "6d28e14ab8c8",
+                      "Gateway": "172.17.0.1",
+                      "IPAddress": "172.17.0.2",
+                      "IPPrefixLen": 16,
+                      "IPv6Gateway": "",
+                      "GlobalIPv6Address": "",
+                      "GlobalIPv6PrefixLen": 0,
+                      "MacAddress": "02:42:ac:11:00:02",
+                      "DriverOpts": null
+                  }
+              }
+          }
+      }
+  ]
+  ```
+
+- `docker inspect <image>`: This command provides detailed information about an image in JSON format. It includes details such as the image's configuration, layers, and more.
+
+  ```sh
+  $ docker inspect nginx:alpine
+  [
+      {
+          "Id": "sha256:6d28e14ab8c8",
+          "RepoTags": [
+              "nginx:alpine"
+          ],
+          "RepoDigests": [
+              "nginx@sha256:4e9f2cdfd5d6b3e5d5e5c5e5d5e5e5d5e5d5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e
+  ```
+
+### 4.2 Viewing Logs
+
+Logs are crucial for debugging and monitoring the behavior of your containers. Docker provides commands to view the logs of a container:
+
+- `docker logs <container>`: This command fetches the logs of a container. You can specify the container by its ID or name. It displays all the logs generated by the container since it started.
+
+  ```sh
+  $ docker logs amazing_bell
+  2021/06/02 11:56:25 [notice] 1#1: using the "epoll" event method
+  2021/06/02 11:56:25 [notice] 1#1: nginx/1.19.10
+  2021/06/02 11:56:25 [notice] 1#1: built by gcc 9.3.0 (Alpine 9.3.0)
+  2021/06/02 11:56:25 [notice] 1#1: OS: Linux 5.8.0-53-generic
+  2021/06/02 11:56:25 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+  2021/06/02 11:56:25 [notice] 1#1: start worker processes
+  2021/06/02 11:56:25 [notice] 1#1: start worker process 30
+  2021/06/02 11:56:25 [notice] 1#1: start worker process 31
+  ```
+
+- `docker logs -f <container>`: This command follows the logs of a container in real-time. The `-f` flag stands for "follow," similar to the `tail -f` command in Unix-like systems. It continues to display new log entries as they are generated.
+
+  ```sh
+  $ docker logs -f amazing_bell
+  2021/06/02 11:56:25 [notice] 1#1: using the "epoll" event method
+  2021/06/02 11:56:25 [notice] 1#1: nginx/1.19.10
+  2021/06/02 11:56:25 [notice] 1#1: built by gcc 9.3.0 (Alpine 9.3.0)
+  2021/06/02 11:56:25 [notice] 1#1: OS: Linux 5.8.0-53-generic
+  2021/06/02 11:56:25 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+  2021/06/02 11:56:25 [notice] 1#1: start worker processes
+  2021/06/02 11:56:25 [notice] 1#1: start worker process 30
+  2021/06/02 11:56:25 [notice] 1#1: start worker process 31
+  ```
+
+These commands provide essential tools for inspecting and logging, enabling you to retrieve detailed information and monitor the behavior of your containers and images.
+
+## Section 5: Networking
+
+### 5.1 Managing Networks
+
+Docker networking is a crucial aspect of container management, enabling communication between containers and external systems. Here are the key commands for managing Docker networks:
+
+- `docker network ls`: This command lists all Docker networks on the local system, including their names, IDs, drivers, and scope.
+
+  ```sh
+  $ docker network ls
+  NETWORK ID     NAME      DRIVER    SCOPE
+  6d28e14ab8c8   bridge    bridge    local
+  1c9383292a8f   host      host      local
+  6c0b1f2a1dcd   none      null      local
+  ```
+
+- `docker network create <network>`: This command creates a new Docker network with the specified name. By default, it uses the bridge driver, but you can specify other drivers such as overlay.
+
+  ```sh
+  $ docker network create my_network
+  6d28e14ab8c8
+  ```
+
+- `docker network rm <network>`: This command removes a Docker network by its name or ID. You can only remove networks that are not in use by any containers.
+
+  ```sh
+  $ docker network rm my_network
+  my_network
+  ```
+
+### 5.2 Connecting and Disconnecting Containers
+
+Managing the connections between containers and networks is essential for ensuring proper communication and isolation. Here are the commands to connect and disconnect containers from networks:
+
+- `docker network connect <network> <container>`: This command connects a container to a specified network. You can specify the container by its ID or name.
+
+  ```sh
+  $ docker network connect my_network amazing_bell
+  ```
+
+- `docker network disconnect <network> <container>`: This command disconnects a container from a specified network.
+
+  ```sh
+  $ docker network disconnect my_network amazing_bell
+  ```
+
+These commands provide the essential tools for managing Docker networks, enabling you to create, list, remove networks, and manage container connections.
+
+## Section 6: Volumes and Data Management
+
+### 6.1 Managing Volumes
+
+Docker volumes are used to persist data generated by and used by Docker containers. Here are the key commands for managing Docker volumes:
+
+- `docker volume ls`: This command lists all Docker volumes on the local system, including their names and driver information.
+
+  ```sh
+  $ docker volume ls
+  DRIVER    VOLUME NAME
+  local     my_volume
+  local     another_volume
+  ```
+
+- `docker volume create <volume>`: This command creates a new Docker volume with the specified name.
+
+  ```sh
+  $ docker volume create my_volume
+  my_volume
+  ```
+
+- `docker volume rm <volume>`: This command removes a Docker volume by its name. You can only remove volumes that are not in use by any containers.
+
+  ```sh
+  $ docker volume rm my_volume
+  my_volume
+  ```
+
+### 6.2 Using Volumes
+
+Mounting volumes to containers allows you to persist data and share it between containers. Here are the commands to use volumes with containers:
+
+- `docker run -v <volume>:/path/in/container <image>`: This command mounts a volume to a specified path inside the container. The `-v` flag is used to specify the volume and the mount path.
+
+  ```sh
+  $ docker run -v my_volume:/data ubuntu
+  ```
+
+- `docker run --mount source=<volume>,target=/path/in/container <image>`: This command is another way to mount a volume to a container using the `--mount` flag. It provides more options and flexibility compared to the `-v` flag.
+
+  ```sh
+  $ docker run --mount source=my_volume,target=/data ubuntu
+  ```
+
+These commands provide the essential tools for managing Docker volumes, enabling you to create, list, remove volumes, and mount them to containers for data persistence and sharing.
+
+## Section 7: Docker Compose
+
+### 7.1 Basic Commands
+
+Docker Compose is a tool for defining and running multi-container Docker applications. Here are the key commands for working with Docker Compose:
+
+- `docker-compose up`: This command starts the services defined in a `docker-compose.yml` file. It creates and starts containers, networks, and volumes as specified in the file.
+
+  ```sh
+  $ docker-compose up
+  Creating network "myapp_default" with the default driver
+  Creating volume "myapp_data" with default driver
+  Creating myapp_db_1 ... done
+  Creating myapp_web_1 ... done
+  Attaching to myapp_db_1, myapp_web_1
+  db_1   | 2021-06-02 11:56:25.123456789 [Note] mysqld: ready for connections.
+  web_1  |  * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+  ```
+
+- `docker-compose down`: This command stops and removes containers, networks, and volumes defined in a `docker-compose.yml` file. It cleans up the environment created by `docker-compose up`.
+
+  ```sh
+  $ docker-compose down
+  Stopping myapp_web_1 ... done
+  Stopping myapp_db_1  ... done
+  Removing myapp_web_1 ... done
+  Removing myapp_db_1  ... done
+  Removing network myapp_default
+  Removing volume myapp_data
+  ```
+
+### 7.2 Managing Services
+
+Docker Compose provides commands to manage the services defined in a `docker-compose.yml` file:
+
+- `docker-compose ps`: This command lists the containers managed by Docker Compose, including their names, states, and ports.
+
+  ```sh
+  $ docker-compose ps
+  Name                Command               State           Ports
+  ----------------------------------------------------------------------------
+  myapp_db_1          docker-entrypoint.sh   Up      3306/tcp
+  myapp_web_1         flask run              Up      0.0.0.0:5000->5000/tcp
+  ```
+
+- `docker-compose logs`: This command displays the logs of services managed by Docker Compose. It aggregates the logs from all containers defined in the `docker-compose.yml` file.
+
+  ```sh
+  $ docker-compose logs
+  db_1   | 2021-06-02 11:56:25.123456789 [Note] mysqld: ready for connections.
+  web_1  |  * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+  ```
+
+These commands provide the essential tools for working with Docker Compose, enabling you to start, stop, and manage multi-container applications efficiently.
+
+## Section 8: Advanced Commands
+
+### 8.1 Docker Exec
+
+Executing commands inside a running container is often necessary for debugging or performing administrative tasks. Here are the key commands for using `docker exec`:
+
+- `docker exec -it <container> <command>`: This command runs a command in a running container. The `-it` flags are used to run the command in interactive mode with a terminal attached.
+
+  ```sh
+  $ docker exec -it amazing_bell /bin/bash
+  root@5d8c5c4b5b6a:/#
+  ```
+
+- `docker exec -u <user> -it <container> <command>`: This command runs a command as a specific user inside a running container. The `-u` flag specifies the user.
+
+  ```sh
+  $ docker exec -u www-data -it amazing_bell /bin/bash
+  www-data@5d8c5c4b5b6a:/$
+  ```
+
+### 8.2 Docker Export and Import
+
+Exporting and importing containers allows you to save and restore container states. Here are the key commands for exporting and importing containers:
+
+- `docker export <container> > <file.tar>`: This command exports a container's filesystem as a tar archive. It does not include the container's metadata (such as environment variables and linked containers).
+
+  ```sh
+  $ docker export amazing_bell > amazing_bell.tar
+  ```
+
+- `docker import <file.tar>`: This command imports a tar archive as a Docker image. You can specify a repository name and tag for the imported image.
+
+  ```sh
+  $ docker import amazing_bell.tar myimage:latest
+  ```
+
+### 8.3 Docker Save and Load
+
+Saving and loading images allows you to transfer images between different Docker environments. Here are the key commands for saving and loading images:
+
+- `docker save -o <file.tar> <image>`: This command saves an image to a tar archive. It includes all layers and metadata of the image.
+
+  ```sh
+  $ docker save -o myimage.tar myimage:latest
+  ```
+
+- `docker load -i <file.tar>`: This command loads an image from a tar archive. It restores the image, including all layers and metadata.
+
+  ```sh
+  $ docker load -i myimage.tar
+  ```
+
+These advanced commands provide powerful tools for executing commands inside containers, exporting and importing container states, and saving and loading images for transfer and backup.
