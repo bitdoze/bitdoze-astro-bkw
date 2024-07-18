@@ -1,0 +1,157 @@
+---
+date: 2024-07-18T00:00:00Z
+title: "How to Install LangFlow with Docker Compose and Add SSL Over CloudFlare Tunnels"
+description: "Learn how you can install LangFlow with docker compose  and Postgres DB and take advantage of no-code AI flows. Add SSL over CloudFlare tunnels"
+image: "../../assets/images/24/07/longflow-docker.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["self-hosted"]
+canonical: "https://www.bitdoze.com/langflow-docker-install/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/01/cloudflare-tunel-setup.png";
+import imag2 from "../../assets/images/24/07/langflow-ui.png";
+
+[LangFlow](https://www.langflow.org/) is an open-source platform that provides a visual and intuitive way to create, prototype, and deploy AI workflows. It's designed to make the process of working with large language models (LLMs) more accessible to developers, data scientists, and even non-technical users. By leveraging a drag-and-drop interface, LangFlow allows users to construct complex AI pipelines without diving deep into code.
+
+## Comparison with Flowise AI
+
+While LangFlow has gained significant popularity, it's worth comparing it to another player in the field: [Flowise AI](https://flowiseai.com/). Both platforms aim to simplify AI workflow creation. You can check [How to Install FlowiseAI with Docker Compose](https://www.bitdoze.com/flowiseai-install/) for more on Flowise
+
+While both platforms offer visual AI workflow creation, LangFlow tends to provide more flexibility and customization options. It's particularly well-suited for users who need to integrate a wide range of LLMs and tools into their workflows. On the other hand, Flowise AI might be a better choice for those looking for a more streamlined, out-of-the-box solution with a gentler learning curve.
+
+The choice between LangFlow and Flowise AI often comes down to specific project requirements, team expertise, and the desired level of customization. Many organizations find value in experimenting with both platforms to determine which best suits their needs.
+
+## Setting Up Langflow with Docker Compose
+
+### 1. Prerequisites
+
+Before you begin, make sure you have the following prerequisites in place:
+
+- VPS where you can host LangFlow, you can use one from [Hetzner](https://go.bitdoze.com/hetzner)
+- Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
+- CloudFlare Tunnels are configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
+- OR reverse proxy with CloudPanel you can check: [Setup CloudPanel As Reverse Proxy with Docker and Dockge](https://www.bitdoze.com/cloudpanel-setup-dockge/)
+
+### 2. Docker Compose File
+
+```yml
+version: "3.9"
+services:
+  langflow-db:
+    image: postgres:16-alpine
+    container_name: Langflow-DB
+    hostname: langflow-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./langflow-db:/var/lib/postgresql/data:rw
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: on-failure:5
+
+  langflow:
+    image: langflowai/langflow:latest
+    container_name: Langflow
+    user: root
+    ports:
+      - 5060:7860
+    healthcheck:
+      test: timeout 10s bash -c ':> /dev/tcp/127.0.0.1/7860' || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    restart: on-failure:5
+    depends_on:
+      - langflow-db
+    environment:
+      LANGFLOW_DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@langflow-db:5432/langflow?sslmode=disable
+      LANGFLOW_CONFIG_DIR: /var/lib/langflow
+      LANGFLOW_SUPERUSER: ${LANGFLOW_SUPERUSER}
+      LANGFLOW_SUPERUSER_PASSWORD: ${LANGFLOW_SUPERUSER_PASSWORD}
+      LANGFLOW_AUTO_LOGIN: False
+    volumes:
+      - ./langflow:/var/lib/langflow:rw
+```
+
+Let's break down this Docker Compose file and explain what each section is doing:
+
+1. **Version**: The `version: "3.9"` specifies the version of the Docker Compose file format we're using.
+
+2. **Services**: We define two services - `langflow-db` and `langflow`.
+
+3. **langflow-db service**:
+
+   - Uses the `postgres:16-alpine` image, which is a lightweight PostgreSQL database.
+   - Sets up a health check to ensure the database is ready before other services start.
+   - Mounts a volume to persist database data.
+   - Uses environment variables for database configuration.
+   - Restarts on failure, with a maximum of 5 attempts.
+
+4. **langflow service**:
+   - Uses the latest LangFlow image.
+   - Exposes port 5060 on the host, mapping to port 7860 in the container.
+   - Implements a health check to verify the service is running correctly.
+   - Depends on the `langflow-db` service, ensuring the database is up before starting.
+   - Sets various environment variables for LangFlow configuration.
+   - Mounts a volume for persistent storage of LangFlow data.
+
+This configuration allows for a robust and scalable LangFlow setup, with separate containers for the application and its database, health checks to ensure reliability, and persistent storage for both the database and LangFlow data.
+
+### 3 .env file for LangFlow
+
+To keep our sensitive information secure and our configuration flexible, we'll use a `.env` file to store environment variables. Create a file named `.env` in the same directory as your `docker-compose.yml` with the following content:
+
+```sh
+POSTGRES_USER='user'
+POSTGRES_PASSWORD='pass'
+POSTGRES_DB='langflow'
+LANGFLOW_SUPERUSER=bitdoze
+LANGFLOW_SUPERUSER_PASSWORD=bitdoze
+```
+
+This file sets up the necessary environment variables for our PostgreSQL database and LangFlow superuser. Remember to replace these placeholder values with secure, unique values for your production environment.
+
+### 4. Deploy The Docker Compose File for LangFlow
+
+With our `docker-compose.yml` and `.env` files in place, we're ready to deploy LangFlow. Open a terminal, navigate to the directory containing these files, and run:
+
+```sh
+docker-compose up -d
+```
+
+This command will start our LangFlow setup in detached mode, allowing it to run in the background.
+
+### 5. Implementing SSL with CloudFlare Tunnels
+
+[CloudFlare Tunnels](https://www.cloudflare.com/products/tunnel/) offer a innovative solution for securely connecting your web applications to the internet without the need for public IP addresses or opening inbound ports on your firewall. This service, part of CloudFlare's suite of security and performance tools, provides a secure tunnel between your origin server and CloudFlare's edge network.
+
+CloudFlare Tunnels operate on a simple yet powerful principle:
+
+1. **Outbound Connection**: Your server initiates an outbound connection to CloudFlare's network using the CloudFlare daemon (cloudflared).
+2. **Tunnel Creation**: This connection establishes a secure tunnel between your origin and CloudFlare's edge.
+3. **Traffic Routing**: Incoming requests to your domain are routed through this tunnel to your origin server.
+4. **Response Delivery**: Responses from your server are sent back through the tunnel and delivered to the user.
+
+This process effectively eliminates the need for traditional port forwarding or firewall configuration, as all traffic flows through the secure tunnel.
+
+Go in **Access - Tunnels** and choose the tunnel you created and add a hostname that will link a domain or subdomain and the service and port.
+
+<Picture src={imag1} alt="Cloudflare Tunnel setup" />
+
+> You can also check [Setup CloudPanel as Reverse Proxy with Docker and Dokge](https://www.bitdoze.com/cloudpanel-setup-dockge/) to use CloudPanel as a reverse proxy to your Docker containers.
+
+### 6. Access the LangFlow UI
+
+After you set the CloudFlare tunnels you can go and access you LangFlow UI and start building your first flow. You can logun with the user and password that you have set in the .env file.
+
+<Picture src={imag2} alt="LanfFlow UI" />
