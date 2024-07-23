@@ -37,6 +37,11 @@ For those looking to self-host Langfuse using Docker, the platform provides a st
 
 ## Step-by-Step Guide to Installing LangFuse on Docker
 
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/Gm4HBrK63AM"
+  label="How to Install langfuse with Docker Compose"
+/>
+
 ### 1. Prerequisites
 
 Before you begin, make sure you have the following prerequisites in place:
@@ -136,6 +141,8 @@ openssl rand -base64 32
 
 Remember, never share these secrets or commit them to version control. Treat them with the same level of security as you would any other sensitive credentials.
 
+You have all the variables that can be used in [Langfuse Self-Hosting Guide](https://langfuse.com/docs/deployment/self-host)
+
 ### 4. Deploying the Docker Compose File for LangFuse
 
 Once you have your Docker Compose and .env files set up, deploying LangFuse is straightforward. Simply run the following command in the directory containing your Docker Compose file:
@@ -193,7 +200,8 @@ this will not allow for new accounts to be created via sign up.
 You need to restart your container for this change to be activated:
 
 ```sh
-docker compose restart
+docker compose pull
+docker compose up -d
 ```
 
 ## Conclusion
