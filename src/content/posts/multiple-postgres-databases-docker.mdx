@@ -1,0 +1,268 @@
+---
+date: 2024-07-26T00:00:00Z
+title: "Multiple PostgreSQL Databases in ONE Service: THE Docker Compose WAY!"
+description: "Master multiple PostgreSQL databases effortlessly! Discover how Docker Compose simplifies your setup. Don't miss out – transform your workflow NOW!"
+image: "../../assets/images/24/07/multiple-postgres-databases-docker.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["docker", "postgres"]
+canonical: "https://www.bitdoze.com/multiple-postgres-databases-docker/"
+---
+
+Docker Compose allows you to set up complex application stacks, including database services. While PostgreSQL's official Docker image supports creating a single database by default, you can configure it to create multiple databases within one container.
+
+There are a few common reasons why you might want to set up multiple databases in the same Docker Compose service:
+
+1. **Development and testing environments:** When developing or testing an application that uses multiple databases, it's convenient to have all the databases running in a single container for simplicity.
+
+2. **Resource efficiency:** Using a single container for multiple databases can be more resource-efficient than running separate containers for each database, especially in development environments.
+
+3. **Legacy application support:** Some legacy applications may expect multiple databases to be available on the same server. Replicating this setup in Docker can make migration easier.
+
+4. **Microservices architecture:** In a microservices architecture, you might have multiple small databases that are closely related and benefit from being grouped together.
+
+5. **Data isolation:** You may want to isolate different types of data (e.g. user data, product data, analytics) into separate databases for security or organizational reasons, while still keeping them in the same service.
+
+6. **Multi-tenant applications:** For applications serving multiple tenants, you might want a separate database for each tenant, but still keep them managed within a single service.
+
+7. **Testing database migrations:** When testing database migrations or upgrades, it can be useful to have multiple versions or states of a database available simultaneously.
+
+8. **Reducing complexity:** For smaller projects or prototypes, having all databases in one container can reduce the overall complexity of the Docker setup.
+
+However, it's important to note that while this approach can be useful for development and testing, for production environments it's generally recommended to use separate containers for different databases to ensure better isolation, scalability, and easier management. The specific needs of your project and environment should guide the decision on whether to use multiple databases in a single service or separate them into different containers.
+
+## Step 1: Create the Initialization Script
+
+First, create a bash script that will initialize multiple databases. Save this script as `init-multiple-databases.sh`:
+
+```sh
+#!/bin/bash
+
+set -e
+set -u
+
+function create_user_and_database() {
+  local database=$1
+  echo "  Creating user and database '$database'"
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
+        CREATE USER $database;
+        CREATE DATABASE $database;
+        GRANT ALL PRIVILEGES ON DATABASE $database TO $database;
+EOSQL
+}
+
+if [ -n "${POSTGRES_MULTIPLE_DATABASES:-}" ]; then
+  echo "Multiple database creation requested: $POSTGRES_MULTIPLE_DATABASES"
+  for db in $(echo $POSTGRES_MULTIPLE_DATABASES | tr ',' ' '); do
+    create_user_and_database $db
+  done
+  echo "Multiple databases created"
+fi
+```
+
+The script is taking a list of databases and connects to the Postgress and creates the databases and grants all privilages.
+
+## Step 2: Create the Docker Compose File
+
+Create a `docker-compose.yml` file with the following content:
+
+```yml
+version: "3.8"
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_multi_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_MULTIPLE_DATABASES: db1,db2,db3
+    volumes:
+      - ./init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
+      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+```
+
+The postgres 16 will be uses to create the container and the user and password will be fetched from `.env` file. The `POSTGRES_MULTIPLE_DATABASES` has the list with databases to be created. All the DBs will use the same user and pass. The script from previous points `init-multiple-databases.sh` is is loaded from the docker compose file.
+
+## Step 3: Set Up Environment Variables (Optional)
+
+Create a .env file in the same directory as your docker-compose.yml to store sensitive information:
+
+```sh
+POSTGRES_USER=myuser
+POSTGRES_PASSWORD=mypassword
+```
+
+## Step 4: Run the Docker Compose Stack
+
+```sh
+docker-compose up -d
+```
+
+Log:
+
+```sh
+postgres_multi_db  | The files belonging to this database system will be owned by user "postgres".
+postgres_multi_db  | This user must also own the server process.
+postgres_multi_db  |
+postgres_multi_db  | The database cluster will be initialized with locale "en_US.utf8".
+postgres_multi_db  | The default database encoding has accordingly been set to "UTF8".
+postgres_multi_db  | The default text search configuration will be set to "english".
+postgres_multi_db  |
+postgres_multi_db  | Data page checksums are disabled.
+postgres_multi_db  |
+postgres_multi_db  | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+postgres_multi_db  | creating subdirectories ... ok
+postgres_multi_db  | selecting dynamic shared memory implementation ... posix
+postgres_multi_db  | selecting default max_connections ... 100
+postgres_multi_db  | selecting default shared_buffers ... 128MB
+postgres_multi_db  | selecting default time zone ... UTC
+postgres_multi_db  | creating configuration files ... ok
+postgres_multi_db  | running bootstrap script ... ok
+postgres_multi_db  | sh: locale: not found
+postgres_multi_db  | 2024-07-26 10:41:39.527 UTC [35] WARNING:  no usable system locales were found
+postgres_multi_db  | performing post-bootstrap initialization ... ok
+postgres_multi_db  | syncing data to disk ... ok
+postgres_multi_db  |
+postgres_multi_db  |
+postgres_multi_db  | Success. You can now start the database server using:
+postgres_multi_db  |
+postgres_multi_db  |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+postgres_multi_db  |
+postgres_multi_db  | initdb: warning: enabling "trust" authentication for local connections
+postgres_multi_db  | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+postgres_multi_db  | waiting for server to start....2024-07-26 10:41:40.720 UTC [42] LOG:  starting PostgreSQL 16.3 on x86_64-pc-linux-musl, compiled by gcc (Alpine 13.2.1_git20240309) 13.2.1 20240309, 64-bit
+postgres_multi_db  | 2024-07-26 10:41:40.722 UTC [42] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+postgres_multi_db  | 2024-07-26 10:41:40.730 UTC [45] LOG:  database system was shut down at 2024-07-26 10:41:40 UTC
+postgres_multi_db  | 2024-07-26 10:41:40.739 UTC [42] LOG:  database system is ready to accept connections
+postgres_multi_db  |  done
+postgres_multi_db  | server started
+postgres_multi_db  | CREATE DATABASE
+postgres_multi_db  |
+postgres_multi_db  |
+postgres_multi_db  | /usr/local/bin/docker-entrypoint.sh: sourcing /docker-entrypoint-initdb.d/init-multiple-databases.sh
+postgres_multi_db  | Multiple database creation requested: db1,db2,db3
+postgres_multi_db  |   Creating user and database 'db1'
+postgres_multi_db  | CREATE ROLE
+postgres_multi_db  | CREATE DATABASE
+postgres_multi_db  | GRANT
+postgres_multi_db  |   Creating user and database 'db2'
+postgres_multi_db  | CREATE ROLE
+postgres_multi_db  | CREATE DATABASE
+postgres_multi_db  | GRANT
+postgres_multi_db  |   Creating user and database 'db3'
+postgres_multi_db  | CREATE ROLE
+postgres_multi_db  | CREATE DATABASE
+postgres_multi_db  | GRANT
+postgres_multi_db  | Multiple databases created
+postgres_multi_db  |
+postgres_multi_db  | waiting for server to shut down....2024-07-26 10:41:41.202 UTC [42] LOG:  received fast shutdown request
+postgres_multi_db  | 2024-07-26 10:41:41.204 UTC [42] LOG:  aborting any active transactions
+postgres_multi_db  | 2024-07-26 10:41:41.214 UTC [42] LOG:  background worker "logical replication launcher" (PID 48) exited with exit code 1
+postgres_multi_db  | 2024-07-26 10:41:41.214 UTC [43] LOG:  shutting down
+postgres_multi_db  | 2024-07-26 10:41:41.215 UTC [43] LOG:  checkpoint starting: shutdown immediate
+postgres_multi_db  | 2024-07-26 10:41:41.465 UTC [43] LOG:  checkpoint complete: wrote 3687 buffers (22.5%); 0 WAL file(s) added, 0 removed, 1 recycled; write=0.088 s, sync=0.153 s, total=0.251 s; sync files=1196, longest=0.005 s, average=0.001 s; distance=17073 kB, estimate=17073 kB; lsn=0/259C0B8, redo lsn=0/259C0B8
+postgres_multi_db  | 2024-07-26 10:41:41.497 UTC [42] LOG:  database system is shut down
+postgres_multi_db  |  done
+postgres_multi_db  | server stopped
+postgres_multi_db  |
+postgres_multi_db  | PostgreSQL init process complete; ready for start up.
+postgres_multi_db  |
+postgres_multi_db  | 2024-07-26 10:41:41.555 UTC [1] LOG:  starting PostgreSQL 16.3 on x86_64-pc-linux-musl, compiled by gcc (Alpine 13.2.1_git20240309) 13.2.1 20240309, 64-bit
+postgres_multi_db  | 2024-07-26 10:41:41.555 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+postgres_multi_db  | 2024-07-26 10:41:41.555 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+postgres_multi_db  | 2024-07-26 10:41:41.559 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+postgres_multi_db  | 2024-07-26 10:41:41.568 UTC [67] LOG:  database system was shut down at 2024-07-26 10:41:41 UTC
+postgres_multi_db  | 2024-07-26 10:41:41.582 UTC [1] LOG:  database system is ready to accept connections
+```
+
+## Step 5: Verify the Databases
+
+To confirm that the databases were created successfully, you can connect to the PostgreSQL container and list the databases:
+
+```sh
+docker exec -it postgres_multi_db psql -U myuser -c "\l"
+```
+
+```sh
+root@docker-cloud:/opt/stacks/multi-postgress# docker exec -it postgres_multi_db psql -U bitdoze -c "\l"
+                                                     List of databases
+   Name    |  Owner  | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |  Access privileges
+-----------+---------+----------+-----------------+------------+------------+------------+-----------+---------------------
+ bitdoze   | bitdoze | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ db1       | bitdoze | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =Tc/bitdoze        +
+           |         |          |                 |            |            |            |           | bitdoze=CTc/bitdoze+
+           |         |          |                 |            |            |            |           | db1=CTc/bitdoze
+ db2       | bitdoze | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =Tc/bitdoze        +
+           |         |          |                 |            |            |            |           | bitdoze=CTc/bitdoze+
+           |         |          |                 |            |            |            |           | db2=CTc/bitdoze
+ db3       | bitdoze | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =Tc/bitdoze        +
+           |         |          |                 |            |            |            |           | bitdoze=CTc/bitdoze+
+           |         |          |                 |            |            |            |           | db3=CTc/bitdoze
+ postgres  | bitdoze | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ template0 | bitdoze | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/bitdoze         +
+           |         |          |                 |            |            |            |           | bitdoze=CTc/bitdoze
+ template1 | bitdoze | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/bitdoze         +
+           |         |          |                 |            |            |            |           | bitdoze=CTc/bitdoze
+(7 rows)
+```
+
+## Different users and Passwords for Databases
+
+To handle different user permissions for each database in Docker Compose when setting up multiple PostgreSQL databases, you can modify the initialization script and Docker Compose configuration. Here's how to achieve this:
+
+1. Update the initialization script (init-multiple-databases.sh) to accept custom users and permissions:
+
+```sh
+#!/bin/bash
+
+set -e
+set -u
+
+function create_user_and_database() {
+    local database=$1
+    local user=$2
+    local password=$3
+    echo "Creating user '$user' and database '$database'"
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
+        CREATE USER $user WITH PASSWORD '$password';
+        CREATE DATABASE $database;
+        GRANT ALL PRIVILEGES ON DATABASE $database TO $user;
+EOSQL
+}
+
+if [ -n "${POSTGRES_MULTIPLE_DATABASES:-}" ]; then
+    echo "Multiple database creation requested: $POSTGRES_MULTIPLE_DATABASES"
+    for db_config in $(echo $POSTGRES_MULTIPLE_DATABASES | tr ',' ' '); do
+        IFS=':' read -r db user password <<< "$db_config"
+        create_user_and_database $db $user $password
+    done
+    echo "Multiple databases created"
+fi
+```
+
+2. Modify your `docker-compose.yml` file to pass the database configurations:
+
+```yml
+version: "3.8"
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_multi_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_MULTIPLE_DATABASES: db1:user1:pass1,db2:user2:pass2,db3:user3:pass3
+    volumes:
+      - ./init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
+      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+```
+
+Here `POSTGRES_MULTIPLE_DATABASES: db1:user1:pass1,db2:user2:pass2,db3:user3:pass3` will contain the DB,USER and PASS, you can add this into you `.env` if you want to make it secure.
+
+This is how easy it is to have multiple databases created in docker compose for same postgres service.
