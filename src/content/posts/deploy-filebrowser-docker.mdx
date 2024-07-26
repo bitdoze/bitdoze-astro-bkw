@@ -1,5 +1,5 @@
 ---
-date: 2024-04-25T00:00:00Z
+date: 2024-07-26T00:00:00Z
 title: "Simplify File Management with Docker Filebrowser: Easy Setup Guide"
 description: "Learn how you can deploy Filebrowser with the help of Docker to manage your server files with a UI"
 image: "../../assets/images/24/04/easy-file-management.jpeg"
@@ -46,8 +46,8 @@ services:
       - ./filebrowser.db:/database/filebrowser.db # Change to match your directory
       - ./settings.json:/config/settings.json # Change to match your directory
     environment:
-      - PUID=$(id -u)
-      - PGID=$(id -g)
+      PUID: $(id -u)
+      PGID: $(id -g)
     ports:
       - 5040:80 # Change the port if needed
 ```
