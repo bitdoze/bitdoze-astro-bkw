@@ -43,6 +43,8 @@ Before you begin, make sure you have the following prerequisites in place:
 - Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
 - CloudFlare Tunnels are configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
 
+> You can use also Traefik as a reverse proxy for your apps. I have created a full tutorial with Dockge install also to manage your containers on: [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/)
+
 Having all of this you will be ready to move to next step and add the docker-compose file in Dockge.
 
 ### 2. Docker Compose File
@@ -169,7 +171,7 @@ You need to let CloudFlare Tunel know which port to use, you just need to go in 
 
 As we are using port `5010` in the compose file we should use that in CloudFlare Tunnels. We can add also another config to a subdomain for phpMyAdmin with `5011` port but we will be able to access it via port also.
 
-> You can also check [Setup CloudPanel as Reverse Proxy with Docker and Dokge](https://www.bitdoze.com/cloudpanel-setup-dockge/) to use CloudPanel as a reverse proxy to your Docker containers.
+> You can also check [Setup CloudPanel as Reverse Proxy with Docker and Dokge](https://www.bitdoze.com/cloudpanel-setup-dockge/) to use CloudPanel as a reverse proxy to your Docker containers or [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/).
 
 ### 7. Configure WordPress
 

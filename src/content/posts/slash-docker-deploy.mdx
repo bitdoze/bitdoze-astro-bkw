@@ -78,6 +78,8 @@ Before you begin, make sure you have the following prerequisites in place:
 - Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
 - CloudFlare Tunnels configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
 
+> You can use also Traefik as a reverse proxy for your apps. I have created a full tutorial with Dockge install also to manage your containers on: [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/)
+
 Having all of this you will be ready to move to next step and add the container in dockge.
 
 ### 2. Add the Docker Compose file in Dockge
@@ -100,12 +102,7 @@ services:
 The above code will pull the latest slash image and create a volume in the local path where dockge stack is located, you can choose the `5006` port with the port you like.
 In dockge just hit compose and save. After as in the picture below, you can choose the dockge-default external network:
 
-<Picture
-  src={imag3}
-  widths={[200, 400, 900]}
-  sizes="(max-width: 900px) 100vw, 900px"
-  alt="Dockge slash deploy"
-/>
+<Picture src={imag3} alt="Dockge slash deploy" />
 
 After you hit save and start the container, it should start running without issues.
 
@@ -113,14 +110,9 @@ After you hit save and start the container, it should start running without issu
 
 You need to let CloudFlare Tunel to know which port is using, you just need to go in the Access - Tunnels and choose the tunnel you created and add a hostname that will link a domain or subdomain and the service and port like in below picture:
 
-<Picture
-  src={imag4}
-  widths={[200, 400, 900]}
-  sizes="(max-width: 900px) 100vw, 900px"
-  alt="cloudflare tunnels"
-/>
+<Picture src={imag4} alt="cloudflare tunnels" />
 
-> You can also check [Setup CloudPanel as Reverse Proxy with Docker and Dokge](https://www.bitdoze.com/cloudpanel-setup-dockge/) to use CloudPanel as a reverse proxy to your Docker containers.
+> You can also check [Setup CloudPanel as Reverse Proxy with Docker and Dokge](https://www.bitdoze.com/cloudpanel-setup-dockge/) to use CloudPanel as a reverse proxy to your Docker containers or [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/).
 
 You should add your Server IP and the port you have chosen.
 

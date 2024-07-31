@@ -70,6 +70,8 @@ Before you begin, make sure you have the following prerequisites in place:
 - Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
   CloudFlare Tunnels are configured for your VPS server, the details are in the article here I deployed [Dockge](https://www.bitdoze.com/dockge-install/)
 
+> You can use also Traefik as a reverse proxy for your apps. I have created a full tutorial with Dockge install also to manage your containers on: [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/)
+
 Having all of this you will be ready to move to next step and add the container in dockge.
 
 ### 2. Get Slack credentials
@@ -80,12 +82,7 @@ Slack is free to use and we are going to use Slack as an authentication method f
 https://docs.bitdoze.com/auth/slack.callback
 ```
 
-<Picture
-  src={img1}
-  widths={[200, 400, 900]}
-  sizes="(max-width: 900px) 100vw, 900px"
-  alt="Slack Oauth"
-/>
+<Picture src={img1} alt="Slack Oauth" />
 
 After you can go under **Basic Information** and get your `Client ID` and `Client Secret`. You will need them in the next section
 
@@ -98,6 +95,8 @@ version: "3.2"
 services:
   outline:
     image: docker.getoutline.com/outlinewiki/outline:latest
+    container_name: outline-app
+    hostname: outline-app
     ports:
       - 3000:3000
     volumes:
@@ -109,8 +108,8 @@ services:
       PGSSLMODE: disable
       SECRET_KEY: ${SECRET_KEY}
       UTILS_SECRET: ${UTILS_SECRET}
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${SERVER_IP}:5432/${POSTGRES_DB}
-      REDIS_URL: redis://${SERVER_IP}:6379
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@outline-postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://outline-redis:6379
       URL: ${URL}
       PORT: ${PORT}
       FILE_STORAGE: local
@@ -120,9 +119,9 @@ services:
       SLACK_CLIENT_SECRET: ${SLACK_CLIENT_SECRET}
     restart: unless-stopped
   redis:
+    container_name: outline-redis
+    hostname: outline-redis
     image: redis
-    ports:
-      - 6379:6379
     volumes:
       - ./redis.conf:/redis.conf
     command:
@@ -139,8 +138,8 @@ services:
     restart: unless-stopped
   postgres:
     image: postgres
-    ports:
-      - 5432:5432
+    container_name: outline-postgres
+    hostname: outline-postgres
     volumes:
       - ./database-data:/var/lib/postgresql/data
     healthcheck:
@@ -166,7 +165,6 @@ The file has local disk for DB, Outline and Redis to store all the details. The 
 The `.env` file has all the secrets and variables to have this working in my case it's looking like below:
 
 ```
-SERVER_IP=5.78.94.1
 POSTGRES_USER='user'
 POSTGRES_PASSWORD='pass'
 POSTGRES_DB='outline'
@@ -218,7 +216,7 @@ chown with 1001 on the disk path will make sure that the user has permissions th
 
 You need to let CloudFlare Tunel to know which port is using, you just need to go in the Access - Tunnels and choose the tunnel you created and add a hostname that will link a domain or subdomain and the service and port . This will need to be as for the URL you have set in the .env file.
 
-> You can also check [Setup CloudPanel as Reverse Proxy with Docker and Dokge](https://www.bitdoze.com/cloudpanel-setup-dockge/) to use CloudPanel as a reverse proxy to your Docker containers.
+> You can also check [Setup CloudPanel as Reverse Proxy with Docker and Dokge](https://www.bitdoze.com/cloudpanel-setup-dockge/) to use CloudPanel as a reverse proxy to your Docker containers or [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/).
 
 And that's about it, now you can use outline, test it and see how it works.
 
