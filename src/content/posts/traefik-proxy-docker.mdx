@@ -141,7 +141,7 @@ services:
     command:
       #- --log.level=DEBUG
       #- --log.filePath=/letsencrypt/traefik.log
-      - --api.insecure=true
+      - --api.dashboard=true
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entrypoints.http.address=:80
@@ -150,7 +150,7 @@ services:
       - --entryPoints.https.address=:443
       - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
       #- --certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
-      - --certificatesresolvers.letsencrypt.acme.email=bitdoze1@gmail.com
+      - --certificatesresolvers.letsencrypt.acme.email=email@gmail.com
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
     security_opt:
       - no-new-privileges:true
@@ -181,9 +181,9 @@ networks:
 
 Let's break down each option traefik command:
 
-1. `--api.insecure=true`
+1. `--api.dashboard=true`
 
-   - This enables Traefik's API and dashboard without security restrictions. It's not recommended for production use.
+   - This enables Traefik's dashboard.
 
 2. `--providers.docker=true`
 
