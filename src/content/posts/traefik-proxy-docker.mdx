@@ -254,7 +254,7 @@ Traefik labels configure Traefik's routing, security, and authentication for a s
 
 7. `traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS}`
 
-   - Sets up HTTP Basic Authentication for the "traefik-auth" middleware.
+   - Sets up HTTP Basic Authentication for the "traefik-auth" middleware. More on [Traefik Basic Authentication](https://www.bitdoze.com/traefik-basic-authentication/)
    - The credentials are stored in the `TRAEFIK_DASHBOARD_CREDENTIALS` environment variable.
 
 8. `traefik.http.routers.traefik-secure.tls=true`

@@ -1,0 +1,173 @@
+---
+date: 2024-08-02T00:00:00Z
+title: "How To Add Basic Authentication to Traefik To Secure Your Service"
+description: "Let's see how we can configure Traefik to protect your services with en extra layer of security with Basic Authentication."
+image: "../../assets/images/24/08/traefik-basic-authentication.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["traefik"]
+canonical: "https://www.bitdoze.com/traefik-basic-authentication/"
+---
+
+Looking to add an extra layer of security to your services using Traefik? Adding basic authentication to Traefik to secure your service involves configuring middleware to require a username and password for accessing your endpoints. By following a few straightforward steps, you can ensure that only authorized users can access your services, enhancing your overall security posture.
+
+## Understanding Traefik and Basic Authentication
+
+Traefik is a modern reverse proxy and load balancer designed to deploy microservices easily. It automatically discovers services and configures itself dynamically. This makes it perfect for containerized environments and microservice architectures.
+
+I have created 2 articles that will help you set everything up if you want to use Docker and Traefik, will have evertying from VPS to Traefik configs:
+
+- [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/)
+- [Traefik FREE Let's Encrypt Wildcard Certificate With CloudFlare Provider](https://www.bitdoze.com/traefik-wildcard-certificate/)
+
+### Key Features of Traefik
+
+- **Dynamic Configuration:** Traefik can automatically update its configuration from various providers like Docker, Kubernetes, and Consul.
+- **Load Balancing:** Distributes traffic across multiple servers to ensure high availability and reliability.
+- **HTTPS:** Supports Let's Encrypt for automatic SSL certificate generation and renewal.
+- **Middleware:** Allows adding functionalities like authentication, rate limiting, and retries.
+
+Basic Authentication is a simple authentication scheme built into the HTTP protocol. It uses a username and a password to restrict access to resources. When a user tries to access a secured resource, the server requests credentials. If the credentials are correct, the server grants access.
+
+### Why Use Basic Authentication with Traefik?
+
+- **Security:** Adds a layer of security to your services by requiring credentials.
+- **Simplicity:** Easy to set up and manage without needing complex configurations.
+- **Compatibility:** Works seamlessly with Traefik's middleware capabilities.
+
+### How Basic Authentication Works
+
+1. **Client Request:** The client sends a request to access a resource.
+2. **Authentication Request:** The server responds with `401 Unauthorized` and requests authentication.
+3. **Client Response:** The client sends the credentials encoded in Base64.
+4. **Access Granted:** If the credentials are valid, the server grants access to the resource.
+
+### Setting Up Basic Authentication in Traefik
+
+Traefik uses middleware to handle authentication. You can define the middleware in your Traefik configuration file or Docker labels.
+
+**Example Configuration:**
+
+```yaml
+http:
+  middlewares:
+    authMiddleware:
+      basicAuth:
+        users:
+          - "user:password"
+
+  routers:
+    myRouter:
+      rule: "Host(`example.com`)"
+      service: myService
+      middlewares:
+        - authMiddleware
+
+  services:
+    myService:
+      loadBalancer:
+        servers:
+          - url: "http://my-service"
+```
+
+**Labels**:
+
+```yml
+labels:
+  - "traefik.http.routers.whoami.middlewares=auth"
+  - "traefik.http.middlewares.auth.basicauth.users=user:password"
+```
+
+### Tips for Using Basic Authentication
+
+- **Keep Credentials Secure:** Store your credentials securely and avoid hardcoding them in your configuration files.
+- **Use HTTPS:** Always use HTTPS to encrypt the credentials during transmission.
+- **Combine with Other Security Measures:** Basic Authentication is just one layer of security. Combine it with other measures like IP whitelisting and rate limiting for better protection.
+
+Understanding Traefik and Basic Authentication helps secure your services effectively. With Traefik's dynamic capabilities and the simplicity of Basic Authentication, you can ensure that your services remain protected without much hassle.
+
+## How To Add Basic Authentication to Traefik
+
+Now as you have seen the basic things on Basic Authentication and Traefik we can move and add the Basic Authentication to your sevices.
+
+### 1. Prerequisits
+
+You should have Docker and Traefik set up, if you don't you can check one of the articles on [Use Traefik as A Reverse Proxy](https://www.bitdoze.com/traefik-proxy-docker/)
+or [Traefik Wildcard Certificate ](https://www.bitdoze.com/traefik-wildcard-certificate/)
+
+### 2. Create Users and Passwords
+
+The credential are hashed with MD5 and for creating a user and password we need to use: `htpasswd`
+
+Intall htpasswd:
+
+```sh
+sudo apt update
+sudo apt install apache2-utils
+```
+
+Generate a user and a password for dashboard:
+
+```sh
+echo $(htpasswd -nb user password) | sed -e s/\\$/\\$\\$/g
+```
+
+You will have something like:
+
+```sh
+user:$$apr1$$tLd.Nb8Z$$waBGyk.kOC1/4509juGdu0
+```
+
+The `$` is escaped with another `$` that's why they are doubled. You ca use an online generator like: [bcrypt-generator](https://bcrypt-generator.com/) just don't forget to add the extra `$`
+
+### 3. Add the Traefik Labels for Basic Authentication
+
+For each service you will add you can enable the Basic Authentication with below extra labels:
+
+```yml
+- traefik.http.routers.nginx.middlewares=nginx-auth
+- traefik.http.middlewares.nginx-auth.basicauth.users=user:$$apr1$$tLd.Nb8Z$$waBGyk.kOC1/4509juGdu0
+```
+
+- `traefik.http.routers.nginx.middlewares=nginx-auth` will create an middlewares called nginx-auth that will be used for authentication on the nginx route. Be sure that you don't have already the same middleware name as can create errors.
+- `traefik.http.middlewares.nginx-auth.basicauth.users=user:$$apr1$$tLd.Nb8Z$$waBGyk.kOC1/4509juGdu0` here you use the username and password, from previous step. It will be good to have them stored in `.env` with something like `${TREAFIK_USER_PASS}` and assign them in the file like:
+
+```sh
+services:
+  nginx:
+    image: nginx:latest
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - traefik-net
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.nginx.rule=Host(`nginx.domain.com`)
+      - traefik.http.routers.nginx.entrypoints=https
+      - traefik.http.services.nginx.loadbalancer.server.port=80
+      - traefik.http.routers.nginx.middlewares=nginx-auth
+      - traefik.http.middlewares.nginx-auth.basicauth.users=${TREAFIK_USER_PASS}
+networks:
+  traefik-net:
+    external: true
+```
+
+`.env` file:
+
+```sh
+TREAFIK_USER_PASS=user1:$$apr1$$tLd.Nb8Z$$waBGyk.kOC1/4509juGdu0
+```
+
+> Use different middlewares names for different services, you can add the users and passwords you want.
+
+## Common Issues and Troubleshooting
+
+- **401 Unauthorized**: This error indicates that the credentials are incorrect or not provided. Double-check your username and password.
+- **404 Not Found**: Ensure that the URL you are trying to access is correct or you have assigned same auth midlware to different services.
+- **Configuration Errors**: If the authentication prompt doesn't appear, review your Traefik configuration for any mistakes.
+
+## Conclusion
+
+Adding basic authentication to Traefik significantly enhances the security of your services. This method provides a straightforward yet effective way to restrict access and protect sensitive data.
+
+By following these steps, you ensure that only authorized users can interact with your applications. This added layer of security goes a long way in safeguarding your services from unauthorized access and potential threats.

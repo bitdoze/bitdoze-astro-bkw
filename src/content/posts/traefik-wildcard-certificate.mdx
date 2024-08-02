@@ -1,6 +1,6 @@
 ---
 date: 2024-08-01T00:00:00Z
-title: "Traefik FREE Let's Encrypt Wildcard Certificate With CloudFlare Provider "
+title: "Traefik FREE Let's Encrypt Wildcard Certificate With CloudFlare Provider"
 description: "Let's see how we can configure Traefik as a reverse proxy and get an Wildcard SSL certificate via DNS Chalange with Claudflare Provider "
 image: "../../assets/images/24/08/traefik-wildcard-certificate.jpeg"
 categories: ["vps"]
@@ -213,7 +213,7 @@ This Docker Compose file sets up a Traefik v3.1 reverse proxy with automatic HTT
 - `traefik.http.routers.traefik-secure.entrypoints=https`: Uses the HTTPS entrypoint.
 - `traefik.http.routers.traefik-secure.service=api@internal`: Routes to the internal API (dashboard).
 - `traefik.http.routers.traefik-secure.middlewares=traefik-auth`: Applies authentication middleware.
-- `traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS}`: Sets up basic auth for the dashboard.
+- `traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS}`: Sets up basic auth for the dashboard. More on [Traefik Basic Authentication](https://www.bitdoze.com/traefik-basic-authentication/)
 
 **Networks:**
 
@@ -346,6 +346,8 @@ vi cloudflare-email.secret
 ### 10. Point the domain to Server IP
 
 You can create an A record for your main domain that is pointing to the server IP in any DNS provider and then you can create CNAMES an wildcard redirect that will push everything to the main server.
+
+<Picture src={img3} alt="CloudFlare API" />
 
 ### 11. Start the Docker Compose file
 
