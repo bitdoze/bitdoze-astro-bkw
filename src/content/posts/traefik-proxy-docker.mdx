@@ -5,7 +5,7 @@ description: "Let's see how we can configure Traefik as a reverse proxy for our 
 image: "../../assets/images/24/07/traefik-proxy-docker.jpeg"
 categories: ["vps"]
 authors: ["Dragos"]
-tags: ["self-hosted"]
+tags: ["traefik"]
 canonical: "https://www.bitdoze.com/traefik-proxy-docker/"
 ---
 
@@ -15,6 +15,8 @@ import { Picture } from "astro:assets";
 import img1 from "../../assets/images/24/07/traefik-diagram.jpeg";
 
 I am using CloudFlare tunnels to drive traffic to my docker applications and I was thinking that the time came to give Traefik a try and configure it and see what it can do. In this article we are going to see exactly how you can configure Traefik from creating the VPS to configure the DNS and installing the Traefik with some applications. Certificates will be created with Lets Encrypt and we are going to use the [TLS chalange](https://doc.traefik.io/traefik/user-guides/docker-compose/acme-tls/) to get them.
+
+> If you need a Let's Encrypt wildcard certificate with Cloudflare as provider for DNS chalange you can check: [Traefik FREE Let's Encrypt Wildcard Certificate With CloudFlare Provider](https://www.bitdoze.com/traefik-wildcard-certificate/)
 
 [Traefik](https://traefik.io/traefik/) is a modern and powerful reverse proxy and load balancer designed specifically for containerized environments, particularly Docker. As an open-source edge router, Traefik simplifies the process of routing traffic to your microservices and applications by automatically discovering and configuring routes based on your infrastructure.
 One of Traefik's key strengths is its seamless integration with Docker. It can automatically detect new containers and dynamically update its configuration to route traffic to them without requiring manual intervention. This makes Traefik an excellent choice for managing and securing Docker containers in both development and production environments.
@@ -459,7 +461,7 @@ networks:
     external: true
 ```
 
-Bring Dockege Up:
+Bring Dockge Up:
 
 > Before if you are not using a wildcard for subdomain be sure that you are pointing the dockge domain to server IP.
 

@@ -1,0 +1,418 @@
+---
+date: 2024-08-01T00:00:00Z
+title: "Traefik FREE Let's Encrypt Wildcard Certificate With CloudFlare Provider "
+description: "Let's see how we can configure Traefik as a reverse proxy and get an Wildcard SSL certificate via DNS Chalange with Claudflare Provider "
+image: "../../assets/images/24/08/traefik-wildcard-certificate.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["traefik"]
+canonical: "https://www.bitdoze.com/traefik-wildcard-certificate/"
+---
+
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import img1 from "../../assets/images/24/07/traefik-diagram.jpeg";
+import img2 from "../../assets/images/24/08/cloudflare-api.png";
+import img3 from "../../assets/images/24/08/cloudflare-dns.png";
+
+After creating the article [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/) that will show you to install and configure Traefik and get an Let's Encrypt SSL certificare with any DNS provider I want to create this tutorial that will show you how to create everything and in the end get an Let's Encrypt Wildcard certificate for your domain. The Traefik dashboard will be also enabled so you can connect to it.
+
+You may want an Wildcard certificated in traefik so you don't need to request certificate all the time and use only one. Traefik is smart enough to use the wildcard certificate if you issue one for the subdomains you have.
+
+To be able to get a wildcard Let's Encrypt certificate in Traefik you need to use the [DNS Chalange](https://doc.traefik.io/traefik/user-guides/docker-compose/acme-dns/) and in this case we are going to use Cloudflare as there I have my domain. You can use other provider as Traefik spport a lot of them.
+
+I will not add everything that [Traefik](https://traefik.io/traefik/) can do in this article as I have already did that in the previous article, you can go and check that for more details on Traefik: [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/)
+
+## Configure Traefik With Let's Encrypt FREE Wildcard Certificate
+
+I will go thru all the things you need from start to bottom to spin off your server and get Traefik configured with a Let's Encrypt certificate via an DNS Chalange with Cloudflare.
+
+### 1. Create a VPS server
+
+To have everything installed we need a VPS server, I have one from [Hetzner](https://go.bitdoze.com/hetzner) created and added to a firewall that only allow connections to 443 and 22 port.
+
+### 2. Add SWAP
+
+Usually VPS server are not having any swap by default, if this is the case, SWAP can be added with below commands:
+
+```sh
+sudo fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+### 3. Install Docker
+
+The next thing is to have docker and docker compose installed, you can do that on Debian or Ubuntu with below commands:
+
+```sh
+sudo apt-get update
+sudo apt-get install ca-certificates curl gnupg lsb-release
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  jammy stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose
+```
+
+### 4. Update the OS and reboot
+
+As best practice it will be good to update the OS to latest version, you can run the below to udpate and reboot:
+
+```sh
+sudo apt update && sudo apt upgrade
+reboot
+```
+
+### 5. Docker compose file for Traefik with Let's Ecrypt Wildcard and Cloudflare
+
+Now the interesting part is here, we will go first and create a directory where we will keep all the docker compose files:
+
+```sh
+cd /opt/
+mkdir stacks
+cd stacks/
+mkdir traefik
+cd traefik
+```
+
+Create the `docker-compose.yml` with the configs.
+
+```yml
+secrets:
+  cloudflare-token:
+    file: "./secrets/cloudflare-token.secret"
+  cloudflare-email:
+    file: "./secrets/cloudflare-email.secret"
+
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      # - --log.level=DEBUG
+      #- --log.filePath=/letsencrypt/traefik.log
+      - --providers.docker=true
+      - --api.dashboard=true
+      - --providers.docker.exposedbydefault=false
+      # Set up LetsEncrypt certificate resolver
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare
+      - --certificatesResolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,1.0.0.1:53
+      - --certificatesResolvers.letsencrypt.acme.dnschallenge.delayBeforeCheck=20
+      - --certificatesresolvers.letsencrypt.acme.email=email@domain.com
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      # staging environment of LE, remove for real certs
+      #- --certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+
+      # Set up an insecure listener that redirects all traffic to TLS
+      - --entrypoints.http.address=:80
+      - --entrypoints.http.http.redirections.entrypoint.to=https
+      - --entrypoints.http.http.redirections.entrypoint.scheme=https
+      - --entryPoints.https.address=:443
+
+      # Set up the TLS configuration for our https listener
+      - --entrypoints.https.http.tls=true
+      - --entrypoints.https.http.tls.certResolver=letsencrypt
+      - --entrypoints.https.http.tls.domains[0].main=domain.com
+      - --entrypoints.https.http.tls.domains[0].sans=*.domain.com
+
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - traefik-net
+    ports:
+      - 80:80
+      - 443:443
+    secrets:
+      - "cloudflare-token"
+      - "cloudflare-email"
+    environment:
+      TRAEFIK_DASHBOARD_CREDENTIALS: ${TRAEFIK_DASHBOARD_CREDENTIALS}
+      CF_DNS_API_TOKEN_FILE: /run/secrets/cloudflare-token
+      CF_API_EMAIL_FILE: /run/secrets/cloudflare-email
+    env_file: .env
+    volumes:
+      - ./letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik-secure.rule=Host(`traefik.domain.com`)
+      - traefik.http.routers.traefik-secure.entrypoints=https
+      - traefik.http.routers.traefik-secure.service=api@internal
+      - traefik.http.routers.traefik-secure.middlewares=traefik-auth
+      - traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS}
+networks:
+  traefik-net:
+    external: true
+```
+
+This Docker Compose file sets up a Traefik v3.1 reverse proxy with automatic HTTPS using Let's Encrypt certificates and Cloudflare DNS challenge. Here's a breakdown of the file and explanations of the Traefik commands and labels:
+
+**Secrets Section:**
+
+- Defines two secrets: `cloudflare-token` and `cloudflare-email`, which are stored in separate files.
+
+**Services Section:**
+
+- Defines a single service named `traefik`.
+
+**Traefik Configuration:**
+
+- Uses the `traefik:v3.1` image.
+- Sets the container name to `traefik`.
+- Configures automatic restart unless stopped manually.
+
+**Traefik Commands:**
+
+- `--providers.docker=true`: Enables Docker as a provider.
+- `--api.dashboard=true`: Enables the Traefik dashboard.
+- `--providers.docker.exposedbydefault=false`: Disables automatic exposure of Docker containers.
+- `--certificatesresolvers.letsencrypt.acme.dnschallenge=true`: Enables DNS challenge for Let's Encrypt.
+- `--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare`: Sets Cloudflare as the DNS provider.
+- `--certificatesResolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,1.0.0.1:53`: Specifies DNS resolvers.
+- `--certificatesResolvers.letsencrypt.acme.dnschallenge.delayBeforeCheck=20`: Sets delay before DNS check.
+- `--certificatesresolvers.letsencrypt.acme.email=email@domain.com`: Sets email for Let's Encrypt.
+- `--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json`: Specifies storage location for certificates.
+- Entrypoints configuration for HTTP (port 80) and HTTPS (port 443).
+- `--entrypoints.https.http.tls=true`:
+  This command enables TLS (Transport Layer Security) for the HTTPS entrypoint. It ensures that all traffic on this entrypoint is encrypted.
+- `--entrypoints.https.http.tls.certResolver=letsencrypt`:
+  This specifies that the "letsencrypt" certificate resolver should be used for obtaining and managing SSL/TLS certificates for the HTTPS entrypoint. It links the HTTPS entrypoint to the previously configured Let's Encrypt ACME (Automated Certificate Management Environment) resolver.
+- `--entrypoints.https.http.tls.domains.main=domain.com`:
+  This sets the main domain for which Traefik will request a certificate. In this case, it's "domain.com". This is the primary domain that will be covered by the SSL/TLS certificate.
+- `--entrypoints.https.http.tls.domains.sans=*.domain.com`:
+  This configures a Subject Alternative Name (SAN) for the SSL/TLS certificate. The asterisk (\*) is a wildcard, meaning the certificate will be valid for all subdomains of domain.com. For example, it would cover "subdomain.domain.com", "another.domain.com", etc.
+
+**Security and Networking:**
+
+- Disables privilege escalation.
+- Connects to the `traefik-net` network.
+- Exposes ports 80 and 443.
+
+**Secrets and Environment:**
+
+- Mounts Cloudflare secrets.
+- Sets environment variables for Traefik dashboard credentials and Cloudflare API.
+
+**Volumes:**
+
+- Mounts a local directory for Let's Encrypt data.
+- Mounts Docker socket for container discovery.
+
+**Traefik Labels:**
+
+- `traefik.enable=true`: Enables Traefik for this container.
+- `traefik.http.routers.traefik-secure.rule=Host(traefik.domain.com)`: Sets the hostname for the Traefik dashboard.
+- `traefik.http.routers.traefik-secure.entrypoints=https`: Uses the HTTPS entrypoint.
+- `traefik.http.routers.traefik-secure.service=api@internal`: Routes to the internal API (dashboard).
+- `traefik.http.routers.traefik-secure.middlewares=traefik-auth`: Applies authentication middleware.
+- `traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS}`: Sets up basic auth for the dashboard.
+
+**Networks:**
+
+- Defines an external network named `traefik-net`.
+
+This configuration sets up Traefik as a reverse proxy with automatic HTTPS, using Cloudflare for DNS challenges and providing a secure dashboard accessible at `traefik.domain.com`.
+
+If you prefer the `traefik.yml` to keep all the configs you can use the below file:
+
+```yml
+entryPoints:
+  http:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: https
+          scheme: https
+  https:
+    address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: domain.com
+            sans:
+              - "*.domain.com"
+
+providers:
+  docker:
+    exposedByDefault: false
+
+api:
+  dashboard: true
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: email@domain.com
+      storage: /letsencrypt/acme.json
+      #caServer: https://acme-staging-v02.api.letsencrypt.org/directory # staging
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - "1.1.1.1:53"
+          - "1.0.0.1:53"
+        delayBeforeCheck: 20
+# Uncomment the following lines if needed
+# log:
+#   level: DEBUG
+#   filePath: /letsencrypt/traefik.log
+```
+
+You just need create a `traefik.yml` and added it in the docker compose file
+
+```sh
+vi traefik.yml
+```
+
+As below:
+
+```yml
+volumes:
+  - ./letsencrypt:/letsencrypt
+  - /var/run/docker.sock:/var/run/docker.sock:ro
+  - ./traefik.yml:/traefik.yml:ro
+```
+
+### 6. Get CloudFlare API for DNS Chalange
+
+Login to Cloudflare, go under **Profile** - **API Tokens** - **Create Custom Token**
+
+Here will choose the:
+
+- **Permission1:** zone - zone - read
+- **Permission2:** zone - DNS - Edit
+- **Zone Resources:** Specific zone - Your zone
+- **Client IP Address Filtering:** Is in - Value (Your Public server IP address)
+
+  <Picture src={img2} alt="CloudFlare API" />
+
+### 7. Create the Docker Network
+
+`traefik-net` will be used. We need to create it so can be used by docker-compose:
+
+```sh
+docker network create traefik-net
+```
+
+### 8. Create the `.env` file
+
+For `TRAEFIK_DASHBOARD_CREDENTIALS` credential are hashed and for creating a user and password we need to use: `htpasswd`
+
+Intall htpasswd:
+
+```sh
+sudo apt update
+sudo apt install apache2-utils
+```
+
+Generate a user and a password for dashboard:
+
+```sh
+echo $(htpasswd -nb user password) | sed -e s/\\$/\\$\\$/g
+```
+
+Replace `user` and `password` with your user and password.
+
+edit the `.env` and add:
+
+```sh
+TRAEFIK_DASHBOARD_CREDENTIALS=user:$$apr1$$tLd.Nb8Z$$waBGyk.kOC1/4509juGdu0
+```
+
+### 9. Create The Docker Secrets Files with Cloudflare DNS details
+
+The API details for Cloudflare are stored in secrets so in case someone breaks into you container to not have access to them as will be the case if they are stored into a `.env` variable.
+
+To create them you need to create a **`secrets`** folder with the 2 files and add them there:
+
+Be sure you are in the traefik folder where you have the docker compose file.
+
+```sh
+mkdir secrets
+cd secrets
+vi cloudflare-token.secret
+vi cloudflare-email.secret
+```
+
+### 10. Point the domain to Server IP
+
+You can create an A record for your main domain that is pointing to the server IP in any DNS provider and then you can create CNAMES an wildcard redirect that will push everything to the main server.
+
+### 11. Start the Docker Compose file
+
+After DNS is pointing correctly you can go and start the docker compose file with
+
+```sh
+docker compose up -d
+```
+
+Usefull commands:
+
+```sh
+docker ps
+docker logs traefik
+docker exec -it traefik /bin/sh
+```
+
+### 12. Install Dockge to Manage You Docker Compose files
+
+I have created in the past a detailed tutorial of [how you can install Dockge](https://www.bitdoze.com/dockge-install/) but that was using the Cloudflare tunnels to get access to applications. Let's see how you can use Dockge with Traefik to manage your applications.
+
+Make a dir for dockge:
+
+```sh
+mkdir /opt/dockge
+cd /opt/dockge
+```
+
+Create the `docker-compose.yml` file with the necessary things:
+
+```yaml
+services:
+  dockge:
+    image: louislam/dockge:1
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/stacks:/opt/stacks
+    environment:
+      - DOCKGE_STACKS_DIR=/opt/stacks
+    networks:
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dockge.rule=Host(`dockge.domain.com`)"
+      - "traefik.http.routers.dockge.entrypoints=https"
+      - "traefik.http.services.dockge.loadbalancer.server.port=5001"
+networks:
+  traefik-net:
+    external: true
+```
+
+The above docker compose file will install Dockge on top of Traefic and the containers needs to be in the initial network: `traefik-net` so traefik can access them. Also the container it doesn't need the port to be exposed as is added in the labels for traefik.
+
+**Traefik Labels:**
+
+- `traefik.enable=true`: Enables Traefik for this container.
+- `traefik.http.routers.dockge.rule=Host(dockge.domain.com)`: Sets the hostname for accessing Dockge.
+- `traefik.http.routers.dockge.entrypoints=https`: Specifies that Dockge should be accessible via the HTTPS entrypoint.
+- `traefik.http.services.dockge.loadbalancer.server.port=5001`: Tells Traefik that Dockge is listening on port 5001 inside the container.
+
+Bring Dockge Up:
+
+```sh
+docker compose up -d
+```
+
+## Conclusions
+
+That's the complete steps that you need to do to have Traefik configured to use a FREE Let's Encypt wildcard certificate. All commands have been tested and working good. You can enable the configs in Traefik and the renewal and everything will be handled by Traefik.
