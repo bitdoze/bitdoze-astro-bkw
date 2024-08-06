@@ -1,0 +1,248 @@
+---
+date: 2024-08-06T00:00:00Z
+title: "How to Setup Ollama with Open-Webui using Docker Compose"
+description: "Learn how to Setup Ollama with Open-WebUI using Docker Compose and have your own local AI"
+image: "../../assets/images/24/08/ollama-docker-install.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["self-hosted"]
+canonical: "https://www.bitdoze.com/ollama-docker-install/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/08/openwebui-pull-model.png";
+import imag2 from "../../assets/images/24/08/openweb-ui-use.png";
+
+In the rapidly evolving landscape of artificial intelligence and machine learning, tools that simplify the deployment and interaction with large language models (LLMs) are becoming increasingly valuable.
+Two such tools that have gained significant attention are Ollama and Ollama-WebUI. Let's dive into what these technologies are and how they can benefit developers, researchers, and AI enthusiasts.
+
+## What is Ollama?
+
+[Ollama](https://ollama.ai/) is an open-source project that aims to make running and deploying large language models as simple and efficient as possible. It's designed to run LLMs locally on your machine, providing a lightweight and user-friendly interface for interacting with various AI models.
+
+- **Local Execution**: Run AI models on your own hardware, ensuring privacy and control over your data.
+- **Easy Installation**: With a simple one-line installation process, getting started with Ollama is remarkably straightforward.
+- **Model Management**: Easily download, run, and manage different LLMs without complex setup procedures.
+- **API Integration**: Ollama provides a RESTful API, allowing seamless integration with other applications and services.
+- **Cross-Platform Support**: Available for macOS, Linux, and Windows, ensuring broad accessibility.
+- **Resource Efficiency**: Optimized to run efficiently on consumer-grade hardware, making AI accessible to a wider audience.
+
+One of the most significant advantages of Ollama is its ability to run models locally. This local execution not only ensures data privacy but also reduces latency, making it ideal for applications that require quick responses or handle sensitive information.
+
+## What is Open-Webui
+
+While Ollama provides a powerful command-line interface, many users prefer a more visual and interactive experience. This is where [Open-Webui](https://openwebui.com/) comes into play.
+
+Open-Webui is a web-based graphical user interface designed specifically to work with Ollama. It provides a user-friendly front-end that allows users to interact with Ollama-managed models through a web browser. This interface bridges the gap between Ollama's powerful backend capabilities and users who may not be comfortable with command-line interfaces.
+
+Key functionalities ofOpen-Webui include:
+
+- **Model Selection**: Easily switch between different LLMs available through Ollama.
+- **Chat Interface**: Engage in conversations with AI models in a familiar chat-like environment.
+- **Prompt Templates**: Save and reuse common prompts to streamline interactions.
+- **History Management**: Keep track of past conversations and easily reference or continue them.
+- **Export Options**: Save conversations or generated content in various formats for further use or analysis.
+
+## How to Set up Ollama and openWebUI with Docker Compose
+
+In this section we are going to see how we are going to set up Ollama and Open-Webui.
+
+### 1. Prerequizites
+
+Before you begin, make sure you have the following prerequisites in place:
+
+- VPS where you can host Ollama, you can use one from [Hetzner](https://go.bitdoze.com/hetzner) You can use a VPS to have ollama installed but performances will not be that good. In our test we are using a 8 CPUs 16 GB RAM and is bearly moving. Best will be to have a GPU powered system.
+- Traefic with Docker set up, you can check: [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/) or [Traefik FREE Let's Encrypt Wildcard Certificate With CloudFlare Provider](https://www.bitdoze.com/traefik-wildcard-certificate/)
+- Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
+
+### 2. Docker Compose
+
+#### CPU Only
+
+```yml
+services:
+  openWebUI:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
+    hostname: openwebui
+    networks:
+      - traefik-net
+    restart: unless-stopped
+    volumes:
+      - ./open-webui-local:/app/backend/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.openwebui.rule=Host(`openwebui.domain.com`)"
+      - "traefik.http.routers.openwebui.entrypoints=https"
+      - "traefik.http.services.openwebui.loadbalancer.server.port=8080"
+    environment:
+      OLLAMA_BASE_URLS: http://ollama:11434
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    hostname: ollama
+    networks:
+      - traefik-net
+    volumes:
+      - ./ollama-local:/root/.ollama
+networks:
+  traefik-net:
+    external: true
+```
+
+This is adding the open-webui and adds it to traefik network, is not exposing any port to outside.
+
+- traefik.enable=true: Enables Traefik for this service.
+- traefik.http.routers.openwebui.rule=Host(openwebui.domain.com): Routes traffic to this service when the host matches openwebui.domain.com.
+- traefik.http.routers.openwebui.entrypoints=https: Specifies that this service should be accessible over HTTPS.
+- traefik.http.services.openwebui.loadbalancer.server.port=8080: Indicates that the service listens on port 8080 inside the container.
+
+Ollama is also downloaded but is not exposing again no port.
+
+#### Docker Compose NVIDIA GPU
+
+Before we dive into the Docker Compose setup, it's crucial to understand the importance of the NVIDIA Container Toolkit. This toolkit is essential for enabling GPU acceleration within Docker containers, allowing your AI models to run at peak performance.
+
+You install it like this:
+
+```sh
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+ && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+
+# Configure NVIDIA Container Toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+
+# Test GPU integration
+docker run --gpus all nvidia/cuda:11.5.2-base-ubuntu20.04 nvidia-smi
+```
+
+Compose File for Nvidia :
+
+```yml
+services:
+  openWebUI:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
+    hostname: openwebui
+    networks:
+      - traefik-net
+    restart: unless-stopped
+    volumes:
+      - ./open-webui-local:/app/backend/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.openwebui.rule=Host(`openwebui.my.bitdoze.com`)"
+      - "traefik.http.routers.openwebui.entrypoints=https"
+      - "traefik.http.services.openwebui.loadbalancer.server.port=8080"
+    environment:
+      OLLAMA_BASE_URLS: http://ollama:11434
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    hostname: ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: ["gpu"]
+              count: all
+    networks:
+      - traefik-net
+    volumes:
+      - ./ollama-local:/root/.ollama
+networks:
+  traefik-net:
+    external: true
+```
+
+The most critical part of this setup for AI performance is the GPU configuration in the Ollama service:
+
+```yml
+deploy:
+  resources:
+    reservations:
+      devices:
+        - driver: nvidia
+          capabilities: ["gpu"]
+          count: all
+```
+
+This configuration ensures that Ollama has access to all available NVIDIA GPUs on your system. According to [NVIDIA's benchmarks](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/), GPU acceleration can provide up to 100x faster inference times compared to CPU-only setups for certain AI models.
+
+#### Docker Compose AMD GPU
+
+For users with AMD GPUs that support [ROCm](https://www.amd.com/en/products/software/rocm/ai.html), setting up Ollama and OpenWebUI using Docker Compose is a straightforward process. This configuration allows you to leverage the power of your AMD GPU for running large language models efficiently. Let's explore how to set this up and the benefits it offers.
+
+The only diffference here is to use the correct image:
+
+```yml
+image: ollama/ollama:rocm
+```
+
+### 3. Start the Docker Compose file
+
+```sh
+docker compose up -d
+```
+
+### 4. Access the Open WebUI
+
+Now you can access the Open WebUI app, to do that you just need to use the domain you have set in the compose file. You will be promted to create a user and a password and you will do that.
+After you create the user and pasword you can alter the docker-compose file and update everything by adding :
+
+```yml
+ENABLE_SIGNUP: false
+
+## run
+docker compose up -d --force-recreate
+```
+
+### 5. Pulling a Model
+
+After we access the Open WebUI we will need to pul out a model and use it. In function of the server power you can choose the one best for you.
+
+Ollama offers several language models (LLMs) with fewer than 3 billion parameters. Here is a list of notable models available through Ollama that meet this criterion:
+
+- **Phi-3**: A 3B model by Microsoft, known for its strong reasoning and language understanding capabilities.
+
+- **Gemma2**: Google Gemma 2 is a high-performing and efficient model thathas 2B size
+
+- **CodeGemma**: This model is available in sizes of 2B and 7B, designed for various coding tasks including code completion and generation.
+
+- **DeepSeek Coder**: A coding model with a size of 1B, trained on a vast dataset of code and natural language tokens.
+
+- **TinyLlama**: Specifically, TinyLlama-1.1B is a lightweight model that offers decent performance for small-scale applications.
+
+- **StableLM**: The StableLM series includes models like StableLM-Zephyr-3B, which is optimized for multilingual tasks and is lightweight enough to run on less powerful hardware.
+
+- **Dolphin**: The Dolphin model has a variant that operates at 2.8B, focusing on coding tasks.
+
+- **Qwen2**: This series includes models with sizes of 0.5B and 1.5B, suitable for various applications.
+
+These models are particularly advantageous for users with limited computational resources, allowing for effective use in coding, reasoning, and general language tasks.
+
+To do that you go to **Admin Panel - Settings - Models - Pull a model from Ollama.com**
+
+For this small server `qwen2:0.5b` or `gemma2:2b` is the way to go.
+
+<Picture src={imag1} alt="openwebui pull model" />
+
+### 6. Using Open-WebUI
+
+After you can go ahead and start using the Open-WebUI, you choose the model and start communicating.
+
+<Picture src={imag2} alt="openwebui start" />
+
+## Conclusions
+
+Setting up Ollama and OpenWebUI with Docker Compose provides a robust, flexible, and high-performance environment for working with large language models. By following the steps outlined in this guide, you'll be well-equipped to harness the power of AI in your projects, whether you're a researcher, developer, or AI enthusiast.
