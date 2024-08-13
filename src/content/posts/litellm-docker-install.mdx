@@ -1,6 +1,6 @@
 ---
 date: 2024-08-12T00:00:00Z
-title: Install LiteLLM With Docker Compose and Simplify LLMs"
+title: "Install LiteLLM With Docker Compose and Simplify LLMs"
 description: "Discover LiteLLM, the game-changing tool that simplifies LLM management, cuts costs, and boosts efficiency for developers and businesses alike."
 image: "../../assets/images/24/08/litellm-docker.jpeg"
 categories: ["vps"]
@@ -56,11 +56,16 @@ In summary, deploying LiteLLM with a database provides the advantage of data per
 
 ## Install LiteLLM with Docker Compose
 
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/j0IFFoCfihk"
+  label="LiteLLM Docker Install"
+/>
+
 ### Prerequizites
 
 Before you begin, make sure you have the following prerequisites in place:
 
-- VPS where you can host Ollama, you can use one from [Hetzner](https://go.bitdoze.com/hetzner) You can use a VPS to have ollama installed but performances will not be that good. In our test we are using a 8 CPUs 16 GB RAM and is bearly moving. Best will be to have a GPU powered system.
+- VPS where you can host LiteLLM, you can use one from [Hetzner](https://go.bitdoze.com/hetzner) You can use a VPS to have LiteLLM installed but performances will not be that good. In our test we are using a 8 CPUs 16 GB RAM and is bearly moving. Best will be to have a GPU powered system.
 - Traefic with Docker set up, you can check: [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/) or [Traefik FREE Let's Encrypt Wildcard Certificate With CloudFlare Provider](https://www.bitdoze.com/traefik-wildcard-certificate/)
 - Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
 
@@ -258,6 +263,7 @@ You can check: [How to Use Traefik as A Reverse Proxy in Docker](https://www.bit
 Below are the configs files for you env file, you can change what you don't like:
 
 ```sh
+LITELLM_MASTER_KEY=sk-1234
 POSTGRES_DB=litellm
 POSTGRES_USER=litellm
 POSTGRES_PASSWORD=litellm
