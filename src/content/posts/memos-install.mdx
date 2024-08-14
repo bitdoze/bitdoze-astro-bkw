@@ -1,0 +1,197 @@
+---
+date: 2024-08-14T00:00:00Z
+title: "How to Install Memos with Docker Compose: EASY STEPS!"
+description: "Learn how you can Memos note taking app with docker compose  and Postgres DB and take advantage of a self hosted note taking app"
+image: "../../assets/images/24/08/memos-install.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["self-hosted"]
+canonical: "https://www.bitdoze.com/memos-install/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/08/memos1.png";
+import imag2 from "../../assets/images/24/08/memos2.jpeg";
+
+[Memos](https://www.usememos.com/) is a self-hosted note-taking application designed for personal organization and information management. It allows users to create, store, and manage notes efficiently, providing features like markdown support, a user-friendly interface, and privacy-focused design. Memos can be run on various platforms, but using Docker Compose simplifies the deployment process, making it easy to set up and maintain.
+
+- **Privacy-First Approach:** Memos ensures that all user data is kept private and secure, allowing users to retain control over their information.
+
+- **Markdown Support:** Users can create notes using plain text with extensive Markdown syntax, facilitating easy formatting and organization.
+
+- **Lightweight Architecture:** Built with Go and React.js, Memos is designed to be lightweight, ensuring fast performance and minimal resource usage.
+
+- **Customizable Features:** Users can personalize their experience by customizing the server name, icon, description, and system styles.
+
+- **Open Source:** Memos is completely open source, allowing users to contribute to its development and customize the application as needed.
+
+- **Free to Use:** All features of Memos are available at no cost, with no hidden charges or subscriptions.
+
+- **Data Persistence:** Notes are saved in a SQLite database file, ensuring data is retained even after the application is closed.
+
+- **User-Friendly Interface:** Memos offers an intuitive interface that makes it easy to capture and manage notes.
+
+- **Multi-Device Accessibility:** Users can access their notes from various devices, enhancing convenience and flexibility.
+
+- **Collaboration Features:** Memos allows for easy sharing of notes, enabling collaboration among users.
+
+## Install Memos with Docker Compose
+
+To install Memos using Docker Compose, you need to create a `docker-compose.yml` file that defines the services, networks, and volumes necessary for running the application. Below are two configurations for deploying Memos: one using SQLite and another using PostgreSQL.
+
+### 1 Prerequizites
+
+Before you begin, make sure you have the following prerequisites in place:
+
+- VPS where you can host Memos, you can use one from [Hetzner](https://go.bitdoze.com/hetzner) You can use a VPS to have Memos installed but performances will not be that good. In our test we are using a 8 CPUs 16 GB RAM and is bearly moving.
+- Traefic with Docker set up, you can check: [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/) or [Traefik FREE Let's Encrypt Wildcard Certificate With CloudFlare Provider](https://www.bitdoze.com/traefik-wildcard-certificate/)
+- Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
+
+### 2 Memos with SQLite
+
+The following `docker-compose.yml` file sets up Memos with SQLite as the database:
+
+```yaml
+services:
+  memos:
+    image: neosmemo/memos:stable
+    container_name: memos
+    user: root
+    restart: unless-stopped
+    networks:
+      - traefik-net
+    volumes:
+      - ./memos/:/var/opt/memos
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.memos.rule=Host(`memos.domain.com`)
+      - traefik.http.routers.memos.entrypoints=https
+      - traefik.http.services.memos.loadbalancer.server.port=5230
+
+networks:
+  traefik-net:
+    external: true
+```
+
+**Explanation of the Configuration:**
+
+- **services:** This section defines the services that Docker will run. Here, we have a single service named `memos`.
+
+- **image:** Specifies the Docker image to use, in this case, `neosmemo/memos:stable`.
+
+- **container_name:** Assigns a name to the container for easier management.
+
+- **user:** Runs the container as the root user.
+
+- **restart:** Configures the restart policy. `unless-stopped` means the container will restart unless explicitly stopped.
+
+- **networks:** Connects the service to an external network named `traefik-net`, which is useful for routing.
+
+- **volumes:** Maps a local directory (`./memos/`) to the container's data storage directory (`/var/opt/memos`), ensuring data persistence.
+
+- **labels:** These are used for configuring Traefik, a reverse proxy, to route traffic to the Memos service based on the specified hostname and entry points.
+
+This is the easiest way to have memos installed. You can expose also the port in case you want to use ClaudFlare tunnels or other reverse proxy or direct access with:
+
+```yaml
+ports:
+  - 5230:5230
+```
+
+### 3 Memos with PostgreSQL DB
+
+If you prefer to use PostgreSQL as the database, you can use the following configuration. This is for cases when you have a lot off notes to have a powerfull database. This are the [memos DB options with the doc](https://www.usememos.com/docs/install/database).
+
+```yaml
+services:
+  memos:
+    image: neosmemo/memos:stable
+    container_name: memos
+    restart: unless-stopped
+    networks:
+      - traefik-net
+    depends_on:
+      memos-db:
+        condition: service_healthy
+    volumes:
+      - ./memos/:/var/opt/memos
+    environment:
+      MEMOS_DRIVER: postgres
+      MEMOS_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@memos-db:5432/${POSTGRES_DB}?sslmode=disable
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.memos.rule=Host(`memos.domain.com`)
+      - traefik.http.routers.memos.entrypoints=https
+      - traefik.http.services.memos.loadbalancer.server.port=5230
+  memos-db:
+    image: postgres:16.1-alpine
+    networks:
+      - traefik-net
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./memos-db:/var/lib/postgresql/data:rw
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: on-failure:5
+networks:
+  traefik-net:
+    external: true
+```
+
+**Explanation of the Configuration:**
+
+- The `memos` service is similar to the SQLite configuration but includes environment variables for PostgreSQL.
+
+- **depends_on:** Ensures that the `memos-db` service starts before the `memos` service.
+
+- **environment:** Sets environment variables for the PostgreSQL connection, including the database name, user, and password.
+
+- The `memos-db` service runs a PostgreSQL database, with a health check to ensure it is ready before the Memos service starts.
+
+### 4 Create an `.env` File
+
+For the PostgreSQL configuration, create a `.env` file in the same directory as your `docker-compose.yml` file to define the environment variables:
+
+```sh
+POSTGRES_DB=memos
+POSTGRES_USER=memos
+POSTGRES_PASSWORD=memos
+```
+
+You can change the details as you like for the database details.
+
+### 5 Start the Docker Compose File
+
+To start the Memos application, run the following command in your terminal from the directory containing the `docker-compose.yml` file:
+
+```sh
+docker compose up -d
+```
+
+This command will download the necessary Docker images, create the containers, and start the services in detached mode.
+
+### 6 Access Memos UI and Create Your First User
+
+Once the containers are running, you can access the Memos web interface by navigating to `http://memos.domain.com` in your web browser. You will be greeted by a sign-up screen where you can create your first user account.
+
+Then the memos UI will be like this:
+
+<Picture src={imag1} alt="Memos UI" />
+
+Then you have the settings area where you can change the look frok light to dark, add users or enable SSO.
+
+<Picture src={imag2} alt="Memos Settings" />
+
+## Conclusions
+
+Setting up Memos using Docker Compose provides a straightforward way to deploy a self-hosted note-taking application. By using either SQLite or PostgreSQL, users can choose the database that best fits their needs. The configurations provided allow for easy customization and scalability, making Memos a flexible solution for personal organization and note management. Enjoy using Memos to capture and organize your thoughts efficiently!
