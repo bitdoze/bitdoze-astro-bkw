@@ -1,55 +1,77 @@
 ---
-import { Image } from 'astro:assets';
+import { Image } from "astro:assets";
 import dateFormat from "@lib/utils/dateFormat";
-import { humanize,slugify } from "@lib/utils/textConverter";
-import { BiCalendarEdit,BiCategoryAlt } from "react-icons/bi/index.js";
+import { humanize, slugify } from "@lib/utils/textConverter";
+import { BiCalendarEdit, BiCategoryAlt, BiHash } from "react-icons/bi/index.js";
+
 const { posts } = Astro.props;
 ---
 
-<div class="row gy-4 justify-center">
+<div class="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
   {
-    posts.map((post: any, i: number) => (
-      <div class={`col-12 sm:col-6 md:col-4 ${i === 2 && "hidden md:block"}`}>
+    posts.map((post: any, index: number) => (
+      <div
+        class={`bg-white shadow-sm rounded-lg overflow-hidden ${index === 2 ? "hidden lg:block" : ""}`}
+      >
         {post.data.image && (
-          <a href={`/${post.slug}`+ "/"} class="rounded-lg block hover:text-primary overflow-hidden group">
+          <a
+            href={`/${post.slug}/`}
+            class="block hover:text-primary overflow-hidden aspect-w-16 aspect-h-9"
+          >
             <Image
-              class="group-hover:scale-[1.05] transition duration-300 w-full"
+              class="w-full h-full object-cover transition duration-300 hover:scale-105"
               src={post.data.image}
               alt={post.data.title}
-              width={445}
-              height={230}
+              width={640}
+              height={360}
               transition:name={`image-${post.slug}`}
             />
           </a>
         )}
-        <ul class="mt-4 text-text flex flex-wrap items-center text-sm">
-          <li class="mb-2 mr-4 flex items-center flex-wrap font-medium">
-            <BiCalendarEdit className="mr-1 h-[16px] w-[16px] text-gray-600" />
-            <>{dateFormat(post.data.date)}</>
-          </li>
-          <li class="mb-2 mr-4 flex items-center flex-wrap">
-            <BiCategoryAlt className="mr-1 h-[16px] w-[16px] text-gray-600" />
-            <>
-              <ul>
-                {post.data.categories.map((category: string, i: number) => (
-                  <li class="inline-block">
-                    <a
-                      href={`/categories/${slugify(category)}` + "/"}
-                      class="mr-2 hover:text-primary font-medium"
-                    >
-                      {humanize(category)}{i !== post.data.categories.length - 1 && ","}
-                    </a>
-                  </li>
+        <div class="p-4">
+          <h3
+            class="text-lg font-semibold mb-2"
+            transition:name={`title-${post.slug}`}
+          >
+            <a
+              href={`/${post.slug}/`}
+              class="hover:text-primary transition duration-300"
+            >
+              {post.data.title}
+            </a>
+          </h3>
+          <ul class="text-sm text-gray-600 space-y-1">
+            <li class="flex items-center">
+              <BiCalendarEdit className="mr-1 h-4 w-4 flex-shrink-0" />
+              <span>{dateFormat(post.data.date)}</span>
+            </li>
+            <li class="flex items-center">
+              <BiCategoryAlt className="mr-1 h-4 w-4 flex-shrink-0" />
+              {post.data.categories.map((category: string, i: number) => (
+                <a
+                  href={`/categories/${slugify(category)}/`}
+                  class="hover:text-primary"
+                >
+                  {humanize(category)}
+                  {i !== post.data.categories.length - 1 && ", "}
+                </a>
+              ))}
+            </li>
+            {post.data.tags && (
+              <li class="flex items-center flex-wrap">
+                <BiHash className="mr-1 h-4 w-4 flex-shrink-0" />
+                {post.data.tags.map((tag: string, i: number) => (
+                  <a
+                    href={`/tags/${slugify(tag)}/`}
+                    class="mr-2 hover:text-primary"
+                  >
+                    {humanize(tag)}
+                  </a>
                 ))}
-              </ul>
-            </>
-          </li>
-        </ul>
-        <h3 class="h5" transition:name={`title-${post.slug}`}>
-          <a href={`/${post.slug}` + "/"} class="block hover:text-primary transition duration-300">
-            {post.data.title}
-          </a>
-        </h3>
+              </li>
+            )}
+          </ul>
+        </div>
       </div>
     ))
   }

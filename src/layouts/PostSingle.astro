@@ -4,21 +4,58 @@ import Share from "@components/Share.astro";
 import SimilarPosts from "@components/SimilarPosts.astro";
 import { getSinglePage } from "@lib/contentParser.astro";
 import dateFormat from "@lib/utils/dateFormat";
-import similerItems, { type PostItem } from "@lib/utils/similarItems";
 import { humanize, markdownify, slugify } from "@lib/utils/textConverter";
 import { BiCalendarEdit, BiCategoryAlt } from "react-icons/bi/index.js";
 import { type CollectionEntry } from "astro:content";
 import PostHeadings from "./components/table-of-contents/PostHeadings.astro";
 
 const allAuthors = await getSinglePage("authors");
-const posts = await getSinglePage("posts");
+const allPosts = await getSinglePage("posts");
 
 interface Props {
   post: CollectionEntry<"posts">;
 }
 const { post } = Astro.props;
 
-const similarPosts = similerItems(post, posts as PostItem[]);
+// Function to shuffle an array
+const shuffleArray = (array: any[]) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
+// Function to get similar posts based on tags with improved randomization
+const getSimilarPosts = (
+  currentPost: CollectionEntry<"posts">,
+  allPosts: CollectionEntry<"posts">[],
+  limit: number,
+) => {
+  const currentTags = currentPost.data.tags || [];
+
+  // Filter posts that share at least one tag
+  const postsWithSimilarTags = allPosts.filter(
+    (p) =>
+      p.slug !== currentPost.slug && // Exclude current post
+      p.data.tags?.some((tag) => currentTags.includes(tag)),
+  );
+
+  // Shuffle the filtered posts
+  const shuffledPosts = shuffleArray([...postsWithSimilarTags]);
+
+  // If we don't have enough similar posts, add random posts to fill
+  if (shuffledPosts.length < limit) {
+    const remainingPosts = allPosts.filter(
+      (p) => p.slug !== currentPost.slug && !shuffledPosts.includes(p),
+    );
+    shuffledPosts.push(...shuffleArray(remainingPosts));
+  }
+
+  return shuffledPosts.slice(0, limit);
+};
+
+const similarPosts = getSimilarPosts(post, allPosts, 3);
 
 const { Content, headings } = await post.render();
 
@@ -119,10 +156,10 @@ const {
 
       <div class="md:col-10">
         <div class="content mb-16 text-left">
-           <aside class="not-prose  p-5 rounded-sm">
+          <aside class="not-prose p-5 rounded-sm">
             <p class="font-bold">Table of contents:</p>
-      <PostHeadings headings={headings} />
-           </aside>
+            <PostHeadings headings={headings} />
+          </aside>
           <Content />
         </div>
         <div class="flex flex-wrap items-center justify-between">
@@ -155,10 +192,10 @@ const {
 <!-- similar posts -->
 {
   similarPosts.length > 0 && (
-    <section class="section pt-0">
+    <section class="section pt-0 not-prose">
       <div class="container">
         <h2 class="mb-8 text-center h3">Similar Posts</h2>
-        <SimilarPosts posts={similarPosts.slice(0, 3)} />
+        <SimilarPosts posts={similarPosts} />
       </div>
     </section>
   )
