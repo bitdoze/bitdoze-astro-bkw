@@ -1,0 +1,260 @@
+---
+date: 2024-08-28T00:00:00Z
+title: "How to Add a Floating Menu to an Carrd Website"
+description: "Learn how you can add an floating hamburger menu to an carrd.co website easy."
+image: "../../assets/images/24/08/carrd-floating-menu.jpeg"
+categories: ["cms"]
+authors: ["Dragos"]
+tags: ["carrd"]
+canonical: "https://www.bitdoze.com/carrd-floating-menu/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/02/carrd-back-to-top-embed.png";
+
+[Carrd.co](https://go.bitdoze.com/carrd) offers a good way to build one-page websites but one-page websites can have a lot of elements and in case the visitors need to go back to the previous section can be hard without a floating hamburger menu. That's an issue for most websites but this can be fixed easily with the help of a code and embed functionality in carrd.
+
+A floating bottom right hamburger menu is a great addition to a Carrd site for several reasons:
+
+1. **It keeps the navigation easily accessible** without cluttering the main content area, especially on mobile devices with smaller screens.
+
+2. **The hamburger icon is a widely recognized symbol** for a menu, making it intuitive for users to click and access the navigation links.
+
+3. **Placing the menu at the bottom right** takes advantage of the natural thumb position for one-handed mobile use.
+
+4. **The floating behavior ensures the menu is always visible** to the user as they scroll through the page content.
+
+In summary, a floating bottom right hamburger menu provides a clean, user-friendly way to incorporate navigation into a Carrd site while optimizing for mobile usability.
+
+<Button link="https://go.bitdoze.com/carrd" text="Carrd.co" />
+
+Some Carrd Tutorials:
+
+- [Add Stickey Header Carrd](https://www.bitdoze.com/add-stickey-header-carrd/)
+- [Add Carrd Cookie Notice](https://www.bitdoze.com/add-cookie-notice-carrd/)
+- [How To Add Pricing Table to Carrd.co](https://www.bitdoze.com/carrd-add-pricing-table/)
+- [Carrd.co Review](https://www.bitdoze.com/carrd-review/)
+- [How To Add Accordion FAQs Drop-Down to Carrd.co](https://www.bitdoze.com/add-accordion-carrd/)
+- [Carrd.co Mobile Responsive Navbar](https://www.bitdoze.com/carrd-mobile-navbar/)
+
+> The complete list with Carrd plugins, themes and tutorials you can find on my **[carrdme.com](https://carrdme.com/)** website.
+
+## How to Add the Carrd Floating Hamburger Menu
+
+### 1. Add an embed element anywhere on the website
+
+You just need to go on the `+` sign and add an Embed element anywhere on the website. Below you will
+
+- Type: Code
+- Style: Hidden, Head
+
+Just as in below picture:
+
+<Picture src={imag1} alt="Carrd embed element" />
+
+### 2. Use the HTML Code:
+
+Below is the code you should use with the explination:
+
+```html
+<style>
+  :root {
+    --primary-color: rgba(0, 112, 15, 0.58); /* Semi-transparent background */
+    --secondary-color: #fff;
+    --font-size-base: 16px;
+    --floating-hamburger-size: 50px;
+    --floating-font: inherit; /* Add your preferred font here */
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-size: var(--font-size-base);
+    font-family: var(--floating-font);
+  }
+
+  /* Floating Hamburger Menu */
+  .floating-hamburger {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: var(--floating-hamburger-size);
+    height: var(--floating-hamburger-size);
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1000;
+  }
+
+  .floating-hamburger .floating-bar {
+    width: 30px;
+    height: 3px;
+    background-color: var(--secondary-color);
+    margin: 3px 0;
+    transition: 0.4s;
+  }
+
+  /* Hide Checkbox */
+  #floating-menu-toggle {
+    display: none;
+  }
+
+  /* Menu Styling */
+  .floating-menu {
+    position: fixed;
+    bottom: calc(var(--floating-hamburger-size) + 30px);
+    right: 20px;
+    background-color: var(--primary-color);
+    padding: 20px;
+    border-radius: 10px;
+    transform: scale(0);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease-in-out;
+    z-index: 999;
+    font-family: var(--floating-font);
+  }
+
+  #floating-menu-toggle:checked ~ .floating-menu {
+    transform: scale(1);
+  }
+
+  .floating-menu ul {
+    list-style: none;
+  }
+
+  .floating-menu li {
+    margin: 15px 0;
+  }
+
+  .floating-menu li a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-size: 1em;
+    transition: font-size 0.3s ease;
+  }
+
+  .floating-menu li a:hover {
+    font-size: 1.1em;
+  }
+
+  .floating-close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--secondary-color);
+    font-size: 1.2em;
+    cursor: pointer;
+    font-family: var(--floating-font);
+  }
+
+  /* Responsive Text Scaling */
+  @media (max-width: 768px) {
+    body {
+      font-size: calc(var(--font-size-base) * 0.9);
+    }
+  }
+
+  @media (max-width: 480px) {
+    body {
+      font-size: calc(var(--font-size-base) * 0.8);
+    }
+  }
+</style>
+
+<input type="checkbox" id="floating-menu-toggle" />
+<label for="floating-menu-toggle" class="floating-hamburger">
+  <span class="floating-bar"></span>
+  <span class="floating-bar"></span>
+  <span class="floating-bar"></span>
+</label>
+<nav class="floating-menu">
+  <button class="floating-close-button">X</button>
+  <ul>
+    <li><a href="#">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#testimonials">Testimonials</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<script>
+  document
+    .querySelector(".floating-close-button")
+    .addEventListener("click", function () {
+      document.getElementById("floating-menu-toggle").checked = false;
+    });
+
+  document.querySelectorAll(".floating-menu a").forEach((link) => {
+    link.addEventListener("click", function () {
+      document.getElementById("floating-menu-toggle").checked = false;
+    });
+  });
+</script>
+```
+
+Below are the details so you can understand what needs tp be changed:
+
+1. `--primary-color: rgba(0, 112, 15, 0.58);`
+
+   - This sets the primary color to a semi-transparent green.
+   - The `rgba()` function allows for color definition with alpha transparency.
+   - The values are: Red (0), Green (112), Blue (15), and Alpha (0.58 or 58% opaque).
+   - you can use [https://rgbacolorpicker.com/](https://rgbacolorpicker.com/) to choose your color.
+
+2. `--secondary-color: #fff;`
+
+   - This sets the secondary color to white.
+   - `#fff` is a shorthand hexadecimal color code for white.
+
+3. `--font-size-base: 16px;`
+
+   - This establishes the base font size for the document as 16 pixels.
+
+4. `--floating-hamburger-size: 50px;`
+
+   - This defines the size of the floating hamburger menu button as 50 pixels.
+
+5. `--floating-font: inherit;`
+
+   - This sets the font for the floating elements to inherit from their parent.
+   - The comment suggests replacing `inherit` with a preferred font family.
+
+6. `.floating-hamburger .floating-bar -  width: 30px;`
+   - this is modifying the hamburger lines size in case you need a different size.
+
+These variables can be easily modified to change the overall look of the menu without having to search through the entire stylesheet. For example, to change the primary color, you would only need to update the `--primary-color` value here, and it would affect all elements using this variable throughout the stylesheet.
+
+{" "}
+
+<Button link="https://go.bitdoze.com/carrd" text="Carrd.co" />
+
+### 3. Change the menu items
+
+```html
+<ul>
+  <li><a href="#">Home</a></li>
+  <li><a href="#about">About</a></li>
+  <li><a href="#testimonials">Testimonials</a></li>
+  <li><a href="#contact">Contact</a></li>
+</ul>
+```
+
+This is the code responsible for adding the items in the menu. You can add the items you need to have a complete menu. just add an `<li><a href="#mything">MyThing</a></li>` for every menu item you need in carrd.
+
+## Conclusion
+
+This floating menu not only provides an elegant way to navigate your single-page website but also adds a touch of interactivity that can engage visitors and improve their overall experience. The customizable nature of the code allows you to tailor the menu's appearance to match your site's design, ensuring a cohesive look and feel.
+
+Remember, while Carrd.co excels in simplicity, it doesn't mean your site has to be basic. By incorporating custom elements like this floating menu, you're taking full advantage of Carrd's flexibility while maintaining its core benefits of speed and ease of use.
