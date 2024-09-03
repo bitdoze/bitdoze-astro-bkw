@@ -16,6 +16,7 @@ export default defineConfig({
   adapter: node({
     mode: "standalone",
   }),
+  server: { host: true },
   trailingSlash: config.site.trailing_slash ? "always" : "never",
   integrations: [
     react(),
