@@ -1,0 +1,323 @@
+---
+import Base from "@layouts/Base.astro";
+import InputBox from "../../layouts/components/aicomponents/InputBox.astro";
+import OutputBox from "../../layouts/components/aicomponents/OutputBox.astro";
+
+export const prerender = false;
+
+const systemPrompt = `You are a versatile content title generator specializing in catchy, platform-specific titles. Follow these key principles and guidelines:
+
+Key Principles:
+1. High energy and motivation
+2. Direct and no-nonsense approach
+3. Practical advice and actionable insights
+4. Empowerment and positivity
+5. Repetition for emphasis
+
+Detailed Guidelines:
+1. Use Powerful, Motivational Language
+   - Start sentences with strong verbs
+   - Employ imperative statements
+   - Use intensifiers like "absolutely," "definitely," "100%"
+2. Keep It Real and Direct
+   - Cut through the fluff - get straight to the point
+   - Use colloquial language and slang
+   - Don't shy away from occasional profanity (if appropriate for the platform)
+3. Focus on Practicality
+   - Provide specific, actionable steps
+   - Use real-world examples and case studies
+   - Break down complex ideas into simple, doable tasks
+4. Create a Sense of Urgency
+   - Use phrases like "right now," "immediately," "don't wait"
+   - Emphasize the cost of inaction
+   - Highlight time-sensitive opportunities
+5. Incorporate Personal Anecdotes (when relevant)
+   - Share stories from entrepreneurial journeys
+   - Use failures as teaching moments
+   - Connect personal experiences to broader principles
+6. Embrace Repetition
+   - Repeat key phrases for emphasis
+   - Use variations of the same idea to drive the point home
+   - Create memorable catchphrases
+7. Engage Directly with the Audience
+   - Use "you" and "your" frequently
+   - Ask rhetorical questions
+   - Challenge the reader to take action
+8. Use Contrast for Impact
+   - Juxtapose old thinking with new perspectives
+   - Highlight the difference between action and inaction
+   - Compare short-term discomfort with long-term gains
+9. Leverage Visual Structure (when applicable)
+   - Use ALL CAPS for emphasis
+   - Break long ideas into short, punchy phrases
+
+Apply these principles and guidelines to create engaging, platform-appropriate titles.`;
+
+const userPromptTemplate =
+  "Create 10 engaging {platform} titles for content about: {topic}. Tone: {tone}. Make them catchy and platform-appropriate. Don't include 'sure' or numbering. Apply the principles and guidelines provided in the system prompt. Please only include the titles and nothing else";
+---
+
+<Base title="AI Title Generator">
+  <main class="container mx-auto px-4 py-8 max-w-3xl">
+    <h1 class="text-4xl font-bold text-center mb-4">AI Title Generator</h1>
+    <p class="text-xl text-center mb-8 text-gray-600">
+      Transform your ideas into captivating titles for various platforms!
+    </p>
+
+    <InputBox
+      placeholder="Enter your content topic..."
+      buttonText="Generate Titles"
+    />
+    <OutputBox
+      title="Generated Titles"
+      subtitle="Here are your AI-generated titles!"
+      loadingText="Crafting your inspiring titles..."
+    />
+
+    <div class="mt-12 bg-blue-50 p-6 rounded-lg shadow-md">
+      <h2 class="text-2xl font-semibold mb-4 text-blue-700">
+        Pro Tips for Engaging Titles
+      </h2>
+      <ul class="list-disc pl-5 space-y-2 text-blue-800">
+        <li>Keep it concise and impactful</li>
+        <li>Use power words to evoke emotion</li>
+        <li>Include your main keyword for SEO</li>
+        <li>Create curiosity or promise value</li>
+        <li>Tailor your tone to your target audience</li>
+        <li>Optimize for the chosen platform</li>
+      </ul>
+    </div>
+    <!-- New informative section -->
+    <div
+      class="mt-16 bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-xl shadow-lg"
+    >
+      <h2 class="text-3xl font-bold text-blue-800 mb-6">
+        Elevate Your Content with AI-Powered Titles
+      </h2>
+
+      <div class="space-y-6">
+        <div class="flex items-start">
+          <svg
+            class="w-6 h-6 text-blue-600 mr-4 mt-1 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg
+          >
+          <p class="text-gray-700">
+            Our AI Title Generator harnesses the power of advanced language
+            models to create attention-grabbing, platform-specific titles that
+            resonate with your audience.
+          </p>
+        </div>
+
+        <div class="flex items-start">
+          <svg
+            class="w-6 h-6 text-blue-600 mr-4 mt-1 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg
+          >
+          <p class="text-gray-700">
+            Whether you're crafting content for YouTube, TikTok, Twitter,
+            LinkedIn, or articles, our tool adapts to generate titles that suit
+            each platform's unique style and audience expectations.
+          </p>
+        </div>
+
+        <div class="flex items-start">
+          <svg
+            class="w-6 h-6 text-blue-600 mr-4 mt-1 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
+            ></path></svg
+          >
+          <p class="text-gray-700">
+            Our AI generates a variety of title types, including:
+          </p>
+        </div>
+
+        <ul class="list-disc pl-16 space-y-2 text-gray-700">
+          <li>Curiosity-piquing questions</li>
+          <li>Bold statements that challenge conventional wisdom</li>
+          <li>Listicles that promise valuable insights</li>
+          <li>How-to titles that offer practical solutions</li>
+          <li>
+            Emotional hooks that tap into your audience's desires and pain
+            points
+          </li>
+        </ul>
+
+        <div class="flex items-start mt-6">
+          <svg
+            class="w-6 h-6 text-blue-600 mr-4 mt-1 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg
+          >
+          <p class="text-gray-700">
+            By using our AI Title Generator, you'll save time brainstorming,
+            increase your content's click-through rates, and ensure your titles
+            are optimized for engagement across different platforms.
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<script define:vars={{ systemPrompt, userPromptTemplate }}>
+  const form = document.getElementById("aiForm");
+  const output = document.getElementById("output");
+  const loadingIndicator = document.getElementById("loadingIndicator");
+  const errorMessage = document.getElementById("errorMessage");
+  const resultList = document.getElementById("resultList");
+
+  function showOutput(titles) {
+    output.classList.remove("hidden");
+    resultList.innerHTML = titles
+      .map(
+        (title, index) =>
+          `<div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition duration-300 mb-4">
+            <div class="flex justify-between items-center">
+              <p class="text-gray-800 text-lg flex-grow mr-4">${title}</p>
+              <button
+                class="copy-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center"
+                data-title="${title}"
+                onclick="window.copyToClipboard(this, ${index})"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                  <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                </svg>
+                Copy
+              </button>
+            </div>
+          </div>`,
+      )
+      .join("");
+  }
+
+  function showLoading() {
+    output.classList.remove("hidden");
+    loadingIndicator.classList.remove("hidden");
+    resultList.innerHTML = "";
+    errorMessage.classList.add("hidden");
+  }
+
+  function hideLoading() {
+    loadingIndicator.classList.add("hidden");
+  }
+
+  function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.classList.remove("hidden");
+  }
+
+  // Make copyToClipboard function globally accessible
+  window.copyToClipboard = function (button, index) {
+    const title = button.getAttribute("data-title");
+    navigator.clipboard
+      .writeText(title)
+      .then(() => {
+        button.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+          <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        Copied!
+      `;
+        button.classList.remove("bg-blue-500", "hover:bg-blue-600");
+        button.classList.add("bg-green-500", "hover:bg-green-600");
+
+        setTimeout(() => {
+          button.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+          </svg>
+          Copy
+        `;
+          button.classList.remove("bg-green-500", "hover:bg-green-600");
+          button.classList.add("bg-blue-500", "hover:bg-blue-600");
+        }, 2000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
+  };
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const topic = document.getElementById("userInput").value;
+    const platform = document.getElementById("platform").value;
+    const tone = document.getElementById("tone").value;
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    showLoading();
+    submitButton.disabled = true;
+
+    const promptWithValues = userPromptTemplate
+      .replace("{topic}", topic)
+      .replace("{platform}", platform)
+      .replace("{tone}", tone === "none" ? "neutral" : tone);
+
+    try {
+      const response = await fetch("/api/generate-titles/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          topic,
+          systemPrompt,
+          userPromptTemplate: promptWithValues,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.titles && data.titles.length > 0) {
+        showOutput(data.titles);
+      } else if (data.error) {
+        throw new Error(data.error);
+      } else {
+        throw new Error("No titles generated");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      showError(`Error: ${error.message}`);
+    } finally {
+      hideLoading();
+      submitButton.disabled = false;
+    }
+  });
+</script>

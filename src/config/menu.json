@@ -37,6 +37,17 @@
       ]
     },
     {
+      "name": "Tools",
+      "url": "/tools/",
+      "hasChildren": true,
+      "children": [
+        {
+          "name": "Title Generator",
+          "url": "/tools/titlles-generator/"
+        }
+      ]
+    },
+    {
       "name": "Contact",
       "url": "/contact/"
     }

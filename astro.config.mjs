@@ -4,6 +4,7 @@ import sitemap from "@astrojs/sitemap";
 import tailwind from "@astrojs/tailwind";
 import { defineConfig } from "astro/config";
 import config from "./src/config/config.json";
+import node from "@astrojs/node";
 
 import partytown from "@astrojs/partytown";
 
@@ -11,18 +12,28 @@ import partytown from "@astrojs/partytown";
 export default defineConfig({
   site: config.site.base_url ? config.site.base_url : "https://www.bitdoze.com",
   base: config.site.base_path ? config.site.base_path : "/",
+  output: "hybrid",
+  adapter: node({
+    mode: "standalone",
+  }),
   trailingSlash: config.site.trailing_slash ? "always" : "never",
-  integrations: [react(), sitemap(), tailwind({
-    config: {
-      applyBaseStyles: false
-    }
-  }), mdx(), partytown()],
+  integrations: [
+    react(),
+    sitemap(),
+    tailwind({
+      config: {
+        applyBaseStyles: false,
+      },
+    }),
+    mdx(),
+    partytown(),
+  ],
   markdown: {
     remarkPlugins: [],
     shikiConfig: {
       theme: "one-dark-pro",
-      wrap: true
+      wrap: true,
     },
-    extendDefaultPlugins: true
-  }
+    extendDefaultPlugins: true,
+  },
 });

@@ -1,0 +1,68 @@
+---
+import Base from "@layouts/Base.astro";
+import { markdownify } from "@lib/utils/textConverter";
+import { getEntryBySlug } from "astro:content";
+export const prerender = false;
+
+let entry;
+let title = "Tools";
+let description = "Explore our collection of useful tools";
+let meta_title = "Tools | Your Site Name";
+let image = "/images/default-tool-image.jpg"; // Provide a default image path
+
+try {
+  entry = await getEntryBySlug("pages", "tools");
+  if (entry) {
+    ({ title, description, meta_title, image } = entry.data);
+  }
+} catch (error) {
+  console.error("Error loading tools page data:", error);
+}
+
+const tools = [
+  {
+    title: "Meta Tags Generator",
+    description:
+      "Generate meta tags for your website to improve SEO and social media sharing.",
+    link: "/tools/meta-tags-generator",
+  },
+  {
+    title: "HTML Minifier",
+    description:
+      "Minify your HTML code to reduce file size and improve load times.",
+    link: "/tools/html-minifier",
+  },
+  {
+    title: "Title Generator",
+    description:
+      "Create engaging, platform-specific titles for your content using AI.",
+    link: "/tools/titlles-generator",
+  },
+  // Add more tools here as needed
+];
+---
+
+<Base title={meta_title || title} description={description} image={image}>
+  <section class="section">
+    <div class="container">
+      <h1 set:html={markdownify(title)} class="h2 page-heading mb-10" />
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {
+          tools.map((tool) => (
+            <a
+              href={tool.link}
+              class="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+            >
+              <div class="p-6">
+                <h2 class="text-xl font-semibold mb-2 text-gray-800">
+                  {tool.title}
+                </h2>
+                <p class="text-gray-600">{tool.description}</p>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</Base>

@@ -4,7 +4,6 @@ import menu from "@config/menu.json";
 import { IoSearch } from "react-icons/io5/index.js";
 import { IoLogoRss } from "react-icons/io5/index.js";
 
-
 export interface ChildNavigationLink {
   name: string;
   url: string;
@@ -20,8 +19,10 @@ export interface NavigationLink {
 const { main }: { main: NavigationLink[] } = menu;
 ---
 
-<header class=" scrolled bg-white header sticky py-4 top-0 z-40 flex-none mx-auto w-full transition-all ease-in duration-100 lg:drop-shadow-xl">
-  <nav class="navbar container  overflow-y-auto md:overflow-visible">
+<header
+  class="scrolled bg-white header sticky py-4 top-0 z-40 flex-none mx-auto w-full transition-all ease-in duration-100 lg:drop-shadow-xl"
+>
+  <nav class="navbar container overflow-y-auto md:overflow-visible">
     <!-- logo -->
     <div class="order-0">
       <Logo />
@@ -97,7 +98,7 @@ const { main }: { main: NavigationLink[] } = menu;
       >
         <IoSearch />
       </a>
-         <a
+      <a
         class="mr-2 inline-block cursor-pointer p-2 text-xl text-dark transition hover:text-primary md:mr-0"
         href="/rss.xml"
         title="RSS"

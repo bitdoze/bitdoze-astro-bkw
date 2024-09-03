@@ -1,0 +1,53 @@
+---
+interface Props {
+  title: string;
+  subtitle: string;
+  loadingText: string;
+}
+
+const { title, subtitle, loadingText } = Astro.props;
+---
+
+<div id="output" class="mt-8 hidden">
+  <div class="relative">
+    <div class="absolute -inset-2 rounded-[32px] bg-gray-300/50"></div>
+    <div class="relative rounded-3xl bg-white p-6 shadow-sm">
+      <h2 class="text-3xl font-bold mb-6 text-center text-indigo-700">
+        {title}
+      </h2>
+      <p class="text-gray-600 mb-4 text-center">
+        {subtitle}
+      </p>
+
+      <div id="loadingIndicator" class="hidden">
+        <p class="text-indigo-600 text-center animate-pulse">
+          {loadingText}
+        </p>
+      </div>
+
+      <div id="errorMessage" class="hidden text-red-500 text-center mb-4"></div>
+
+      <div class="max-h-80 overflow-y-auto pr-2 space-y-3" id="resultList">
+        <!-- Results will be inserted here dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Custom scrollbar styles */
+  .max-h-80::-webkit-scrollbar {
+    width: 8px;
+  }
+  .max-h-80::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  .max-h-80::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+  }
+  .max-h-80::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+</style>
