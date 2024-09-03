@@ -1,0 +1,240 @@
+---
+import Base from "@layouts/Base.astro";
+import SimpleInput from "../../layouts/components/aicomponents/SimpleInput.astro";
+import OutputBox from "../../layouts/components/aicomponents/OutputBox.astro";
+
+export const prerender = false;
+
+const systemPrompt = `You are a versatile YouTube Thumbnails generator specializing in catchy, YouTube Thumbnails. Follow these key principles and guidelines:
+
+Key Principles:
+1. High energy and motivation
+2. Direct and no-nonsense approach
+3. Practical advice and actionable insights
+4. Empowerment and positivity
+5. Repetition for emphasis
+
+Detailed Guidelines:
+1. Use Powerful, Motivational Language
+   - Start sentences with strong verbs
+   - Employ imperative statements
+   - Use intensifiers like "absolutely," "definitely," "100%"
+2. Keep It Real and Direct
+   - Cut through the fluff - get straight to the point
+   - Use colloquial language and slang
+   - Don't shy away from occasional profanity (if appropriate for the platform)
+3. Focus on Practicality
+   - Provide specific, actionable steps
+   - Use real-world examples and case studies
+   - Break down complex ideas into simple, doable tasks
+4. Create a Sense of Urgency
+   - Use phrases like "right now," "immediately," "don't wait"
+   - Emphasize the cost of inaction
+   - Highlight time-sensitive opportunities
+5. Incorporate Personal Anecdotes (when relevant)
+   - Share stories from entrepreneurial journeys
+   - Use failures as teaching moments
+   - Connect personal experiences to broader principles
+6. Embrace Repetition
+   - Repeat key phrases for emphasis
+   - Use variations of the same idea to drive the point home
+   - Create memorable catchphrases
+7. Engage Directly with the Audience
+   - Use "you" and "your" frequently
+   - Ask rhetorical questions
+   - Challenge the reader to take action
+8. Use Contrast for Impact
+   - Juxtapose old thinking with new perspectives
+   - Highlight the difference between action and inaction
+   - Compare short-term discomfort with long-term gains
+9. Leverage Visual Structure (when applicable)
+   - Use ALL CAPS for emphasis
+   - Break long ideas into short, punchy phrases
+
+Apply these principles and guidelines to create engaging, YouTube Thumbnails.`;
+
+const userPromptTemplate = `Generate 5 unique thumbnail ideas for a YouTube video about: {topic}.
+Each idea should follow this format:
+
+Thumbnail Idea [number]:
+
+Background: [Describe the background style and colors]
+Main Image: [Describe the central image or graphic]
+Text: [Provide the main text or headline please make it shour and engaging, use CAPS for emphasis]
+Additional Elements: [Describe any icons, graphics, or additional visual elements]
+
+Make the ideas diverse, engaging, and tailored to attract clicks on YouTube. Ensure each idea is distinct and creative.`;
+---
+
+<Base
+  title="YouTube Thumbnail Ideas Generator Tool"
+  meta_title="YouTube Thumbnail Ideas Generator Tool"
+  description="YouTube Thumbnail Ideas Generator, build better YouTube Thumbnails with this AI Tool.  "
+>
+  <main class="container mx-auto px-4 py-8 max-w-3xl">
+    <h1 class="text-4xl font-bold text-center mb-4">
+      YouTube Thumbnail Ideas Generator
+    </h1>
+    <p class="text-xl text-center mb-8 text-gray-600">
+      Transform your video topic into eye-catching thumbnail concepts!
+    </p>
+
+    <SimpleInput
+      placeholder="Enter your YouTube video topic..."
+      buttonText="Generate Thumbnail Ideas"
+    />
+    <OutputBox
+      title="Generated Thumbnail Ideas"
+      subtitle="Here are your AI-generated thumbnail concepts!"
+      loadingText="Crafting your eye-catching thumbnails..."
+    />
+
+    <div class="mt-12 bg-blue-50 p-6 rounded-lg shadow-md">
+      <h2 class="text-2xl font-semibold mb-4 text-blue-700">
+        Tips for Effective YouTube Thumbnails
+      </h2>
+      <ul class="list-disc pl-5 space-y-2 text-blue-800">
+        <li>Use bold, contrasting colors to stand out</li>
+        <li>Include close-up faces or emotions when relevant</li>
+        <li>Keep text large and limited to 3-4 words</li>
+        <li>Ensure your thumbnail is clear at small sizes</li>
+        <li>Use high-quality, relevant images</li>
+        <li>Create a consistent style for your channel</li>
+      </ul>
+    </div>
+
+    <div
+      class="mt-16 bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-xl shadow-lg"
+    >
+      <h2 class="text-3xl font-bold text-blue-800 mb-6">
+        Elevate Your YouTube Content with AI-Powered Thumbnails
+      </h2>
+      <div class="space-y-6">
+        <p class="text-gray-700">
+          Our AI Thumbnail Ideas Generator helps you create attention-grabbing
+          concepts that can significantly boost your video's click-through rate.
+          By providing diverse and creative thumbnail ideas, we help you:
+        </p>
+        <ul class="list-disc pl-8 space-y-2 text-gray-700">
+          <li>Save time brainstorming thumbnail concepts</li>
+          <li>Increase your video's visibility on YouTube</li>
+          <li>Attract more viewers with eye-catching designs</li>
+          <li>Experiment with different styles and approaches</li>
+          <li>Maintain consistency while keeping your content fresh</li>
+        </ul>
+        <p class="text-gray-700">
+          Remember, a great thumbnail can be the difference between a user
+          scrolling past or clicking on your video. Use these AI-generated ideas
+          as a starting point to create thumbnails that capture attention and
+          drive engagement.
+        </p>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<script define:vars={{ systemPrompt, userPromptTemplate }}>
+  const form = document.getElementById("aiForm");
+  const output = document.getElementById("output");
+  const loadingIndicator = document.getElementById("loadingIndicator");
+  const errorMessage = document.getElementById("errorMessage");
+  const resultList = document.getElementById("resultList");
+
+  function showOutput(ideas) {
+    output.classList.remove("hidden");
+    resultList.innerHTML = ideas
+      .map(
+        (idea, index) =>
+          `<div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition duration-300 mb-6">
+            <h3 class="text-xl font-bold text-blue-600 mb-3">Thumbnail Idea ${index + 1}</h3>
+            ${Object.entries(idea)
+              .map(([key, value]) =>
+                key !== "number"
+                  ? `<div class="mb-2">
+                <span class="font-semibold">${key}:</span> ${value}
+              </div>`
+                  : "",
+              )
+              .join("")}
+          </div>`,
+      )
+      .join("");
+  }
+
+  function showLoading() {
+    output.classList.remove("hidden");
+    loadingIndicator.classList.remove("hidden");
+    resultList.innerHTML = "";
+    errorMessage.classList.add("hidden");
+  }
+
+  function hideLoading() {
+    loadingIndicator.classList.add("hidden");
+  }
+
+  function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.classList.remove("hidden");
+  }
+
+  function parseThumbnailIdeas(content) {
+    const ideas = content.split(/Thumbnail Idea \d+:?/).slice(1);
+    return ideas.map((idea) => {
+      const parts = idea.split("\n").filter((line) => line.trim() !== "");
+      const ideaObject = {};
+      parts.forEach((part) => {
+        const [key, ...value] = part.split(":");
+        if (key && value.length > 0) {
+          ideaObject[key.trim()] = value.join(":").trim();
+        }
+      });
+      return ideaObject;
+    });
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const topic = document.getElementById("userInput").value;
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    showLoading();
+    submitButton.disabled = true;
+
+    const promptWithValues = userPromptTemplate.replace("{topic}", topic);
+
+    try {
+      const response = await fetch("/api/generate-titles/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          topic,
+          systemPrompt,
+          userPromptTemplate: promptWithValues,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.titles && data.titles.length > 0) {
+        const thumbnailIdeas = parseThumbnailIdeas(data.titles.join("\n"));
+        showOutput(thumbnailIdeas);
+      } else if (data.error) {
+        throw new Error(data.error);
+      } else {
+        throw new Error("No thumbnail ideas generated");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      showError(`Error: ${error.message}`);
+    } finally {
+      hideLoading();
+      submitButton.disabled = false;
+    }
+  });
+</script>

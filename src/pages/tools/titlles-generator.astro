@@ -57,7 +57,11 @@ const userPromptTemplate =
   "Create 10 engaging {platform} titles for content about: {topic}. Tone: {tone}. Make them catchy and platform-appropriate. Don't include 'sure' or numbering. Apply the principles and guidelines provided in the system prompt. Please only include the titles and nothing else";
 ---
 
-<Base title="AI Title Generator">
+<Base
+  title="AI Title Generator"
+  meta_title="AI Title Generator"
+  description="Build better titles for your Youtube, TikTok, Twitter or blog articles with this Title Generator AI tool."
+>
   <main class="container mx-auto px-4 py-8 max-w-3xl">
     <h1 class="text-4xl font-bold text-center mb-4">AI Title Generator</h1>
     <p class="text-xl text-center mb-8 text-gray-600">
@@ -202,15 +206,15 @@ const userPromptTemplate =
     resultList.innerHTML = titles
       .map(
         (title, index) =>
-          `<div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition duration-300 mb-4">
-            <div class="flex justify-between items-center">
-              <p class="text-gray-800 text-lg flex-grow mr-4">${title}</p>
+          `<div class="bg-white p-3 sm:p-4 rounded-lg shadow-md hover:shadow-lg transition duration-300 mb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <p class="text-gray-800 text-base sm:text-lg mb-2 sm:mb-0 sm:mr-4 flex-grow">${title}</p>
               <button
-                class="copy-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center"
+                class="copy-btn w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300 flex items-center justify-center text-sm sm:text-base mt-2 sm:mt-0"
                 data-title="${title}"
                 onclick="window.copyToClipboard(this, ${index})"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                   <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
                 </svg>

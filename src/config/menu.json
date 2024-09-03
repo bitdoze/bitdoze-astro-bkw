@@ -44,6 +44,14 @@
         {
           "name": "Title Generator",
           "url": "/tools/titlles-generator/"
+        },
+        {
+          "name": "Thumbnail Ideas",
+          "url": "/tools/thumbnail-ideas/"
+        },
+        {
+          "name": "SEO Data Analysis",
+          "url": "/tools/seo-data-analysis/"
         }
       ]
     },

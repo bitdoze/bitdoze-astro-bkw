@@ -1,0 +1,516 @@
+---
+import Base from "@layouts/Base.astro";
+import JSZip from "jszip";
+import Papa from "papaparse";
+
+export const prerender = false;
+---
+
+<Base
+  title="SEO Data Analysis"
+  meta_title="SEO Data Analysis Tool: Unlock Insights from Google Search Console"
+  description="Transform your Google Search Console data into actionable SEO insights. Analyze top queries, identify opportunities, and optimize your website's performance with our free SEO Data Analysis tool."
+>
+  <main class="container mx-auto px-4 py-8 max-w-4xl">
+    <h1 class="text-4xl font-bold text-center mb-8">SEO Data Analysis</h1>
+
+    <div class="mb-8">
+      <h2 class="text-2xl font-semibold mb-4">Upload Your Data</h2>
+      <form id="uploadForm" class="space-y-4">
+        <div>
+          <label
+            for="fileUpload"
+            class="block text-sm font-medium text-gray-700"
+          >
+            Choose your Google Search Console export zip file
+          </label>
+          <input
+            type="file"
+            id="fileUpload"
+            name="file"
+            accept=".zip"
+            class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+        >
+          Analyze Data
+        </button>
+      </form>
+    </div>
+
+    <div id="loadingIndicator" class="hidden mt-4">
+      <p class="text-center text-indigo-600">
+        Processing your file... Please wait.
+      </p>
+    </div>
+
+    <div id="analysisResults" class="space-y-12 hidden mb-4">
+      <!-- Results will be inserted here -->
+    </div>
+    <div
+      class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl shadow-lg mb-10"
+    >
+      <h2 class="text-2xl font-semibold mb-4 text-indigo-700">
+        Unlock the Power of Your SEO Data
+      </h2>
+      <p class="text-gray-700 mb-4">
+        Welcome to our advanced SEO Data Analysis tool! This powerful utility
+        helps you dive deep into your Google Search Console data, uncovering
+        valuable insights that can supercharge your SEO strategy.
+      </p>
+      <p class="text-gray-700 mb-4">
+        Simply upload your Google Search Console export zip file, and our tool
+        will:
+      </p>
+      <ul class="list-disc list-inside text-gray-700 mb-4 space-y-2">
+        <li>Identify your top-performing queries and pages</li>
+        <li>Highlight keyword opportunities and quick wins</li>
+        <li>Analyze country-specific performance</li>
+        <li>Estimate traffic potential for your keywords</li>
+        <li>Pinpoint pages that need optimization</li>
+      </ul>
+      <p class="text-gray-700 font-semibold">
+        Transform raw data into actionable insights and take your SEO efforts to
+        the next level!
+      </p>
+    </div>
+  </main>
+</Base>
+
+<style>
+  @media (max-width: 640px) {
+    .responsive-table {
+      display: block;
+    }
+    .responsive-table thead {
+      display: none;
+    }
+    .responsive-table tbody {
+      display: block;
+    }
+    .responsive-table tr {
+      display: block;
+      margin-bottom: 1rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+    .responsive-table td {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      text-align: right;
+    }
+    .responsive-table td::before {
+      content: attr(data-label);
+      font-weight: bold;
+      text-align: left;
+      padding-right: 1rem;
+    }
+  }
+</style>
+
+<script>
+  import JSZip from "jszip";
+  import Papa from "papaparse";
+
+  let queriesData, countryData, pageData;
+  const loadingIndicator = document.getElementById("loadingIndicator");
+  const analysisResults = document.getElementById("analysisResults");
+
+  document
+    .getElementById("uploadForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById("fileUpload");
+      const file = fileInput.files[0];
+
+      if (file) {
+        loadingIndicator.classList.remove("hidden");
+        analysisResults.innerHTML = "";
+        analysisResults.classList.add("hidden");
+
+        try {
+          const zip = new JSZip();
+          const zipContents = await zip.loadAsync(file);
+
+          const queriesCsv = zipContents.file("Queries.csv");
+          const countriesCsv = zipContents.file("Countries.csv");
+          const pagesCsv = zipContents.file("Pages.csv");
+
+          if (queriesCsv && countriesCsv && pagesCsv) {
+            queriesData = await parseCSV(queriesCsv);
+            countryData = await parseCSV(countriesCsv);
+            pageData = await parseCSV(pagesCsv);
+            displayResults();
+          } else {
+            throw new Error("Required CSV files not found in the zip archive.");
+          }
+        } catch (error) {
+          console.error("Error processing file:", error);
+          alert(error.message);
+        } finally {
+          loadingIndicator.classList.add("hidden");
+        }
+      }
+    });
+
+  async function parseCSV(file) {
+    const content = await file.async("string");
+    return new Promise((resolve) => {
+      Papa.parse(content, {
+        header: true,
+        complete: (results) => resolve(results.data),
+      });
+    });
+  }
+
+  function displayResults() {
+    analysisResults.classList.remove("hidden");
+    showTopPerforming(queriesData);
+    showOpportunities(queriesData);
+    showQuickWins(queriesData);
+    highlightLowHangingFruits(queriesData);
+    identifyQuestionQueries(queriesData);
+    estimateTrafficPotential(queriesData);
+    showCountryPerformance(countryData);
+    showTopOpportunitiesByCountry(countryData);
+    showTopPagesAnalysis(pageData);
+    showPagesNeedingOptimization(pageData);
+    showLowestTrafficPages(pageData);
+  }
+
+  function createTable(data, headers) {
+    return `
+      <div class="overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="responsive-table w-full text-sm text-left text-gray-500">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+              ${headers
+                .map(
+                  (header) =>
+                    `<th scope="col" class="px-6 py-3">${header}</th>`,
+                )
+                .join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${data
+              .map(
+                (row, index) => `
+              <tr class="${
+                index % 2 === 0 ? "bg-white" : "bg-gray-50"
+              } border-b hover:bg-gray-100">
+                ${headers
+                  .map(
+                    (header) =>
+                      `<td data-label="${header}" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${
+                        row[header] || ""
+                      }</td>`,
+                  )
+                  .join("")}
+              </tr>
+            `,
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function showTopPerforming(data, n = 20) {
+    const sortedData = data
+      .sort((a, b) => parseInt(b.Clicks) - parseInt(a.Clicks))
+      .slice(0, n);
+
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <h2 class="text-2xl font-semibold mb-4">Top ${n} Performing Queries</h2>
+      <p class="mb-4 text-gray-700">
+        These are the top ${n} search queries that have driven the most clicks to your website.
+        They represent your most successful keywords in terms of attracting visitors.
+      </p>
+      ${createTable(sortedData, ["Top queries", "Clicks", "Impressions", "CTR", "Position"])}
+    `;
+    analysisResults.appendChild(container);
+  }
+
+  function showOpportunities(data, minImpressions = 1000, maxPosition = 60) {
+    const opportunities = data
+      .filter(
+        (row) =>
+          parseFloat(row.Position) > maxPosition &&
+          parseInt(row.Impressions) >= minImpressions,
+      )
+      .sort((a, b) => parseInt(b.Impressions) - parseInt(a.Impressions))
+      .slice(0, 20);
+
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <h2 class="text-2xl font-semibold mb-4">Keyword Opportunities (Position > ${maxPosition})</h2>
+      <p class="mb-4 text-gray-700">
+        These keywords are ranking beyond position ${maxPosition} but still receiving at least ${minImpressions} impressions.
+        They represent opportunities to improve your content and potentially gain more traffic by moving up in search rankings.
+      </p>
+      ${createTable(opportunities, ["Top queries", "Position", "Impressions", "Clicks", "CTR"])}
+    `;
+    analysisResults.appendChild(container);
+  }
+
+  function showQuickWins(
+    data,
+    minPosition = 11,
+    maxPosition = 20,
+    minImpressions = 1000,
+  ) {
+    const quickWins = data
+      .filter(
+        (row) =>
+          parseFloat(row.Position) >= minPosition &&
+          parseFloat(row.Position) <= maxPosition &&
+          parseInt(row.Impressions) >= minImpressions,
+      )
+      .sort((a, b) => parseFloat(a.Position) - parseFloat(b.Position))
+      .slice(0, 20);
+
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <h2 class="text-2xl font-semibold mb-4">Quick Wins (Position ${minPosition}-${maxPosition})</h2>
+      <p class="mb-4 text-gray-700">
+        These keywords are ranking between positions ${minPosition} and ${maxPosition}, and receiving at least ${minImpressions} impressions.
+        They are close to the first page or top positions and could be improved with some optimization, potentially leading to quick traffic gains.
+      </p>
+      ${createTable(quickWins, ["Top queries", "Position", "Impressions", "Clicks", "CTR"])}
+    `;
+    analysisResults.appendChild(container);
+  }
+
+  function highlightLowHangingFruits(data) {
+    const lowHangingFruits = data
+      .filter(
+        (row) =>
+          parseFloat(row.Position) <= 3 &&
+          parseFloat(row.CTR.replace("%", "")) / 100 < 0.5,
+      )
+      .sort(
+        (a, b) =>
+          parseFloat(a.CTR.replace("%", "")) -
+          parseFloat(b.CTR.replace("%", "")),
+      )
+      .slice(0, 20);
+
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <h2 class="text-2xl font-semibold mb-4">Low-Hanging Fruits</h2>
+      <p class="mb-4 text-gray-700">
+        These queries are ranking in the top 3 positions but have a low Click-Through Rate (CTR) below 50%.
+        They represent quick wins if optimized, as improving their CTR could significantly increase your traffic without needing to improve rankings.
+      </p>
+      ${createTable(lowHangingFruits, ["Top queries", "Position", "CTR", "Impressions", "Clicks"])}
+    `;
+    analysisResults.appendChild(container);
+  }
+
+  function identifyQuestionQueries(data) {
+    const questionQueries = data
+      .filter((row) => /who|what|where|when|why|how/i.test(row["Top queries"]))
+      .sort((a, b) => parseInt(b.Clicks) - parseInt(a.Clicks))
+      .slice(0, 20);
+
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <h2 class="text-2xl font-semibold mb-4">Question Queries</h2>
+      <p class="mb-4 text-gray-700">
+        These are search queries phrased as questions (starting with who, what, where, when, why, or how).
+        They indicate informational intent and can be great opportunities for creating detailed, high-quality content that directly answers these questions.
+      </p>
+      ${createTable(questionQueries, ["Top queries", "Clicks", "Impressions", "CTR", "Position"])}
+    `;
+    analysisResults.appendChild(container);
+  }
+
+  function estimateTrafficPotential(data) {
+    const top10Data = data.filter((row) => parseFloat(row.Position) <= 10);
+    const top10CTR =
+      top10Data.length > 0
+        ? top10Data.reduce(
+            (sum, row) => sum + parseFloat(row.CTR.replace("%", "")) / 100,
+            0,
+          ) / top10Data.length
+        : data.reduce(
+            (sum, row) => sum + parseFloat(row.CTR.replace("%", "")) / 100,
+            0,
+          ) / data.length;
+
+    data.forEach((row) => {
+      row.PotentialCTR =
+        parseFloat(row.Position) <= 10
+          ? parseFloat(row.CTR.replace("%", "")) / 100
+          : Math.max(parseFloat(row.CTR.replace("%", "")) / 100, top10CTR);
+      row.PotentialClicks = (
+        parseInt(row.Impressions) * row.PotentialCTR
+      ).toFixed(2);
+      row.ClickPotentialIncrease = Math.max(
+        row.PotentialClicks - parseInt(row.Clicks),
+        0,
+      ).toFixed(2);
+    });
+
+    const potentialData = data
+      .filter((row) => parseFloat(row.ClickPotentialIncrease) > 1)
+      .sort(
+        (a, b) =>
+          parseFloat(b.ClickPotentialIncrease) -
+          parseFloat(a.ClickPotentialIncrease),
+      )
+      .slice(0, 20);
+
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <h2 class="text-2xl font-semibold mb-4">Traffic Potential Estimation</h2>
+      <p class="mb-4 text-gray-700">
+        This table shows the potential traffic increase if lower-ranking queries (beyond position 10) could achieve the average CTR of top 10 positions.
+        It's a rough estimate to identify queries with high potential for traffic growth if their rankings improve.
+        PotentialClicks and ClickPotentialIncrease are rounded to 2 decimal places.
+      </p>
+      <p class="mb-4 text-gray-700">Average CTR for top 10 positions: ${(top10CTR * 100).toFixed(2)}%</p>
+      ${createTable(potentialData, ["Top queries", "Position", "Clicks", "PotentialClicks", "ClickPotentialIncrease"])}
+    `;
+    analysisResults.appendChild(container);
+  }
+
+  function showCountryPerformance(data) {
+    const sortedData = data
+      .sort((a, b) => parseInt(b.Clicks) - parseInt(a.Clicks))
+      .slice(0, 20);
+
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <h2 class="text-2xl font-semibold mb-4">Country Performance Dashboard</h2>
+      <p class="mb-4 text-gray-700">
+        This table shows how your website performs across different countries.
+        It can help identify which countries are driving the most traffic to your site and where you might have opportunities for growth or optimization.
+      </p>
+      ${createTable(sortedData, ["Country", "Clicks", "Impressions", "CTR", "Position"])}
+    `;
+    analysisResults.appendChild(container);
+  }
+
+  function showTopOpportunitiesByCountry(data) {
+    const median =
+      data
+        .map((row) => parseFloat(row.CTR.replace("%", "")))
+        .sort((a, b) => a - b)[Math.floor(data.length / 2)] / 100;
+    const opportunities = data
+      .filter((row) => parseFloat(row.CTR.replace("%", "")) / 100 < median)
+      .sort((a, b) => parseInt(b.Impressions) - parseInt(a.Impressions))
+      .slice(0, 20);
+
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <h2 class="text-2xl font-semibold mb-4">Top Opportunities by Country</h2>
+      <p class="mb-4 text-gray-700">
+        These countries have high impressions but below-median CTR, representing opportunities to improve content for these audiences.
+        Focusing on these countries could potentially increase your international traffic.
+      </p>
+      ${createTable(opportunities, ["Country", "Impressions", "Clicks", "CTR", "Position"])}
+    `;
+    analysisResults.appendChild(container);
+  }
+
+  function groupPageData(data) {
+    const groupedData = {};
+    data.forEach((row) => {
+      const mainPage = row["Top pages"].split("#")[0];
+      if (!groupedData[mainPage]) {
+        groupedData[mainPage] = { ...row, "Top pages": mainPage };
+      } else {
+        groupedData[mainPage].Clicks =
+          parseInt(groupedData[mainPage].Clicks) + parseInt(row.Clicks);
+        groupedData[mainPage].Impressions =
+          parseInt(groupedData[mainPage].Impressions) +
+          parseInt(row.Impressions);
+      }
+    });
+
+    // Recalculate CTR and Position
+    Object.values(groupedData).forEach((page) => {
+      page.CTR =
+        ((parseInt(page.Clicks) / parseInt(page.Impressions)) * 100).toFixed(
+          2,
+        ) + "%";
+      // For Position, we'll keep the best (lowest) position
+      page.Position = Math.min(
+        parseFloat(page.Position),
+        data
+          .filter((row) => row["Top pages"].startsWith(page["Top pages"]))
+          .map((row) => parseFloat(row.Position))[0],
+      ).toFixed(2);
+    });
+
+    return Object.values(groupedData);
+  }
+
+  function showTopPagesAnalysis(data) {
+    const groupedData = groupPageData(data);
+    const sortedData = groupedData
+      .sort((a, b) => parseInt(b.Clicks) - parseInt(a.Clicks))
+      .slice(0, 20);
+
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <h2 class="text-2xl font-semibold mb-4">Top Pages Analysis</h2>
+      <p class="mb-4 text-gray-700">
+        This table shows your top-performing pages in terms of organic search traffic.
+        It can help you identify which pages are driving the most traffic to your site and potentially replicate their success.
+      </p>
+      ${createTable(sortedData, ["Top pages", "Clicks", "Impressions", "CTR", "Position"])}
+    `;
+    analysisResults.appendChild(container);
+  }
+
+  function showPagesNeedingOptimization(data) {
+    const groupedData = groupPageData(data);
+    const pagesNeedingOptimization = groupedData
+      .filter(
+        (row) =>
+          parseFloat(row.CTR.replace("%", "")) / 100 < 0.5 &&
+          parseInt(row.Impressions) > 1000,
+      )
+      .sort((a, b) => parseInt(b.Impressions) - parseInt(a.Impressions))
+      .slice(0, 20);
+
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <h2 class="text-2xl font-semibold mb-4">Pages Needing Optimization</h2>
+      <p class="mb-4 text-gray-700">
+        These pages have high impressions (over 1,000) but low CTR (below 50%).
+        They represent opportunities for optimization, as improving their CTR could significantly increase your organic traffic.
+      </p>
+      ${createTable(pagesNeedingOptimization, ["Top pages", "Impressions", "Clicks", "CTR", "Position"])}
+    `;
+    analysisResults.appendChild(container);
+  }
+  function showLowestTrafficPages(data) {
+    const groupedData = groupPageData(data);
+    const sortedData = groupedData
+      .sort((a, b) => parseInt(a.Clicks) - parseInt(b.Clicks))
+      .slice(0, 20);
+
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <h2 class="text-2xl font-semibold mb-4">Top 20 Pages with Lowest Traffic</h2>
+      <p class="mb-4 text-gray-700">
+        These are the pages on your site receiving the least amount of organic search traffic.
+        They might be new pages, pages with potential technical issues, or pages that need content improvement to perform better in search results.
+      </p>
+      ${createTable(sortedData, ["Top pages", "Clicks", "Impressions", "CTR", "Position"])}
+    `;
+    analysisResults.appendChild(container);
+  }
+</script>
