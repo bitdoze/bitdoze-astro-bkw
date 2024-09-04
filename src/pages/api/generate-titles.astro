@@ -39,7 +39,7 @@ if (Astro.request.method === "POST") {
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      max_tokens: 550,
+      max_tokens: 1550,
     });
 
     const content = completion.choices[0]?.message?.content;

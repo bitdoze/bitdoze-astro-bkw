@@ -52,7 +52,6 @@ const { main }: { main: NavigationLink[] } = menu;
       </svg>
     </label>
     <!-- /navbar toggler -->
-
     <ul
       id="nav-menu"
       class="navbar-nav order-3 hidden w-full md:order-1 md:flex md:w-auto"
@@ -61,17 +60,27 @@ const { main }: { main: NavigationLink[] } = menu;
         main.map((menu) => (
           <>
             {menu.hasChildren ? (
-              <li class="nav-item nav-dropdown group relative cursor-pointer">
-                <span class="nav-link inline-flex items-center">
-                  {menu.name}
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
-                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                  </svg>
-                </span>
+              <li class="nav-item nav-dropdown group relative">
+                <div class="flex items-center justify-center md:justify-start">
+                  <a
+                    href={menu.url}
+                    class="nav-link inline-flex items-center justify-center md:justify-start"
+                  >
+                    {menu.name}
+                  </a>
+                  <span class="inline-flex items-center justify-center ml-1 cursor-pointer">
+                    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
+                  </span>
+                </div>
                 <ul class="nav-dropdown-list hidden group-hover:block md:invisible md:absolute md:block md:opacity-0 md:group-hover:visible md:group-hover:opacity-100">
                   {menu.children?.map((child) => (
                     <li class="nav-dropdown-item">
-                      <a href={child.url} class="nav-dropdown-link">
+                      <a
+                        href={child.url}
+                        class="nav-dropdown-link block w-full text-center md:text-left"
+                      >
                         {child.name}
                       </a>
                     </li>
@@ -80,7 +89,10 @@ const { main }: { main: NavigationLink[] } = menu;
               </li>
             ) : (
               <li class="nav-item">
-                <a href={menu.url} class="nav-link block">
+                <a
+                  href={menu.url}
+                  class="nav-link block text-center md:text-left"
+                >
                   {menu.name}
                 </a>
               </li>
@@ -89,6 +101,7 @@ const { main }: { main: NavigationLink[] } = menu;
         ))
       }
     </ul>
+
     <div class="order-1 ml-auto flex md:order-2 md:ml-0">
       <a
         class="mr-2 inline-block cursor-pointer p-2 text-xl text-dark transition hover:text-primary md:mr-0"

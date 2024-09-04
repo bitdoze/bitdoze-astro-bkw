@@ -2,13 +2,16 @@
 import Base from "@layouts/Base.astro";
 import { markdownify } from "@lib/utils/textConverter";
 import { getEntryBySlug } from "astro:content";
+import ToolCard from "@components/aicomponents/ToolCard.astro";
+
 export const prerender = false;
 
 let entry;
-let title = "Tools";
-let description = "Explore our collection of useful tools";
-let meta_title = "Tools | Your Site Name";
-let image = "/images/default-tool-image.jpg"; // Provide a default image path
+let title = "AI Tools";
+let description =
+  "Explore our collection of AI-powered tools to enhance your content creation process";
+let meta_title = "AI Tools | Your Site Name";
+let image = "/images/ai-tools-banner.jpg"; // Provide a default image path
 
 try {
   entry = await getEntryBySlug("pages", "tools");
@@ -21,48 +24,66 @@ try {
 
 const tools = [
   {
-    title: "Meta Tags Generator",
-    description:
-      "Generate meta tags for your website to improve SEO and social media sharing.",
-    link: "/tools/meta-tags-generator",
-  },
-  {
-    title: "HTML Minifier",
-    description:
-      "Minify your HTML code to reduce file size and improve load times.",
-    link: "/tools/html-minifier",
-  },
-  {
     title: "Title Generator",
     description:
       "Create engaging, platform-specific titles for your content using AI.",
-    link: "/tools/titlles-generator",
+    url: "/tools/titlles-generator/",
+    icon: "fa-heading",
   },
-  // Add more tools here as needed
+  {
+    title: "Thumbnail Ideas",
+    description:
+      "Generate eye-catching YouTube thumbnail concepts with AI assistance.",
+    url: "/tools/thumbnail-ideas/",
+    icon: "fa-image",
+  },
+  {
+    title: "YouTube Script Generator",
+    description:
+      "Craft compelling YouTube video scripts with AI-powered suggestions.",
+    url: "/tools/youtube-script-generator/",
+    icon: "fa-video",
+  },
+  {
+    title: "SEO Data Analysis",
+    description:
+      "Analyze your SEO data and get actionable insights to improve your website.",
+    url: "/tools/seo-data-analysis/",
+    icon: "fa-chart-line",
+  },
 ];
 ---
 
 <Base title={meta_title || title} description={description} image={image}>
   <section class="section">
     <div class="container">
-      <h1 set:html={markdownify(title)} class="h2 page-heading mb-10" />
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <h1
+        set:html={markdownify(title)}
+        class="h2 page-heading mb-10 text-center"
+      />
+      <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+        {description}
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
         {
           tools.map((tool) => (
-            <a
-              href={tool.link}
-              class="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-            >
-              <div class="p-6">
-                <h2 class="text-xl font-semibold mb-2 text-gray-800">
-                  {tool.title}
-                </h2>
-                <p class="text-gray-600">{tool.description}</p>
-              </div>
-            </a>
+            <ToolCard
+              url={tool.url}
+              title={tool.title}
+              description={tool.description}
+              icon={tool.icon}
+            />
           ))
         }
       </div>
     </div>
   </section>
 </Base>
+
+<style>
+  .page-heading {
+    background: linear-gradient(to right, #4f46e5, #9333ea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+</style>
