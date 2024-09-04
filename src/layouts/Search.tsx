@@ -3,7 +3,6 @@ import dateFormat from "@lib/utils/dateFormat";
 import { humanize, slugify } from "@lib/utils/textConverter";
 import Fuse from "fuse.js";
 import { useEffect, useRef, useState } from "react";
-import { Icon } from "astro-icon/components";
 
 const { summary_length } = config.settings;
 
@@ -108,17 +107,9 @@ export default function SearchBar({ searchList }: Props) {
 
             <ul className="mt-6 mb-4 flex flex-wrap items-center text-text">
               <li className="mr-5 flex items-center flex-wrap font-medium">
-                <Icon
-                  name="mdi:calendar-edit"
-                  class="mr-1 h-5 w-5 text-gray-600"
-                />
                 <>{dateFormat(item.data.date)}</>
               </li>
               <li className="mr-5 flex items-center flex-wrap">
-                <Icon
-                  name="mdi:folder"
-                  class="mr-1 h-[18px] w-[18px] text-gray-600"
-                />
                 <>
                   <ul>
                     {item.data.categories.map((category: string, i: number) => (
