@@ -38,7 +38,7 @@ A Cloudflare Worker is a serverless function that runs on Cloudflare’s edge ne
 
 ## Why Use CloudFlare Workers and not just Redirect?
 
-Astro is permitting you to have a `_redirects`` file where you can add your details, this will work on Netlify but will not work on CloudFlare Pages as CloudFlare Pages will not permit proxying the request to absolute URLs if you try you will get: 
+Astro is permitting you to have a `_redirects`` file where you can add your details, this will work on Netlify but will not work on CloudFlare Pages as CloudFlare Pages will not permit proxying the request to absolute URLs if you try you will get:
 
 ```sh
 Found invalid redirect lines:
@@ -66,8 +66,6 @@ Go to the ‘Workers & Pages’ section in your Cloudflare account and click on 
 
 <Picture
   src={imag1}
-  widths={[200, 400, 900]}
-  sizes="(max-width: 900px) 100vw, 900px"
   alt="Create Cloudflare Worker"
 />
 
@@ -75,8 +73,6 @@ Go to the ‘Workers & Pages’ section in your Cloudflare account and click on 
 
 <Picture
   src={imag2}
-  widths={[200, 400, 900]}
-  sizes="(max-width: 900px) 100vw, 900px"
   alt="Deploy Cloudflare Worker"
 />
 
@@ -124,21 +120,17 @@ async function postData(event) {
 ```
 
 - **plausible.io** can be modified to use your domain where you have Plausible installed or in case you are using the Plausible one you can let it like that.
-- **dr** and **dra** can be modified if you wish to 
+- **dr** and **dra** can be modified if you wish to
 
 **Edit Worker**
 <Picture
   src={imag3}
-  widths={[200, 400, 900]}
-  sizes="(max-width: 900px) 100vw, 900px"
   alt="Edit Cloudflare Worker"
 />
 **Add Code**
 
 <Picture
   src={imag4}
-  widths={[200, 400, 900]}
-  sizes="(max-width: 900px) 100vw, 900px"
   alt="Add Cloudflare Worker Code"
 />
 
@@ -164,8 +156,6 @@ You will need to use CloudFlare for hosting your domain and if you can run the p
 Below is a picture with my example:
 <Picture
   src={imag5}
-  widths={[200, 400, 900]}
-  sizes="(max-width: 900px) 100vw, 900px"
   alt="Add Cloudflare Worker route"
 />
 
