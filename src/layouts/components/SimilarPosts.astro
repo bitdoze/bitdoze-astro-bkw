@@ -2,7 +2,7 @@
 import { Image } from "astro:assets";
 import dateFormat from "@lib/utils/dateFormat";
 import { humanize, slugify } from "@lib/utils/textConverter";
-import { BiCalendarEdit, BiCategoryAlt, BiHash } from "react-icons/bi/index.js";
+import { Icon } from "astro-icon/components";
 
 const { posts } = Astro.props;
 ---
@@ -42,11 +42,14 @@ const { posts } = Astro.props;
           </h3>
           <ul class="text-sm text-gray-600 space-y-1">
             <li class="flex items-center">
-              <BiCalendarEdit className="mr-1 h-4 w-4 flex-shrink-0" />
+              <Icon
+                name="mdi:calendar-edit"
+                class="mr-1 h-4 w-4 flex-shrink-0"
+              />
               <span>{dateFormat(post.data.date)}</span>
             </li>
             <li class="flex items-center">
-              <BiCategoryAlt className="mr-1 h-4 w-4 flex-shrink-0" />
+              <Icon name="mdi:folder" class="mr-1 h-4 w-4 flex-shrink-0" />
               {post.data.categories.map((category: string, i: number) => (
                 <a
                   href={`/categories/${slugify(category)}/`}
@@ -59,7 +62,7 @@ const { posts } = Astro.props;
             </li>
             {post.data.tags && (
               <li class="flex items-center flex-wrap">
-                <BiHash className="mr-1 h-4 w-4 flex-shrink-0" />
+                <Icon name="mdi:pound" class="mr-1 h-4 w-4 flex-shrink-0" />
                 {post.data.tags.map((tag: string, i: number) => (
                   <a
                     href={`/tags/${slugify(tag)}/`}

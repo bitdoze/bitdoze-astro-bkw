@@ -3,7 +3,7 @@ import Base from "@layouts/Base.astro";
 import { getTaxonomy } from "@lib/taxonomyParser.astro";
 import { humanize } from "@lib/utils/textConverter";
 
-import { FaHashtag } from "react-icons/fa/index.js";
+import { Icon } from "astro-icon/components";
 
 const tags = await getTaxonomy("posts", "tags");
 ---
@@ -20,7 +20,10 @@ const tags = await getTaxonomy("posts", "tags");
                 href={`/tags/${tag}` + "/"}
                 class="rounded-lg bg-theme-light px-4 py-2 text-dark transition hover:bg-primary hover:text-white flex items-center group"
               >
-                <FaHashtag className="mr-1 text-primary group-hover:text-white transition" />
+                <Icon
+                  name="mdi:pound"
+                  class="mr-1 text-primary group-hover:text-white transition"
+                />
                 <>{humanize(tag || "")}</>
               </a>
             </li>

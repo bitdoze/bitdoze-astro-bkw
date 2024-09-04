@@ -5,7 +5,7 @@ import SimilarPosts from "@components/SimilarPosts.astro";
 import { getSinglePage } from "@lib/contentParser.astro";
 import dateFormat from "@lib/utils/dateFormat";
 import { humanize, markdownify, slugify } from "@lib/utils/textConverter";
-import { BiCalendarEdit, BiCategoryAlt } from "react-icons/bi/index.js";
+import { Icon } from "astro-icon/components";
 import { type CollectionEntry } from "astro:content";
 import PostHeadings from "./components/table-of-contents/PostHeadings.astro";
 import RightSimilarPosts from "@components/RightSimilarPosts.astro";
@@ -56,8 +56,16 @@ const getSimilarPosts = (
   return shuffledPosts.slice(0, limit);
 };
 
-const similarPosts = getSimilarPosts(post, allPosts, 3);
-const rightsimilarPosts = getSimilarPosts(post, allPosts, 4);
+const similarPosts = getSimilarPosts(
+  post,
+  allPosts as CollectionEntry<"posts">[],
+  3,
+);
+const rightsimilarPosts = getSimilarPosts(
+  post,
+  allPosts as CollectionEntry<"posts">[],
+  4,
+);
 
 const { Content, headings } = await post.render();
 
@@ -115,11 +123,14 @@ const {
             }
           </li>
           <li class="mx-3 flex items-center flex-wrap font-medium">
-            <BiCalendarEdit className="mr-1 h-5 w-5 text-gray-600" />
+            <Icon name="mdi:calendar-edit" class="mr-1 h-5 w-5 text-gray-600" />
             <>{date && dateFormat(date)}</>
           </li>
           <li class="mx-3 flex items-center flex-wrap">
-            <BiCategoryAlt className="mr-1 h-[18px] w-[18px] text-gray-600" />
+            <Icon
+              name="mdi:folder"
+              class="mr-1 h-[18px] w-[18px] text-gray-600"
+            />
             <>
               <ul>
                 {

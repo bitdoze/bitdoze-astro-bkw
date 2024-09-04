@@ -5,22 +5,57 @@ const indexPageLink = currentPage === 2;
 const hasPrevPage = currentPage > 1;
 const hasNextPage = totalPages > currentPage;
 
-let pageList = [];
-for (let i = 1; i <= totalPages; i++) {
-  pageList.push(i);
-}
+const getPageNumbers = () => {
+  const pageNumbers = [];
+  const showEllipsis = totalPages > 7;
+
+  if (showEllipsis) {
+    if (currentPage <= 4) {
+      for (let i = 1; i <= 5; i++) {
+        pageNumbers.push(i);
+      }
+      pageNumbers.push("...");
+      pageNumbers.push(totalPages);
+    } else if (currentPage >= totalPages - 3) {
+      pageNumbers.push(1);
+      pageNumbers.push("...");
+      for (let i = totalPages - 4; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      pageNumbers.push(1);
+      pageNumbers.push("...");
+      for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+        pageNumbers.push(i);
+      }
+      pageNumbers.push("...");
+      pageNumbers.push(totalPages);
+    }
+  } else {
+    for (let i = 1; i <= totalPages; i++) {
+      pageNumbers.push(i);
+    }
+  }
+
+  return pageNumbers;
+};
+
+const pageNumbers = getPageNumbers();
 ---
 
 {
   totalPages > 1 && (
-    <nav class="mb-4 flex justify-center space-x-2 text-center" aria-label="Pagination">
+    <nav
+      class="mb-4 flex justify-center space-x-2 text-center"
+      aria-label="Pagination"
+    >
       {/* previous */}
       {hasPrevPage ? (
         <a
           href={
             indexPageLink
               ? `${section ? "/" + section : "/"}`
-              : `${section ? "/" + section : ""}/page/${currentPage - 1}`
+              : `${section ? "/" + section : ""}/page/${currentPage - 1}/`
           }
           class="border border-primary hover:bg-primary hover:text-white rounded-md h-10 w-10 leading-[36px] font-semibold text-dark flex items-center justify-center transition duration-200"
         >
@@ -58,34 +93,40 @@ for (let i = 1; i <= totalPages; i++) {
         </span>
       )}
 
-      {/* page index */}
-      {pageList.map((pagination, i) =>
-        pagination === currentPage ? (
+      {/* page numbers */}
+      {pageNumbers.map((pageNumber, i) =>
+        pageNumber === "..." ? (
+          <span key={`ellipsis-${i}`} class="px-2 py-1">
+            ...
+          </span>
+        ) : pageNumber === currentPage ? (
           <span
+            key={pageNumber}
             aria-current="page"
             class={`border border-primary bg-primary rounded-md h-10 w-10 leading-[35px] font-semibold text-white`}
           >
-            {pagination}
+            {pageNumber}
           </span>
         ) : (
           <a
+            key={pageNumber}
             href={
-              i === 0
-                ? `${section ? "/" + section : "/"  + "/"}`
-                : `${section ? "/" + section : ""}/page/${pagination  + "/"}`
+              pageNumber === 1
+                ? `${section ? "/" + section + "/" : "/"}`
+                : `${section ? "/" + section : ""}/page/${pageNumber}/`
             }
             aria-current="page"
             class={`border border-primary hover:bg-primary hover:text-white rounded-md h-10 w-10 leading-[36px] font-semibold text-dark flex items-center justify-center transition duration-200`}
           >
-            {pagination}
+            {pageNumber}
           </a>
-        )
+        ),
       )}
 
       {/* next page */}
       {hasNextPage ? (
         <a
-          href={`${section ? "/" + section : ""}/page/${currentPage + 1}` + "/"}
+          href={`${section ? "/" + section : ""}/page/${currentPage + 1}/`}
           class="border border-primary hover:bg-primary hover:text-white rounded-md h-10 w-10 leading-[36px] font-semibold text-dark flex items-center justify-center transition duration-200"
         >
           <span class="sr-only">Next</span>

@@ -1,21 +1,26 @@
 ---
-import { Image } from 'astro:assets';
+import { Image } from "astro:assets";
 import config from "@config/config.json";
 import { getSinglePage } from "@lib/contentParser.astro";
 import dateFormat from "@lib/utils/dateFormat";
-import { humanize,slugify } from "@lib/utils/textConverter";
-import { BiCalendarEdit,BiCategoryAlt } from "react-icons/bi/index.js";
+import { humanize, slugify } from "@lib/utils/textConverter";
+import { Icon } from "astro-icon/components";
 const authors = await getSinglePage("authors");
 const { summary_length } = config.settings;
 const { className, posts, fluid } = Astro.props;
 ---
 
-<div class={`row gy-5 gx-4 ${className} ${posts.length == 1 ? "justify-center" : ""} `}>
+<div
+  class={`row gy-5 gx-4 ${className} ${posts.length == 1 ? "justify-center" : ""} `}
+>
   {
     posts.map((post: any, i: number) => (
       <div class={i === 0 && fluid != false ? "col-12" : "col-12 sm:col-6"}>
         {post.data.image && (
-          <a href={`/${post.slug}` + "/"} class="rounded-lg block hover:text-primary overflow-hidden group">
+          <a
+            href={`/${post.slug}` + "/"}
+            class="rounded-lg block hover:text-primary overflow-hidden group"
+          >
             <Image
               class="group-hover:scale-[1.03] transition duration-300 w-full"
               src={post.data.image}
@@ -23,7 +28,6 @@ const { className, posts, fluid } = Astro.props;
               width={i === 0 ? 925 : 445}
               height={i === 0 ? 475 : 230}
               transition:name={`image-${post.slug}`}
-             
             />
           </a>
         )}
@@ -33,7 +37,7 @@ const { className, posts, fluid } = Astro.props;
               .filter((author) =>
                 post.data.authors
                   .map((author: string) => slugify(author))
-                  .includes(slugify(author.data.title))
+                  .includes(slugify(author.data.title)),
               )
               .map((author) => (
                 <a
@@ -54,11 +58,14 @@ const { className, posts, fluid } = Astro.props;
               ))}
           </li>
           <li class="mr-5 flex items-center flex-wrap font-medium">
-            <BiCalendarEdit className="mr-1 h-5 w-5 text-gray-600" />
+            <Icon name="mdi:calendar-edit" class="mr-1 h-5 w-5 text-gray-600" />
             <>{dateFormat(post.data.date)}</>
           </li>
           <li class="mr-5 flex items-center flex-wrap">
-            <BiCategoryAlt className="mr-1 h-[18px] w-[18px] text-gray-600" />
+            <Icon
+              name="mdi:folder"
+              class="mr-1 h-[18px] w-[18px] text-gray-600"
+            />
             <>
               <ul>
                 {post.data.categories.map((category: string, i: number) => (
@@ -67,7 +74,8 @@ const { className, posts, fluid } = Astro.props;
                       href={`/categories/${slugify(category)}` + "/"}
                       class="mr-2 hover:text-primary font-medium"
                     >
-                      {humanize(category)}{i !== post.data.categories.length - 1 && ","}
+                      {humanize(category)}
+                      {i !== post.data.categories.length - 1 && ","}
                     </a>
                   </li>
                 ))}
@@ -76,11 +84,14 @@ const { className, posts, fluid } = Astro.props;
           </li>
         </ul>
         <h3 class="mb-4">
-          <a href={`/${post.slug}` + "/"} class="block hover:text-primary transition duration-300" transition:name={`title-${post.slug}`}>
+          <a
+            href={`/${post.slug}` + "/"}
+            class="block hover:text-primary transition duration-300"
+            transition:name={`title-${post.slug}`}
+          >
             {post.data.title}
           </a>
         </h3>
-  
       </div>
     ))
   }
