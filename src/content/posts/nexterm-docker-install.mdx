@@ -36,6 +36,11 @@ Nexterm boasts a variety of features that cater to the needs of system administr
 
 ## Install NexTerm on Docker
 
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/O4NmTxLXfrE"
+  label="Nexterm install docker"
+/>
+
 Setting up Nexterm on Docker is straightforward, allowing users to get started quickly. Below are the steps to install Nexterm using Docker.
 
 ### 1. Prerequizites
@@ -62,9 +67,9 @@ services:
       - traefik-net
     labels:
       - traefik.enable=true
-      - traefik.http.routers.memos.rule=Host(`nexterm.domain.com`)
-      - traefik.http.routers.memos.entrypoints=https
-      - traefik.http.services.memos.loadbalancer.server.port=6989
+      - traefik.http.routers.nexterm.rule=Host(`nexterm.domain.com`)
+      - traefik.http.routers.nexterm.entrypoints=https
+      - traefik.http.services.nexterm.loadbalancer.server.port=6989
 
 networks:
   traefik-net:
