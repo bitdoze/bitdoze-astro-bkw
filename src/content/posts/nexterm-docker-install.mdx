@@ -1,0 +1,110 @@
+---
+date: 2024-09-05T00:00:00Z
+title: "Combine NexTerm & Docker for Unmatched SSH, VNC & RDP Management"
+description: "Learn how you can install NexTerm on docker with docker-compose and manage easier your SSH, RDP or VNC connections."
+image: "../../assets/images/24/09/nexterm-docker-install.png"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["self-hosted"]
+canonical: "https://www.bitdoze.com/nexterm-docker-install/"
+---
+
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/09/nexterm-interface.png";
+import imag2 from "../../assets/images/24/09/nexterm-add-server.png";
+
+
+[Nexterm](https://nexterm.dev/) is an innovative open-source server management tool designed to simplify the management of SSH, VNC, and RDP connections. It is currently in development and available for preview, offering a modern and user-friendly interface that enhances the server management experience. Nexterm aims to provide a seamless solution for administrators looking to manage multiple server connections efficiently, all while being built on Docker for easy deployment and scalability. The project is actively developed, and users are encouraged to provide feedback to help shape its future features and functionalities.
+
+## NexTerm  Features
+
+Nexterm boasts a variety of features that cater to the needs of system administrators:
+
+- **Multi-Protocol Support**: Nexterm supports SSH, VNC, and RDP protocols, allowing users to manage different types of connections from a single interface.
+
+- **User-Friendly Interface**: The application is designed with an intuitive layout, organizing connections into folders and tabs for easy navigation.
+
+- **Two-Factor Authentication**: To enhance security, Nexterm includes two-factor authentication, ensuring that only authorized users can access server connections.
+
+- **Session Management**: Users can manage their sessions effectively, keeping track of active connections and their statuses.
+
+- **Customizable Snippets**: Nexterm allows users to create and manage command snippets, making it easier to execute frequently used commands quickly. (future planned)
+
+- **Active Development**: The project is in its early stages, with plans for future enhancements, including integration with AI tools and improved synchronization features.
+
+## Install NexTerm on Docker
+
+Setting up Nexterm on Docker is straightforward, allowing users to get started quickly. Below are the steps to install Nexterm using Docker.
+
+### 1. Prerequizites
+
+Before you begin, make sure you have the following prerequisites in place:
+
+- VPS where you can host NexTerm, you can use one from [Hetzner](https://go.bitdoze.com/hetzner) You can use a VPS to have Memos installed but performances will not be that good. In our test we are using a 8 CPUs 16 GB RAM and is bearly moving.
+- Traefic with Docker set up, you can check: [How to Use Traefik as A Reverse Proxy in Docker](https://www.bitdoze.com/traefik-proxy-docker/) or [Traefik FREE Let's Encrypt Wildcard Certificate With CloudFlare Provider](https://www.bitdoze.com/traefik-wildcard-certificate/)
+- Docker and Dockge installed on your server, you can check the [Dockge - Portainer Alternative for Docker Management](https://www.bitdoze.com/dockge-install/) for the full tutorial.
+
+
+### 2. Nexterm Docker Compose File
+
+To deploy Nexterm, you will need a `docker-compose.yml` file. Here’s a sample configuration:
+
+```yaml
+services:
+  nexterm:
+    restart: always
+    volumes:
+      - ./nexterm:/app/data
+    image: germannewsmaker/nexterm:1.0.1-OPEN-PREVIEW
+    networks:
+      - traefik-net
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.memos.rule=Host(`nexterm.domain.com`)
+      - traefik.http.routers.memos.entrypoints=https
+      - traefik.http.services.memos.loadbalancer.server.port=6989
+
+networks:
+  traefik-net:
+    external: true
+```
+
+You can check [NexTerm doc](https://docs.nexterm.dev/preview) to see if something changed in the docker-compose file.
+
+The provided Docker Compose configuration for Nexterm includes the following key elements:
+
+- **Image**: The Nexterm container uses the `germannewsmaker/nexterm:1.0.1-OPEN-PREVIEW` image, which is the current preview version of the Nexterm application.
+
+- **Networks**: The Nexterm container is connected to the `traefik-net` network, which is likely an external network set up for routing purposes.
+
+- **Labels**: The configuration includes several labels for Traefik, a popular reverse proxy and load balancer:
+  - `traefik.enable=true`: Enables Traefik for this service.
+  - `traefik.http.routers.memos.rule=Host(`nexterm.domain.com`)`: Specifies the domain name (`nexterm.domain.com`) for which Traefik should route traffic to this service.
+  - `traefik.http.routers.memos.entrypoints=https`: Configures Traefik to use the HTTPS entry point for this service.
+  - `traefik.http.services.memos.loadbalancer.server.port=6989`: Specifies the port (6989) on which the Nexterm service is listening for incoming traffic.
+
+In summary, this configuration sets up the Nexterm container to use the latest preview image, connects it to a Traefik-managed network, and configures Traefik to route traffic to the Nexterm service using the specified domain name and HTTPS protocol. The Nexterm service is expected to be listening on port 6989 inside the container.
+
+### 3. Start the Container
+
+Once you have your `docker-compose.yml` file ready, you can start the Nexterm container using the following command:
+
+```sh
+docker compose up -d
+```
+
+This command runs Nexterm in detached mode, allowing it to operate in the background.
+
+### 4. Add First Connections to NexTerm
+
+After starting the container, you can access the Nexterm web interface at `https://nexterm.domain.com`. From there, you can begin adding your first connections by entering the necessary details for each server you wish to manage.
+In the beginning you will be prompted to create a user and a password that you will use for login. After you can go and add your SSH, RDP or VNC connections.
+
+<Picture src={imag1} alt="NexTerm UI" />
+<Picture src={imag2} alt="NexTerm Add server" />
+
+## Conclusions
+
+Combining Nexterm with Docker provides a powerful solution for managing server connections through SSH, VNC, and RDP. The ease of installation and the array of features make it an attractive option for system administrators looking for a modern management tool. As Nexterm continues to develop, it promises to evolve into a comprehensive platform that addresses the needs of users in diverse environments. By leveraging Docker, users can enjoy a scalable and efficient infrastructure that enhances their server management capabilities.
