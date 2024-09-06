@@ -258,22 +258,154 @@ Key features:
 
 Docker image: `owncloud/server`
 
+### Filebrowser
+
+[Filebrowser](https://filebrowser.org/) is a lightweight, web-based file manager that allows you to manage files and directories on your server through a clean, easy-to-use interface.
+
+Key features:
+
+- Simple and intuitive web interface
+- File upload and download
+- User management with configurable permissions
+- Customizable look and feel
+
+Docker image: `filebrowser/filebrowser`
+
+For a detailed guide on how to deploy Filebrowser using Docker, check out this tutorial: [How to Deploy Filebrowser with Docker](https://www.bitdoze.com/deploy-filebrowser-docker/)
+
 ### Comparison Table
 
-| Feature               | Nextcloud | Syncthing | Seafile | ownCloud |
-| --------------------- | --------- | --------- | ------- | -------- |
-| File sync             | Yes       | Yes       | Yes     | Yes      |
-| Collaboration tools   | Yes       | No        | Limited | Yes      |
-| Self-hosted           | Yes       | Yes       | Yes     | Yes      |
-| Mobile apps           | Yes       | Yes       | Yes     | Yes      |
-| End-to-end encryption | Yes       | Yes       | Yes     | Yes      |
-| Open-source           | Yes       | Yes       | Yes     | Yes      |
+| Feature               | Nextcloud | Syncthing | Seafile | ownCloud | Filebrowser |
+| --------------------- | --------- | --------- | ------- | -------- | ----------- |
+| File sync             | Yes       | Yes       | Yes     | Yes      | No          |
+| Collaboration tools   | Yes       | No        | Limited | Yes      | No          |
+| Self-hosted           | Yes       | Yes       | Yes     | Yes      | Yes         |
+| Mobile apps           | Yes       | Yes       | Yes     | Yes      | No          |
+| End-to-end encryption | Yes       | Yes       | Yes     | Yes      | No          |
+| Open-source           | Yes       | Yes       | Yes     | Yes      | Yes         |
+| Web-based file manager| Yes       | No        | Yes     | Yes      | Yes         |
 
-These file sharing and sync containers offer a range of options to suit different needs and preferences. Whether you're looking for a comprehensive collaboration platform like Nextcloud or ownCloud, a simple yet powerful sync solution like Syncthing, or a high-performance option like Seafile, there's a Docker container that can meet your requirements.
+These file sharing and sync containers offer a range of options to suit different needs and preferences. Whether you're looking for a comprehensive collaboration platform like Nextcloud or ownCloud, a simple yet powerful sync solution like Syncthing, a high-performance option like Seafile, or a lightweight file manager like Filebrowser, there's a Docker container that can meet your requirements.
 
 By setting up one of these containers on your home server, you can create your own personal cloud storage system, ensuring that your files are always accessible and synchronized across all your devices while maintaining control over your data.
 
 Remember to consider factors such as ease of use, scalability, and specific features that matter to you when choosing the right file sharing and sync solution for your home server setup.
+
+
+## AI Applications Containers
+
+Docker containers offer powerful solutions for running various AI applications on your home server. Let's explore some of the most popular options:
+
+### Ollama with OpenWebUI
+
+[Ollama](https://ollama.ai/) is an open-source project that allows you to run large language models locally. [OpenWebUI](https://github.com/open-webui/open-webui) provides a user-friendly interface for interacting with Ollama.
+
+Key features:
+
+- Run various large language models locally
+- User-friendly web interface
+- Customizable prompts and settings
+- No need for API keys or internet connection for inference
+
+Docker images:
+- `ollama/ollama`
+- `ghcr.io/open-webui/open-webui:main`
+
+For a detailed guide on how to install Ollama with OpenWebUI using Docker, check out this tutorial: [How to Install Ollama with Docker](https://www.bitdoze.com/ollama-docker-install/)
+
+### Flowise
+
+[Flowise](https://flowiseai.com/) is an open-source UI visual tool for building LLM apps, chatbots, and agents with a drag-and-drop interface.
+
+Key features:
+
+- Visual workflow builder
+- Integration with various AI models and tools
+- Customizable components
+- API generation for created flows
+
+Docker image: `flowiseai/flowise`
+
+For a step-by-step installation guide, see: [How to Install Flowise AI](https://www.bitdoze.com/flowiseai-install/)
+
+### Langflow
+
+[Langflow](https://www.langflow.org/) is an GUI for LangChain, designed to provide an easy way to experiment and prototype flows.
+
+Key features:
+
+- Drag-and-drop interface for LangChain components
+- Code export functionality
+- Easy integration with various LLMs and tools
+- Customizable nodes and edges
+
+Docker image: `logspace/langflow`
+
+Learn how to set up Langflow with this guide: [How to Install Langflow with Docker](https://www.bitdoze.com/langflow-docker-install/)
+
+### Langfuse
+
+[Langfuse](https://langfuse.com/) is an open-source observability and analytics solution for LLM applications.
+
+Key features:
+
+- Tracing and logging for LLM interactions
+- Performance monitoring and analytics
+- Integration with popular LLM frameworks
+- Customizable dashboards
+
+Docker image: `langfuse/langfuse`
+
+For installation instructions, check out: [How to Install Langfuse with Docker](https://www.bitdoze.com/langfuse-docker-install/)
+
+### LiteLLM
+
+[LiteLLM](https://github.com/BerriAI/litellm) is a lightweight package to standardize inputs and outputs across LLM providers.
+
+Key features:
+
+- Unified interface for multiple LLM providers
+- Caching and rate limiting
+- Logging and monitoring
+- Easy integration with various AI applications
+
+Docker image: `ghcr.io/berriai/litellm`
+
+For a guide on setting up LiteLLM, see: [How to Install LiteLLM with Docker](https://www.bitdoze.com/litellm-docker-install/)
+
+### Comparison Table
+
+| Feature | Ollama + OpenWebUI | Flowise | Langflow | Langfuse | LiteLLM |
+|---------|-------------------|---------|----------|----------|---------|
+| Primary Function | Local LLM Inference | LLM App Builder | LangChain GUI | LLM Observability | LLM Standardization |
+| User Interface | Web-based | Web-based | Web-based | Web-based | API |
+| Local Models | Yes | No | No | N/A | Depends on setup |
+| Visualization | Basic chat | Flow diagram | Flow diagram | Analytics dashboards | N/A |
+| Extensibility | Limited | High | High | High | High |
+
+These AI application containers can work together to create a powerful ecosystem for developing, running, and monitoring AI applications:
+
+1. Use Ollama with OpenWebUI for running and interacting with local language models.
+2. Implement Flowise or Langflow for building complex LLM applications with a visual interface.
+3. Set up Langfuse to monitor and analyze the performance of your LLM applications.
+4. Utilize LiteLLM to standardize interactions with various LLM providers and simplify your codebase.
+
+By combining these containers, you can create a robust AI development and deployment environment that:
+
+- Allows for local LLM inference without relying on external APIs
+- Provides tools for rapid prototyping and development of LLM applications
+- Offers monitoring and analytics capabilities for optimizing your AI systems
+- Simplifies integration with multiple LLM providers
+
+Remember to consider the following when setting up your AI application environment:
+
+- Ensure you have sufficient computational resources, especially for running local LLM models
+- Implement proper security measures, especially if exposing services to the internet
+- Regularly update your containers to benefit from the latest features and security patches
+- Be mindful of licensing and usage terms, especially when using commercial LLM models
+
+With these Docker containers, you can build a powerful, flexible, and efficient AI application environment on your home server, enabling you to explore and leverage the latest advancements in language models and AI technologies.
+
 
 ## Home Automation Containers
 
@@ -432,15 +564,30 @@ Key features:
 
 Docker image: `portainer/portainer-ce`
 
+### Dockge
+
+[Dockge](https://github.com/louislam/dockge) is a simple, lightweight, and powerful Docker compose stack manager and UI.
+
+Key features:
+
+- User-friendly web interface for managing Docker compose stacks
+- Easy deployment and management of Docker containers
+- Built-in code editor for compose files
+- Support for environment variables and secrets
+
+Docker image: `louislam/dockge`
+
+For a detailed guide on how to install and set up Dockge, check out this tutorial: [How to Install Dockge](https://www.bitdoze.com/dockge-install/)
+
 ### Comparison Table
 
-| Feature            | Pi-hole     | Unbound      | Traefik       | Nginx Proxy Manager | Portainer         |
-| ------------------ | ----------- | ------------ | ------------- | ------------------- | ----------------- |
-| Primary Function   | Ad Blocking | DNS Resolver | Reverse Proxy | Reverse Proxy       | Docker Management |
-| User Interface     | Web-based   | Command-line | Web-based     | Web-based           | Web-based         |
-| SSL Management     | No          | No           | Yes           | Yes                 | No                |
-| Docker Integration | N/A         | N/A          | Yes           | Yes                 | Yes               |
-| Ease of Use        | High        | Medium       | Medium        | High                | High              |
+| Feature            | Pi-hole     | Unbound      | Traefik       | Nginx Proxy Manager | Portainer         | Dockge                   |
+| ------------------ | ----------- | ------------ | ------------- | ------------------- | ----------------- | ------------------------ |
+| Primary Function   | Ad Blocking | DNS Resolver | Reverse Proxy | Reverse Proxy       | Docker Management | Docker Compose Management|
+| User Interface     | Web-based   | Command-line | Web-based     | Web-based           | Web-based         | Web-based                |
+| SSL Management     | No          | No           | Yes           | Yes                 | No                | No                       |
+| Docker Integration | N/A         | N/A          | Yes           | Yes                 | Yes               | Yes                      |
+| Ease of Use        | High        | Medium       | Medium        | High                | High              | High                     |
 
 These network management containers can work together to create a powerful and secure home network setup:
 
@@ -448,13 +595,14 @@ These network management containers can work together to create a powerful and s
 2. Implement Unbound as a recursive DNS resolver for improved privacy and security.
 3. Set up Traefik or Nginx Proxy Manager to handle reverse proxy and SSL termination for your services.
 4. Use Portainer to manage your Docker containers and images easily.
+5. Implement Dockge for simplified management of Docker compose stacks.
 
 By combining these containers, you can create a robust network management system that:
 
 - Blocks ads and unwanted content across all devices on your network
 - Improves DNS resolution speed and security
 - Provides easy access to your self-hosted services with automatic SSL management
-- Simplifies Docker container management
+- Simplifies Docker container and stack management
 
 Remember to secure your network management setup by:
 
@@ -711,19 +859,36 @@ Key features:
 
 Docker image: `wekanteam/wekan`
 
+### Docmost
+
+[Docmost](https://docmost.com/) is a self-hosted, open-source knowledge base and documentation platform that helps teams organize and share information efficiently.
+
+Key features:
+
+- Markdown and WYSIWYG editor support
+- Version history and document comparison
+- Full-text search
+- User and group management
+- Custom branding options
+
+Docker image: `docmost/docmost`
+
+For a detailed guide on how to install Docmost using Docker, check out this tutorial: [How to Install Docmost with Docker](https://www.bitdoze.com/docmost-docker-install/)
+
 ### Comparison Table
 
-| Feature          | Bookstack | Joplin      | Kanboard           | Wekan             |
-| ---------------- | --------- | ----------- | ------------------ | ----------------- |
-| Primary Function | Wiki      | Note-taking | Project Management | Kanban Board      |
-| Collaboration    | Yes       | Limited     | Yes                | Yes               |
-| Encryption       | No        | Yes         | No                 | No                |
-| Mobile App       | No        | Yes         | No                 | Yes (third-party) |
-| Markdown Support | Yes       | Yes         | Limited            | Yes               |
+| Feature          | Bookstack | Joplin      | Kanboard           | Wekan             | Docmost           |
+| ---------------- | --------- | ----------- | ------------------ | ----------------- | ----------------- |
+| Primary Function | Wiki      | Note-taking | Project Management | Kanban Board      | Knowledge Base    |
+| Collaboration    | Yes       | Limited     | Yes                | Yes               | Yes               |
+| Encryption       | No        | Yes         | No                 | No                | No                |
+| Mobile App       | No        | Yes         | No                 | Yes (third-party) | No                |
+| Markdown Support | Yes       | Yes         | Limited            | Yes               | Yes               |
+| Version History  | No        | Yes         | No                 | No                | Yes               |
 
 These productivity containers can work together to create a comprehensive system for managing information, tasks, and projects:
 
-1. Use Bookstack as your central knowledge base and documentation system.
+1. Use Bookstack or Docmost as your central knowledge base and documentation system.
 2. Implement Joplin for personal note-taking and information gathering.
 3. Set up Kanboard or Wekan (or both) for project management and task tracking.
 
@@ -732,6 +897,7 @@ By combining these containers, you can create a robust productivity system that:
 - Centralizes your team's knowledge and documentation
 - Provides a secure platform for personal note-taking and information management
 - Offers visual project management tools for better task organization and collaboration
+- Enables efficient information sharing and collaboration within your team
 
 Remember to consider the following when setting up your productivity solution:
 
