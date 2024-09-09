@@ -1,0 +1,121 @@
+---
+date: 2024-09-09T00:00:00Z
+title: "Sink Install: Free Self Hosted Link Shortener"
+description: "Learn how to deploy Sink and open source link shortener with analytics."
+image: "../../assets/images/24/09/sink-install.jpeg"
+categories: ["tools"]
+authors: ["Dragos"]
+tags: ["self-hosted"]
+canonical: "https://www.bitdoze.com/sink-install/"
+---
+
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import Button from "../../layouts/components/widgets/Button.astro";
+import { Picture } from "astro:assets";
+import img1 from "../../assets/images/24/09/ai-analytics.png";
+import img2 from "../../assets/images/24/09/sink-ui.png";
+
+
+
+In the digital age, link shorteners have become essential tools for managing and sharing URLs efficiently. [Sink](https://github.com/ccbikai/Sink) stands out as a powerful, self-hosted solution that offers not just basic link shortening, but a suite of advanced features. This article will guide you through Sink's capabilities, installation [process](https://link.bitdoze.com/chatgpt), and practical applications, demonstrating why it's an excellent choice.
+
+
+## What is Sink?
+
+Sink is an open-source, self-hosted link shortener that operates entirely on [Cloudflare's](https://www.cloudflare.com/) infrastructure. It combines simplicity with powerful features, making it an attractive option for those who want control over their link management while benefiting from cloud-based performance and reliability.
+
+Sink can be deployed for free as CloudFlare free tier has more then enough to sustain Sink.
+
+
+## Key Features
+
+1. **Efficient URL Shortening**:
+   - Compress long URLs into concise, shareable links.
+   - Ideal for social media posts, email campaigns, and print materials.
+
+2. **Comprehensive Analytics**:
+   - Track click-through rates, geographic data, and referral sources.
+   - Gain insights into audience behavior and campaign performance.
+
+3. **Customizable Slugs**:
+   - Create branded, memorable short links (e.g., yourdomain.com/summer-sale).
+   - Improve link recognition and trust among users.
+
+4. **AI-Powered Slug Generation**:
+   - Leverage artificial intelligence to create relevant, catchy slugs automatically.
+   - Save time on manual link customization.
+
+5. **Link Expiration**:
+   - Set time limits on shortened links for temporary campaigns or time-sensitive content.
+   - Enhance security and control over shared information.
+
+6. **Serverless Architecture**:
+   - Benefit from Cloudflare Workers for scalability and low-latency performance.
+   - Eliminate the need for traditional server management.
+
+7. **Privacy-Focused**:
+   - Self-host your link data, ensuring compliance with data protection regulations.
+   - Maintain full control over your link information and analytics.
+
+## Technologies Powering Sink
+
+Sink leverages a modern tech stack to deliver its features:
+
+- **Nuxt.js**: A powerful Vue.js framework for building efficient and scalable web applications.
+- **Cloudflare Workers KV**: A global, low-latency key-value data store for link information.
+- **Cloudflare Workers Analytics Engine**: Provides real-time analytics without additional infrastructure.
+- **Shadcn-vue**: A collection of reusable UI components for rapid development.
+- **Tailwind CSS**: A utility-first CSS framework for creating custom designs quickly.
+
+## Detailed Installation Process
+
+Follow these steps to set up your own instance of Sink:
+
+1. **Fork the Repository**:
+   - Visit the [Sink GitHub repository](https://github.com/ccbikai/Sink) and create your own fork.
+   - This allows you to manage your own version and potentially contribute back to the project.
+
+2. **Set Up Cloudflare Pages**:
+   - Log into your Cloudflare account and navigate to the Pages section.
+   - Click "Create a project" and select "Connect to Git".
+
+3. **Configure Your Project**:
+   - Choose your forked Sink repository.
+   - Select the Nuxt.js build preset for optimal configuration.
+
+4. **Environment Variable Setup**:
+   - Set `NUXT_SITE_TOKEN` to a secure string (minimum 8 characters) for admin access.
+   - Locate your `NUXT_CF_ACCOUNT_ID` in your Cloudflare account settings.
+   - Generate a Cloudflare API token with `Account.Account Analytics` permissions at minimum in Profile - Settings.
+   - Add NUXT_CF_API_TOKEN these as environment variables in your Cloudflare Pages project settings.
+
+5. **Deploy Your Project**:
+   - After setting up the environment variables, initiate the deployment process.
+   - Cloudflare will build and deploy your Sink instance.
+
+6. **Advanced Configuration in Settings -> Function** :
+   - Bind a KV namespace to your project for enhanced data storage capabilities, use `KV` variable.
+   - Enable the Workers AI Catalog for AI-powered slug generation, add `AI` variable name.
+   - Activate Cloudflare Analytics Engine beta for more detailed analytics with `ANALYTICS` variable with `sink` dataset.
+
+   <Picture src={img1} alt="Settings" />
+
+
+7. **Final Deployment**:
+   - After making any additional configurations, redeploy your project to apply changes.
+
+8. **Add Your ClaudFlare Domain**
+    - you can go and add a custom domain to your project so the links to go under your domain.
+
+9. **Access Sink UI**
+   - after you can  go and access the UI with the password set in `NUXT_SITE_TOKEN`, you can start adding your links and see if everything is working.
+   <Picture src={img2} alt="sink ui" />
+
+
+## Conclusion
+
+Sink offers a robust, feature-rich solution for those looking to self-host a link shortener with advanced capabilities. Its integration with Cloudflare ensures high performance, scalability, and security without the complexities of traditional server management. Whether you're a small business owner, a marketing professional, or an individual looking for more control over your links, Sink provides the tools you need to manage and analyze your shortened URLs effectively.
+
+By following this guide and exploring Sink's features, you can create a powerful link management system tailored to your specific needs. As an open-source project, Sink also welcomes contributions, allowing the community to shape its future development and features.
+
+For more detailed information, troubleshooting tips, and the latest updates, visit the [Sink GitHub repository](https://github.com/ccbikai/Sink) and join the community of users and developers leveraging this powerful tool.
