@@ -66,9 +66,9 @@ Below is the code you should use with the explination:
 ```html
 <style>
   :root {
-    --primary-color: rgba(0, 112, 15, 0.58); /* Semi-transparent background */
-    --secondary-color: #fff;
-    --font-size-base: 16px;
+    --primary-color-ha: rgba(0, 112, 15, 0.58); /* Semi-transparent background */
+    --secondary-color-ha: #fff;
+    --font-size-base-ha: 16px;
     --floating-hamburger-size: 50px;
     --floating-font: inherit; /* Add your preferred font here */
   }
@@ -80,7 +80,7 @@ Below is the code you should use with the explination:
   }
 
   body {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-base-ha);
     font-family: var(--floating-font);
   }
 
@@ -91,7 +91,7 @@ Below is the code you should use with the explination:
     right: 20px;
     width: var(--floating-hamburger-size);
     height: var(--floating-hamburger-size);
-    background-color: var(--primary-color);
+    background-color: var(--primary-color-ha);
     border-radius: 50%;
     display: flex;
     flex-direction: column;
@@ -104,7 +104,7 @@ Below is the code you should use with the explination:
   .floating-hamburger .floating-bar {
     width: 30px;
     height: 3px;
-    background-color: var(--secondary-color);
+    background-color: var(--secondary-color-ha);
     margin: 3px 0;
     transition: 0.4s;
   }
@@ -119,7 +119,7 @@ Below is the code you should use with the explination:
     position: fixed;
     bottom: calc(var(--floating-hamburger-size) + 30px);
     right: 20px;
-    background-color: var(--primary-color);
+    background-color: var(--primary-color-ha);
     padding: 20px;
     border-radius: 10px;
     transform: scale(0);
@@ -142,7 +142,7 @@ Below is the code you should use with the explination:
   }
 
   .floating-menu li a {
-    color: var(--secondary-color);
+    color: var(--secondary-color-ha);
     text-decoration: none;
     font-size: 1em;
     transition: font-size 0.3s ease;
@@ -158,7 +158,7 @@ Below is the code you should use with the explination:
     right: 10px;
     background: none;
     border: none;
-    color: var(--secondary-color);
+    color: var(--secondary-color-ha);
     font-size: 1.2em;
     cursor: pointer;
     font-family: var(--floating-font);
@@ -167,13 +167,13 @@ Below is the code you should use with the explination:
   /* Responsive Text Scaling */
   @media (max-width: 768px) {
     body {
-      font-size: calc(var(--font-size-base) * 0.9);
+      font-size: calc(var(--font-size-base-ha) * 0.9);
     }
   }
 
   @media (max-width: 480px) {
     body {
-      font-size: calc(var(--font-size-base) * 0.8);
+      font-size: calc(var(--font-size-base-ha) * 0.8);
     }
   }
 </style>
@@ -211,19 +211,19 @@ Below is the code you should use with the explination:
 
 Below are the details so you can understand what needs tp be changed:
 
-1. `--primary-color: rgba(0, 112, 15, 0.58);`
+1. `--primary-color-ha: rgba(0, 112, 15, 0.58);`
 
    - This sets the primary color to a semi-transparent green.
    - The `rgba()` function allows for color definition with alpha transparency.
    - The values are: Red (0), Green (112), Blue (15), and Alpha (0.58 or 58% opaque).
    - you can use [https://rgbacolorpicker.com/](https://rgbacolorpicker.com/) to choose your color.
 
-2. `--secondary-color: #fff;`
+2. `--secondary-color-ha: #fff;`
 
    - This sets the secondary color to white.
    - `#fff` is a shorthand hexadecimal color code for white.
 
-3. `--font-size-base: 16px;`
+3. `--font-size-base-ha: 16px;`
 
    - This establishes the base font size for the document as 16 pixels.
 

@@ -57,7 +57,8 @@ Below is the code that we are going to use to create the responsive navbar and m
 ```html
 <style>
   :root {
-    /*--main-font: Arial, sans-serif;*/
+    --mbm-main-font: inherit;
+    --mbm-font-size-base: 18px;
     --primary-color: #200eed;
     --secondary-color: #fff;
   }
@@ -77,7 +78,8 @@ Below is the code that we are going to use to create the responsive navbar and m
     align-items: center; /* Changed: Align items to the center vertically */
     justify-content: flex-end; /* Changed: Align items to the start (left) */
     align-content: flex-end; /* Not strictly necessary for this change */
-    /*-font-family: var(--main-font);*/
+    font-family: var(--mbm-main-font);
+    font-size: var(--mbm-font-size-base);
   }
 
   .menu {
@@ -218,22 +220,46 @@ Below is the code that we are going to use to create the responsive navbar and m
 
 **Code Explanation**
 
-- The `:root` selector defines CSS variables for font, primary color, and secondary color. `--primary-color` holds the color for your menu items and your hamburger menu.
-  `--secondary-color` holds the color for the mobile drop-down. You can change the with what color you want.
-- the `--main-font` will have the font that will be used by menu, you can add what font you are using in Carrd for your page, you can fetch it with Inspect Element in your browser. The video has the details.
-- the `ul` elements in `<nav>` is holding the items that will be displayed on the menu you can change the `href="#"` and add the exact section where the menu should go and the Text is the name that will be displayed.
-  effects, the menu has a nice underline effect that is added to be more pleasant to the visitors.
+- The `:root` selector defines CSS variables for font, colors, and base font size. These variables make it easy to customize the appearance of the navbar.
+  - `--mbm-main-font`: Inherits the font from the main Carrd theme.
+  - `--mbm-font-size-base`: Sets the base font size for the menu items.
+  - `--primary-color`: Defines the color for the mobile menu background.
+  - `--secondary-color`: Sets the color for text and icons.
 
-An exemple is below:
+- The `nav` element is styled to align items to the center vertically and to the right horizontally, creating a clean and modern look.
 
-```html
-<li><a href="#">Home</a></li>
-<li><a href="#about">About</a></li>
-<li><a href="#testimonials">Testimonials</a></li>
-<li><a href="#contact">Contact</a></li>
-```
+- The `.menu` class styles the list of navigation items, displaying them in a row on desktop.
 
-If you want to add an extra item just copy an `li` and add the `href` and name.
+- Each menu item (`<a>` inside `<li>`) has a hover effect that creates an underline animation when hovered over.
+
+- The hamburger menu (`.hamburger`) is hidden by default and only appears on mobile screens.
+
+- Media queries for screens smaller than 768px wide:
+  - The hamburger menu becomes visible.
+  - The menu items stack vertically and are hidden by default.
+  - A checkbox (`#menu-toggle`) is used to toggle the mobile menu's visibility.
+  - A close button is added to the mobile menu for better user experience.
+
+- The `<nav>` element contains the menu structure:
+  ```html
+  <ul class="menu">
+    <button class="close-button">X</button>
+    <li><a href="#">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#testimonials">Testimonials</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  ```
+  You can modify the `href` attributes and text content to match your Carrd sections.
+
+- The JavaScript at the end adds functionality to close the mobile menu when the close button is clicked or when a menu item is selected.
+
+To customize the navbar:
+1. Adjust the color variables in the `:root` selector to match your Carrd theme.
+2. Modify the menu items in the `<ul class="menu">` to reflect your site's structure.
+3. If needed, adjust the `--mbm-font-size-base` to change the text size of menu items.
+
+This responsive navbar provides a sleek design for desktop views and a user-friendly mobile menu, enhancing navigation across all device sizes.
 
 The tutorial made on how you can [add a sticky header to carrd](https://www.bitdoze.com/add-stickey-header-carrd/) is working perfectly with this tutorial so you can use both.
 
