@@ -1,4 +1,4 @@
-# Ads.txt v20240910
+# Ads.txt v20240912
 managerdomain=journeymv.com
 contact=sales@journeymv.com
 ownerdomain=bitdoze.com
@@ -109,7 +109,7 @@ start.io,123111883,RESELLER
 supply.colossusssp.com, 710, DIRECT, 6c5b49d96ec1b458
 appnexus.com, 10490, RESELLER, f5ab79cb980f11d1
 yieldmo.com, 3078438591206989879, RESELLER
-aniview.com, 66ba73a97566d9303e011704, DIRECT, 78b21b97965ec3f8
+aniview.com, 66ba73a97566d9303e011704, RESELLER, 78b21b97965ec3f8
 sharethrough.com, zLsEa05k, RESELLER, d53b998a7bd4ecd2
 sharethrough.com, UXUWG46h, RESELLER, d53b998a7bd4ecd2
 pubmatic.com, 161335, RESELLER, 5d62403b186f2ace
