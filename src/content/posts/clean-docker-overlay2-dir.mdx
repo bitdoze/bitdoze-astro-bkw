@@ -64,6 +64,16 @@ This command is a good starting point for cleaning up the `/var/lib/docker/overl
 
 **2. Check `/var/lib/docker/overlay2` and see what image is using the space:**
 
+I have created an util script that can be used to check this you can do that with:
+
+```sh
+curl -sSL https://utils.bitdoze.com/scripts/docker-overlay2-view.sh | bash
+```
+
+All the scripts an be found under: [utils.bitdoze.com](https://utils.bitdoze.com/)
+
+The script is below:
+
 ```sh
 #!/bin/bash
 
@@ -82,7 +92,7 @@ for image_id in $(docker image ls -q); do
   image_info=$(docker inspect "$image_id")
 
   # Get the image name (repository and tag)
-  repo_tag=$(docker inspect --format '{{index .RepoTags 0}}' "$image_id")
+  repo_tag=$(docker inspect --format '{{if .RepoTags}}{{index .RepoTags 0}}{{else}}<none>{{end}}' "$image_id")
 
   # Check all subfolders in the overlay2 directory
   while IFS= read -r -d '' subfolder; do
