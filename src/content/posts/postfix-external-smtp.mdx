@@ -1,0 +1,440 @@
+---
+date: 2024-09-18T00:00:00Z
+title: "Configure Postfix to Send Email Using External SMTP Servers"
+description: "Learn how you can configure Postfix to send emails with an external SMTP provider."
+image: "../../assets/images/24/09/postfix-external-smtp.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["linux"]
+canonical: "https://www.bitdoze.com/postfix-external-smtp/"
+---
+
+Postfix is a powerful and versatile Mail Transfer Agent (MTA) used in many Unix-like operating systems. It serves several key purposes in email infrastructure:
+
+1. **Email Routing:** Postfix efficiently routes emails between servers, ensuring messages reach their intended recipients.
+
+2. **Email Delivery:** It handles the delivery of outgoing emails to their destination mail servers.
+
+3. **SMTP Server:** Postfix acts as an SMTP server, allowing applications and users to send emails through it.
+
+4. **Mail Queuing:** It manages email queues, storing messages temporarily if immediate delivery isn't possible.
+
+5. **Security:** Postfix includes built-in security features to protect against spam, email spoofing, and unauthorized relaying.
+
+6. **Flexibility:** It can be configured to work with various email protocols and can integrate with other email-related services.
+
+7. **Local Mail Delivery:** In addition to routing, Postfix can deliver mail to local mailboxes on the server.
+
+8. **Policy Enforcement:** Administrators can set up rules and policies for email handling, such as size limits or content filtering.
+
+## Why use Postfix with external SMTP service
+
+While Postfix is capable of handling email delivery on its own, there are several compelling reasons to use it in conjunction with an external SMTP service:
+
+1. **Improved Deliverability:** External SMTP providers often have better IP reputations and relationships with major email providers, increasing the chances of your emails reaching the inbox.
+
+2. **Scalability:** SMTP services are designed to handle large volumes of email, allowing your system to scale without significant infrastructure changes.
+
+3. **Reduced Server Load:** Offloading email sending to an external service frees up your server resources for other tasks.
+
+4. **Simplified Maintenance:** You don't need to manage the complexities of maintaining your own mail server, such as handling IP blacklists or configuring SPF, DKIM, and DMARC.
+
+5. **Advanced Features:** Many SMTP services offer additional features like email tracking, analytics, and automated bounce handling.
+
+6. **Better Compliance:** External providers often help ensure compliance with email regulations like GDPR, CAN-SPAM, or CASL.
+
+7. **Cost-Effective:** For many organizations, using an external SMTP service can be more cost-effective than maintaining their own email infrastructure.
+
+8. **Reliability:** Professional SMTP services typically offer high uptime and redundancy, ensuring your emails get sent even if your primary server goes down.
+
+9. **Flexibility:** You can easily switch between different SMTP providers or use multiple providers for different purposes without major reconfiguration.
+
+10. **Focus on Core Business:** By outsourcing email delivery, your team can focus on core business activities rather than email server management.
+
+By combining Postfix with an external SMTP service, you get the best of both worlds: the flexibility and control of Postfix for local email handling, and the reliability and advanced features of a professional email delivery service for outgoing mail.
+
+
+Certainly. Here's a section on SMTP services that can be used with Postfix:
+
+## SMTP services that can be used
+
+When configuring Postfix to use an external SMTP service, there are several reliable options available. Here are some popular SMTP services that work well with Postfix:
+
+### Brevo free SMTP
+
+[Brevo](https://www.brevo.com/) (formerly known as Sendinblue) offers a robust SMTP relay service with a generous free tier:
+
+- Free plan includes 300 emails per day (9,000 per month)
+- Easy integration with Postfix
+- Advanced features like email tracking and templating
+- Good deliverability rates
+- API access for additional functionality
+- Paid plans available for higher volume needs
+
+### Zeptomail from Zoho
+
+[Zeptomail](https://www.zoho.com/zeptomail/), part of the Zoho ecosystem, provides a reliable SMTP service with the following features:
+
+- Free tier offering 10,000 emails
+- Known for excellent deliverability rates
+- Email validation and domain authentication included
+- Detailed analytics and reporting
+- API access for developers
+- Seamless integration with other Zoho products
+- Scalable paid plans for growing businesses
+
+### mail.baby
+
+[mail.baby](https://www.mail.baby/) is a cost-effective SMTP relay service that focuses on simplicity:
+
+- Affordable plans starting from very low monthly fees
+- No free tier, but pricing is budget-friendly
+- Unlimited domains on all plans
+- Simple setup process
+- Good for businesses looking for a straightforward, no-frills solution
+- 24/7 support included
+
+You can check [mail.baby review](https://www.bitdoze.com/mail-baby-review/) for more details.
+
+### Amazon SES (Simple Email Service)
+
+While not mentioned in your original list, Amazon SES is worth considering:
+
+- Very cost-effective, especially for high volume
+- 62,000 free emails per month when sent from Amazon EC2
+- High deliverability and scalability
+- Detailed sending statistics
+- Integration with other AWS services
+- Pay-as-you-go pricing model
+
+### Mailgun
+
+[Mailgu](https://www.mailgun.com/) is another popular option for developers and businesses:
+
+- Free tier includes 5,000 emails for 3 months
+- Powerful API for developers
+- Advanced email validation
+- Excellent documentation and support
+- Flexible pricing based on volume
+
+### SendGrid
+
+[SendGrid](https://sendgrid.com/en-us/free) iswned by Twilio, SendGrid is a widely used SMTP service:
+
+- Free plan includes 100 emails per day
+- Known for high deliverability rates
+- Comprehensive APIs and webhooks
+- Advanced analytics and reporting
+- Email validation and testing tools
+
+When choosing an SMTP service to use with Postfix, consider factors such as your expected email volume, budget, required features, and ease of integration. Many of these services offer free tiers or trial periods, allowing you to test them with your Postfix setup before committing to a paid plan.
+
+
+## Configure Postfix to Send Email Using External SMTP Servers
+
+Configuring Postfix to use an external SMTP server involves modifying several configuration files and settings. Here's a step-by-step guide to manually configure Postfix:
+
+### Manual Configs based on
+
+To manually configure Postfix to use an external SMTP server, you'll need to modify the main Postfix configuration file and create a few additional files. Here's how to do it:
+
+1. Edit the main Postfix configuration file:
+
+   ```sh
+   sudo nano /etc/postfix/main.cf
+   ```
+
+   Add or modify the following lines:
+
+   ```sh
+   relayhost = [smtp.provider.com]:587
+   smtp_sasl_auth_enable = yes
+   smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+   smtp_sasl_security_options = noanonymous
+   smtp_tls_security_level = may
+   header_size_limit = 4096000
+   ```
+
+   Replace `[smtp.provider.com]:587` with your SMTP provider's server and port.
+
+2. Create the SASL password file:
+
+   ```sh
+   sudo nano /etc/postfix/sasl_passwd
+   ```
+
+   Add the following line:
+
+   ```sh
+   [smtp.provider.com]:587 username:password
+   ```
+
+   Replace `smtp.provider.com:587`, `username`, and `password` with your SMTP provider's details.
+
+3. Create the hash database file from the sasl_passwd file:
+
+   ```sh
+   sudo postmap /etc/postfix/sasl_passwd
+   ```
+
+4. Secure the sasl_passwd files:
+
+   ```sh
+   sudo chown root:root /etc/postfix/sasl_passwd /etc/postfix/sasl_passwd.db
+   sudo chmod 0600 /etc/postfix/sasl_passwd /etc/postfix/sasl_passwd.db
+   ```
+
+5. If you want to set a specific sender address for all outgoing emails:
+
+   Create and edit the sender_canonical file:
+
+   ```sh
+   sudo nano /etc/postfix/sender_canonical
+   ```
+
+   Add the following line:
+
+   ```sh
+   /.+/    your_email@example.com
+   ```
+
+   Create the smtp_header_checks file:
+
+   ```sh
+   sudo nano /etc/postfix/smtp_header_checks
+   ```
+
+   Add the following line:
+
+   ```sh
+   /From:.*/ REPLACE From: your_email@example.com
+   ```
+
+   Update the main.cf file to use these new files:
+
+   ```sh
+   sudo postconf -e 'sender_canonical_classes = envelope_sender, header_sender'
+   sudo postconf -e 'sender_canonical_maps = regexp:/etc/postfix/sender_canonical'
+   sudo postconf -e 'smtp_header_checks = regexp:/etc/postfix/smtp_header_checks'
+   ```
+
+6. Set the correct domain in /etc/mailname:
+
+   ```sh
+   sudo echo "yourdomain.com" > /etc/mailname
+   ```
+
+   Replace "yourdomain.com" with your actual domain.
+
+7. Restart Postfix to apply all changes:
+
+   ```sh
+   sudo systemctl restart postfix
+   ```
+
+These manual configurations allow you to set up Postfix with an external SMTP server. However, the process can be error-prone and time-consuming, especially for those not familiar with Postfix configuration. That's why using an automated script, like the one provided earlier, can be beneficial. It simplifies the process, reduces the chance of errors, and saves time.
+
+
+### Using The Postfix Config script:
+
+Using the provided script is a much simpler and less error-prone method to configure Postfix with an external SMTP server. I have created a script that will work on Debian OS like Ubuntu and other scripts on [utils.bitdoze.com](https://utils.bitdoze.com/) you just need to download and run it:
+
+Here's how to use it:
+
+1. Download the script:
+
+   ```sh
+   curl -sSL https://utils.bitdoze.com/scripts/postfix-setup.sh -o postfix-setup.sh
+   ```
+
+   This command downloads the script from the provided URL and saves it as `postfix-setup.sh` in your current directory.
+
+2. Make the script executable (optional, but recommended):
+
+   ```sh
+   chmod +x postfix-setup.sh
+   ```
+
+3. Run the script:
+
+   ```sh
+   bash postfix-setup.sh
+   ```
+
+   Or, if you made it executable:
+
+   ```sh
+   ./postfix-setup.sh
+   ```
+
+
+
+4. Follow the prompts:
+   The script will ask you for various pieces of information. Be prepared to provide:
+   - Your SMTP username
+   - Your SMTP password
+   - The domain you're using with your SMTP provider
+   - A sender email address (optional)
+   - Your Postfix hostname
+   - Your SMTP server address and port
+
+   Output:
+
+```sh
+root@cloud:/var/log# bash postfix-setup.sh
+[2024-09-18 06:04:42] Step 1: Make sure you have already set up your domain with your SMTP provider and added any necessary DNS records (like SPF, DKIM, and CNAME).
+Enter your SMTP Username: bitdoze1@gmail.com
+Enter your SMTP Password:
+Enter the domain you are using with your SMTP provider (e.g. example.com): bitdoze.ro
+Enter the sender email address (optional, press Enter to skip):
+Enter your Postfix hostname (e.g. yourdomain.com): bitdoze.ro
+Enter your SMTP server with port (e.g. [smtp.provider.com]:587): [smtp-relay.brevo.com]:587
+[2024-09-18 06:05:20] Step 2: Updating system and installing Postfix...
+Hit:1 https://download.docker.com/linux/ubuntu jammy InRelease
+Hit:2 https://mirror.hetzner.com/ubuntu/packages noble InRelease
+Hit:3 https://mirror.hetzner.com/ubuntu/packages noble-updates InRelease
+Hit:4 https://mirror.hetzner.com/ubuntu/packages noble-backports InRelease
+Hit:5 https://mirror.hetzner.com/ubuntu/security noble-security InRelease
+Reading package lists... Done
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+mailutils is already the newest version (1:3.17-1.1build3).
+0 upgraded, 0 newly installed, 0 to remove and 37 not upgraded.
+[2024-09-18 06:05:23] Step 3: Configuring Postfix...
+[2024-09-18 06:05:23] Backed up /etc/postfix/main.cf to /etc/postfix/main.cf.bak
+[2024-09-18 06:05:23] Step 4: Creating /etc/postfix/sasl_passwd file with SMTP credentials...
+[2024-09-18 06:05:23] Backed up /etc/postfix/sasl_passwd to /etc/postfix/sasl_passwd.bak
+[2024-09-18 06:05:23] Securing /etc/postfix/sasl_passwd and creating hash...
+[2024-09-18 06:05:25] Step 5: Configuring sender address settings...
+[2024-09-18 06:05:25] Resetting sender address configuration...
+[2024-09-18 06:05:25] Step 6: Configuring /etc/mailname...
+[2024-09-18 06:05:25] Backed up /etc/mailname to /etc/mailname.bak
+[2024-09-18 06:05:25] Step 7: Restarting Postfix...
+postfix/postfix-script: refreshing the Postfix mail system
+[2024-09-18 06:05:27] All done! Postfix has been configured with your SMTP settings.
+```
+
+5. Review the output:
+   The script will show its progress and any actions it takes. It's a good idea to review this output to ensure everything was configured correctly.
+
+6. Test the configuration:
+   After the script completes, it's recommended to test your Postfix configuration by sending a test email.
+
+Using this script offers several advantages:
+
+- Simplicity: You don't need to manually edit configuration files or run multiple commands.
+- Consistency: The script ensures that all necessary configurations are made in the correct way.
+- Time-saving: What could take 30 minutes or more to do manually can be done in just a few minutes with the script.
+- Error reduction: The script reduces the chance of typographical errors or missed steps that can occur with manual configuration.
+
+Remember to run this script with root privileges or using sudo, as it needs to modify system configuration files. Also, always review scripts from the internet before running them to ensure they're safe and do what you expect.
+
+
+### Explain what the script is doing
+
+The provided script automates the process of configuring Postfix to use an external SMTP server. Let's break down its main functions:
+
+1. Logging and Error Handling:
+   - The script defines functions for logging messages and checking if commands succeed.
+   - This ensures that each step is logged and any errors are caught and reported.
+
+2. File Backup:
+   - Before modifying any configuration files, the script creates backups.
+   - This allows for easy rollback if something goes wrong.
+
+3. User Input:
+   - The script prompts the user for necessary information such as SMTP credentials, domain, and server details.
+   - It includes input validation to ensure that critical fields are not left empty.
+
+4. System Update and Package Installation:
+   - Updates the system's package list.
+   - Installs the `mailutils` package if it's not already present.
+
+5. Postfix Configuration:
+   - Modifies the main Postfix configuration file (`/etc/postfix/main.cf`) with the provided SMTP settings.
+   - Sets up SASL authentication for the SMTP server.
+   - Configures TLS settings for secure communication.
+
+6. SMTP Credential Management:
+   - Creates a `sasl_passwd` file with the SMTP server credentials.
+   - Secures this file by setting appropriate permissions.
+   - Generates a hash database from the `sasl_passwd` file for Postfix to use.
+
+7. Sender Address Configuration (Optional):
+   - If a sender email is provided, it sets up sender canonical mapping and header checks.
+   - This ensures all outgoing emails use the specified sender address.
+
+8. Hostname Configuration:
+   - Updates the `/etc/mailname` file with the provided Postfix hostname.
+
+9. Service Restart:
+   - Reloads the Postfix service to apply all the new configurations.
+
+10. Logging Completion:
+    - Logs the successful completion of the setup process.
+
+Throughout the script, there are checks to ensure each step completes successfully. If any step fails, the script will log an error message and exit, preventing partial or incorrect configurations.
+
+This script essentially automates what would otherwise be a manual process involving multiple command-line operations and file edits. It simplifies the setup process, reduces the chance of human error, and ensures a consistent configuration across different systems. By prompting the user for necessary information and handling the technical details internally, it makes the process of configuring Postfix with an external SMTP server accessible even to users who might not be familiar with the intricacies of Postfix configuration.
+
+
+### Testing email
+
+After configuring Postfix to use an external SMTP server, it's crucial to test the setup to ensure emails are being sent correctly. Here are some methods to test your email configuration:
+
+#### Send email
+
+You can use the command line to send test emails. Here are two examples:
+
+1. Basic email send:
+
+```sh
+echo "This is a test message" | mail -s "Test Subject" recipient@example.com
+```
+
+This command sends an email with the subject "Test Subject" and the body "This is a test message" to recipient@example.com.
+
+2. Email send with custom sender:
+
+```sh
+echo "This is another test message" | mail -s "Test Subject 2" -r sender@yourdomain.com recipient@example.com
+```
+
+This command does the same as the previous one, but also specifies a custom sender address (sender@yourdomain.com) using the `-r` flag.
+
+Replace recipient@example.com with an email address you can access to verify receipt of the test emails.
+
+#### Check the mail log
+
+After sending test emails, it's important to check the mail log for any errors or issues. You can do this using the following command:
+
+```sh
+tail -100 /var/log/mail.log
+```
+
+This command displays the last 100 lines of the mail log file. Look for entries related to your test emails. Successful sending usually looks something like this:
+
+```sh
+May 10 15:30:45 hostname postfix/smtp[12345]: 1AB2C3D4E5F: to=<recipient@example.com>, relay=smtp.yourprovider.com[xxx.xxx.xxx.xxx]:587, delay=0.8, delays=0.02/0.00/0.5/0.28, dsn=2.0.0, status=sent (250 2.0.0 OK 1234567890abcdef)
+```
+
+If there are any issues, you'll see error messages in the log. Common issues include authentication failures, connection problems, or relay access denied.
+
+#### Additional Testing Tips:
+
+1. Send emails to different domains: Test sending to Gmail, Outlook, Yahoo, etc., to ensure your emails are not being marked as spam by major providers.
+
+2. Check spam folders: Sometimes, even when emails are sent successfully, they might end up in the recipient's spam folder. Always check there if you don't see the test emails in the inbox.
+
+3. Use online SMTP tests: Websites like https://www.mail-tester.com/ can provide detailed reports on your email deliverability.
+
+4. Monitor your IP reputation: Use services like MXToolbox to check if your IP is on any blacklists.
+
+5. Verify SPF, DKIM, and DMARC: Ensure these email authentication methods are correctly set up for your domain to improve deliverability.
+
+By thoroughly testing your email configuration, you can catch and resolve any issues early, ensuring smooth email delivery for your applications or services using Postfix.
+
+
+## Conclusions
+In conclusion, configuring Postfix to use an external SMTP server is a smart choice for businesses and individuals looking to optimize their email infrastructure. It offers a balance between control and convenience, allowing you to leverage the strengths of both Postfix and professional SMTP services. By following the steps outlined in this guide and regularly maintaining your setup, you can ensure reliable, efficient, and secure email delivery for your organization
