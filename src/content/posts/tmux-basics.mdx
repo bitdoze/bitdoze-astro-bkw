@@ -9,7 +9,9 @@ tags: ["tmux"]
 canonical: "https://www.bitdoze.com/tmux-basics/"
 ---
 
+import { Picture } from "astro:assets";
 import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+import imag1 from "../../assets/images/24/09/tmux_split_view.png";
 
 Looking to install tmux on MacOS and get started with the basics commands for beginners? You're in the right place! [Tmux](https://github.com/tmux/tmux/wiki), short for terminal multiplexer, is a powerful tool that allows you to manage multiple terminal sessions from a single screen, perfect for multitasking and organizing your workflow. In this guide, we'll walk you through the simple steps to install tmux on your Mac and introduce you to some basic commands to help you get started.
 
@@ -165,6 +167,11 @@ These basic session management commands will get you started with tmux. As you b
 Panes are one of tmux's most powerful features, allowing you to divide a single window into multiple sections, each running its own shell or command.
 
 #### Splitting Panes
+
+<Picture
+  src={imag1}
+  alt="Tmux Splitting Panes"
+/>
 
 To split panes, you'll use the tmux prefix (`Ctrl+b`) followed by a specific key:
 
