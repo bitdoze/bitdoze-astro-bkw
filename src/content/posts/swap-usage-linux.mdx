@@ -1,0 +1,293 @@
+---
+date: 2024-10-24T00:00:00Z
+title: "How to Identify Which Processes Are Using Swap Space in Linux"
+description: "Learn how to see which process is using the swap on a linux system like Ubuntu or RedHat"
+image: "../../assets/images/24/10/swap-usage-linux.jpeg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["linux"]
+canonical: "https://www.bitdoze.com/swap-usage-linux/"
+---
+
+
+Understanding and monitoring swap space usage in Linux is crucial for system administrators and power users. Swap space serves as an extension of physical RAM, providing additional memory when the system runs out of physical memory. However, excessive swap usage can severely impact system performance, making it essential to identify and manage processes that heavily utilize swap space.
+
+In this comprehensive guide, we'll explore how to effectively monitor swap usage and identify problematic processes using both built-in tools and a custom script. This knowledge is crucial for [maintaining optimal system performance and troubleshooting Linux systems](https://www.bitdoze.com/linux-commands/).
+
+## Understanding Linux Swap Space
+
+Swap space serves as an extension of physical RAM, crucial for system stability and performance. When physical memory becomes scarce, the Linux kernel moves less frequently accessed memory pages to swap space, preventing system crashes due to memory exhaustion.
+
+### Types of Swap Space
+
+1. **Swap Partition**
+   - Dedicated partition on storage device
+   - Fixed size, better performance
+   - Requires partition management
+
+2. **Swap File**
+   - Regular file in filesystem
+   - Flexible size, easily adjustable
+   - Slightly lower performance
+
+### Recommended Swap Sizes
+
+| System RAM | Recommended Swap Size | Use Case |
+|------------|---------------------|-----------|
+| 2GB or less | 2x RAM | Desktop/Small Server |
+| 2GB to 8GB | Equal to RAM | General Server |
+| 8GB to 64GB | 0.5x RAM | High-Memory Server |
+| 64GB+ | Minimum 4GB | Large Production Server |
+
+[Proper system resource management](https://www.bitdoze.com/monitor-cpu-usage-and-send-email-alerts-in-linux/) is crucial for maintaining optimal performance, particularly when dealing with swap space.
+
+
+## Methods to Check Swap Usage
+
+### Basic Commands
+
+Before diving into process-specific swap usage, let's look at system-wide swap information using basic commands:
+
+```bash
+# Check overall memory and swap usage
+free -h
+
+# Output
+
+root@cloud:~# free -h
+               total        used        free      shared  buff/cache   available
+Mem:           7.6Gi       1.8Gi       679Mi        35Mi       5.5Gi       5.8Gi
+Swap:          8.0Gi       294Mi       7.7Gi
+
+
+# View swap statistics
+swapon --show
+
+# Output
+root@cloud:~# swapon --show
+NAME      TYPE SIZE   USED PRIO
+/swapfile file   8G 294.3M   -2
+
+# Monitor real-time system statistics
+top
+```
+
+### Using the /proc Filesystem
+
+The `/proc` filesystem provides detailed information about running processes and system resources. You can manually check swap usage for a specific process using:
+
+```bash
+grep VmSwap /proc/<PID>/status
+
+# Output
+root@cloud:~# grep VmSwap /proc/1438/status
+VmSwap:      512 kB
+```
+
+**For all processes**
+```sh
+for i in /proc/[0-9]*; do
+  awk '/VmSwap|Name|Pid/{printf $2 " " $3}END{ print ""}' $i/status 2>/dev/null
+done
+```
+
+## Understanding the Swap Monitoring Script
+
+Our custom script provides a more detailed view of per-process swap usage. Let's break down how it works:
+
+```sh
+# Print header
+printf '%12s %15s  %s\n' Pid Swap\ Usage Command
+
+# Sort by swap usage (2nd column)
+sort -nk2 < <(
+   sed -ne '
+       /^Name:/h;
+       /^Pid:/H;
+       /^VmSwap:/!b
+       H
+       x
+       s/^.*:\s*\(.*\)\n.*:\s*\(.*\)\n.*:\s*\(.*\) kB/           \2           \3  \1/;
+       s/^ *\([0-9 ]\{12\}\)\b *\([0-9 ]\{12\}\)\b /\1 \2 kB /p;
+       s/^ *[0-9]\+ \+\([0-9]\+\) .*/+\1/;
+       w /dev/fd/9' /proc/[1-9]*/status 9> >(
+           printf 'Total:%19d Kb\n' $(( $( cat ) ))
+       )
+)
+```
+
+The script performs these key functions:
+- Reads process information from /proc
+- Extracts PID, swap usage, and process name
+- Sorts results by swap usage
+- Provides a total swap usage summary
+
+## Implementing the Solution
+
+To use the script effectively, follow these steps:
+
+1. Create a new file (e.g., `swap-usage.sh`)
+2. Copy the script contents into the file
+3. Make the script executable:
+   ```bash
+   chmod +x swap-usage.sh
+   ```
+4. Run the script:
+   ```bash
+   ./swap-usage.sh
+   ```
+
+The output will look similar to:
+```sh
+Pid      Swap Usage  Command
+1461            0 kB  dumb-init
+1822            0 kB  containerd-shim
+1943            0 kB  containerd-shim
+2113            0 kB  containerd-shim
+2309155            0 kB  tail
+2309985            0 kB  containerd-shim
+2310006            0 kB  npm run start
+2310051            0 kB  sh
+2310052            0 kB  node
+2674878            0 kB  multipathd
+3167786            0 kB  pickup
+3169626            0 kB  systemd
+3169629            0 kB  (sd-pam)
+3169717            0 kB  bash
+3169827            0 kB  sort
+3169828            0 kB  sed
+449122            0 kB  containerd-shim
+449189            0 kB  sh
+449190            0 kB  node
+449449            0 kB  containerd-shim
+458198            0 kB  tail
+458206            0 kB  tail
+458286            0 kB  tail
+459036            0 kB  tail
+459133            0 kB  tail
+459142            0 kB  tail
+463698            0 kB  tail
+463964            0 kB  tail
+504465            0 kB  tail
+504706            0 kB  tail
+562701            0 kB  tail
+564403            0 kB  tail
+712927            0 kB  tail
+779            0 kB  atd
+988208            0 kB  tail
+1694          128 kB  master
+1696          128 kB  qmgr
+756178          128 kB  polkitd
+762          128 kB  cron
+769          128 kB  qemu-ga
+902          128 kB  agetty
+905          128 kB  agetty
+91220          128 kB  agent
+449468          256 kB  traefik
+763          256 kB  dbus-daemon
+813          256 kB  rsyslogd
+  1          384 kB  systemd
+449412          384 kB  docker-proxy
+1362          512 kB  containerd-shim
+1438          512 kB  containerd-shim
+264777          512 kB  systemd-udevd
+449082          512 kB  docker-proxy
+91200          512 kB  containerd-shim
+1295          640 kB  containerd-shim
+1829          640 kB  docker-proxy
+264759          640 kB  systemd-journal
+264766          640 kB  sshd
+264771          640 kB  systemd-timesyn
+449099          640 kB  docker-proxy
+449392          640 kB  docker-proxy
+449403          640 kB  docker-proxy
+449420          640 kB  docker-proxy
+778          640 kB  systemd-logind
+3169622          728 kB  sshd
+1808          768 kB  docker-proxy
+1915          768 kB  docker-proxy
+1926          768 kB  docker-proxy
+264780          768 kB  systemd-network
+2043         1024 kB  redis-server
+524744         1024 kB  postgres
+653062         1024 kB  postgres
+653861         1024 kB  postgres
+654028         1024 kB  postgres
+654029         1024 kB  postgres
+654030         1024 kB  postgres
+654031         1024 kB  postgres
+654032         1024 kB  postgres
+654033         1024 kB  postgres
+2829330         1124 kB  postgres
+2958425         1124 kB  postgres
+3021373         1124 kB  postgres
+3035581         1124 kB  postgres
+3122741         1124 kB  postgres
+3140881         1124 kB  postgres
+1964         1152 kB  postgres
+2300         1152 kB  postgres
+2301         1152 kB  postgres
+2310         1152 kB  postgres
+2311         1152 kB  postgres
+2547         1152 kB  query-engine-de
+2309         1280 kB  postgres
+264770         1408 kB  systemd-resolve
+2155         1792 kB  postgres
+2333         1792 kB  postgres
+2334         1792 kB  postgres
+2340         1792 kB  postgres
+2341         1920 kB  postgres
+2342         2048 kB  postgres
+780         3328 kB  containerd
+875         6528 kB  dockerd
+812         9344 kB  unattended-upgr
+1387        12416 kB  gunicorn
+449142        17536 kB  node
+1588        42496 kB  next-server (v1
+1315        61568 kB  litellm
+1746       112000 kB  gunicorn
+Total:             318256 Kb
+```
+
+## Managing High Swap Usage
+
+When you identify processes with high swap usage, consider these management strategies:
+
+1. **Immediate Actions:**
+   - Kill unnecessary processes
+   - Restart memory-hungry applications
+   - Clear system cache
+
+2. **Long-term Solutions:**
+   - [Increase system RAM](https://www.bitdoze.com/best-mini-pc-home-server/)
+   - Optimize application configurations
+   - Adjust swappiness value
+
+To modify system swappiness:
+```bash
+# Check current swappiness
+cat /proc/sys/vm/swappiness
+
+# Temporarily modify swappiness
+sudo sysctl vm.swappiness=60
+
+# Permanently modify swappiness
+echo 'vm.swappiness=60' | sudo tee -a /etc/sysctl.conf
+```
+
+## Additional Tools and Resources
+
+Besides our custom script, consider these additional tools for monitoring system resources:
+
+1. htop - Interactive process viewer
+2. vmstat - Virtual memory statistics
+3. [Docker stats](https://www.bitdoze.com/docker-commands/) - For containerized environments
+4. sysstat package tools
+
+Remember to regularly monitor your system's performance using these tools and maintain proper [system security practices](https://www.bitdoze.com/secure-ssh-server-linux/).
+
+## Conclusion
+
+Monitoring swap usage is crucial for maintaining optimal system performance. The provided script and methods in this guide will help you identify and manage processes that heavily use swap space. Regular monitoring and proactive management of swap usage will ensure your Linux system runs efficiently and reliably.
+
+For more Linux administration tips and tools, check out our guides on [Linux commands](https://www.bitdoze.com/linux-commands/) and [system monitoring](https://www.bitdoze.com/monitor-cpu-usage-and-send-email-alerts-in-linux/).
