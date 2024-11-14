@@ -58,6 +58,30 @@ Whether you choose a VPS, mini PC, or NAS solution, hosting Docker containers on
 
 Docker containers offer a wide range of applications that can streamline your business operations, improve collaboration, and enhance productivity. Let's explore some of the most useful Docker containers for businesses:
 
+| Category | Application | Complexity | Resource Usage | Key Benefit |
+|----------|-------------|------------|----------------|-------------|
+| Collaboration | NextCloud | Medium | High | Complete office suite replacement |
+| Communication | Zulip | Easy | Medium | Organized team discussions |
+| Support | Zammad | Medium | Medium | Customer service automation |
+| Remote Work | Kasm Workspaces | High | High | Secure remote applications |
+| Monitoring | Uptime Kuma | Easy | Low | Service availability tracking |
+| Database | NocoDB/Baserow | Easy | Medium | No-code database solutions |
+| Finance | Firefly III | Easy | Low | Financial management |
+| Document Management | Paperless-ngx | Medium | Medium | Digital document organization |
+| Automation | n8n/Activepieces | Medium | Medium | Workflow automation |
+| Analytics | Plausible | Easy | Low | Privacy-focused analytics |
+| Marketing | Mautic/ListMonk | Medium | Medium | Marketing automation |
+| Container Management | Dockge/Portainer | Medium | Low | Docker administration |
+| AI Integration | Flowise AI | Medium | High | Custom AI solutions |
+| Version Control | Gitea | Easy | Low | Code repository management |
+| Knowledge Base | Docmost | Easy | Low | Team documentation |
+| Backup | Duplicati | Easy | Low | Data protection |
+| Business Management | ERPNext | High | High | Complete business solution |
+| Feedback | Formbricks | Easy | Low | User feedback collection |
+| Monitoring | beszel | Easy | Low | Resource monitoring |
+| Billing | Invoice Ninja | Easy | Low | Invoice management |
+| Time Tracking | Kimai | Easy | Low | Time management |
+
 ### NextCloud
 
 [NextCloud](https://nextcloud.com/) is a powerful, open-source file sharing and collaboration platform that can serve as a central hub for your business data and communication.
@@ -356,6 +380,43 @@ Kimai is an open-source time tracking application that can help businesses monit
 
 **How it helps small businesses:**
 Accurate time tracking is crucial for project management, billing, and productivity analysis. Kimai provides small businesses with a flexible tool to track employee hours, manage projects, and generate reports. This can lead to more accurate client billing, better resource allocation, and improved project profitability. The insights gained from time tracking can also help businesses identify inefficiencies and optimize their workflows.
+
+
+## Security Considerations for Self-Hosted Containers
+
+When deploying these containers, consider implementing:
+- Reverse proxy with SSL (like [Traefik](https://www.bitdoze.com/traefik-proxy-docker/) or Nginx Proxy Manager)
+- Regular backup solutions
+- Container update automation
+- Network segregation
+- Access control and MFA
+- Monitoring and logging solutions
+
+
+## Getting Started with Docker Containers
+
+Essential tools for managing your container infrastructure:
+1. **Docker Compose** for container orchestration
+2. **Reverse Proxy** (Traefik/Nginx Proxy Manager)
+3. **Backup solution** (Duplicati/Borgbackup)
+4. **Monitoring stack** (Prometheus/Grafana)
+5. **Container management** (Portainer/Dockge)
+
+Basic deployment checklist:
+- [ ] Set up server with adequate resources
+- [ ] Install Docker and Docker Compose
+- [ ] Configure reverse proxy and SSL
+- [ ] Implement backup strategy
+- [ ] Set up monitoring
+- [ ] Document deployment procedures
+
+## Minimum Resource Requirements by Usage Scale
+
+| Scale | Users | CPU | RAM | Storage | Recommended VPS |
+|-------|--------|-----|-----|---------|----------------|
+| Small | 1-10 | 2 cores | 4GB | 50GB | Basic VPS |
+| Medium | 10-50 | 4 cores | 8GB | 100GB | Standard VPS |
+| Large | 50+ | 8+ cores | 16GB+ | 200GB+ | Performance VPS |
 
 ## Conclusions
 
