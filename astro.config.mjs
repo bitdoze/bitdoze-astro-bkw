@@ -14,17 +14,23 @@ import icon from "astro-icon";
 export default defineConfig({
   site: config.site.base_url ? config.site.base_url : "https://www.bitdoze.com",
   base: config.site.base_path ? config.site.base_path : "/",
-  output: "hybrid",
   adapter: node({
     mode: "standalone",
   }),
   server: { host: true },
   trailingSlash: config.site.trailing_slash ? "always" : "never",
-  integrations: [react(), sitemap(), tailwind({
-    config: {
-      applyBaseStyles: false,
-    },
-  }), mdx(), partytown(), icon()],
+  integrations: [
+    react(),
+    sitemap(),
+    tailwind({
+      config: {
+        applyBaseStyles: false,
+      },
+    }),
+    mdx(),
+    partytown(),
+    icon(),
+  ],
   markdown: {
     remarkPlugins: [],
     shikiConfig: {
