@@ -1,0 +1,193 @@
+---
+date: 2025-01-10T00:00:00Z
+title: "How to Find the Largest Files on Your Mac with This Simple Script!"
+description: "Learn how to efficiently find and manage large files on your Mac using a simple Bash script. Free up valuable storage space today!"
+image: "../../assets/images/25/01/find-big-file.jpg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["mac"]
+canonical: "https://www.bitdoze.com/mac-find-big-files/"
+---
+
+
+
+Finding and managing large files on your Mac is crucial for maintaining optimal performance and storage space. Over time, various files can consume significant disk space:
+- Video files and media projects
+- Virtual machine images
+- Large application installers
+- Old backup files
+- Downloaded content
+
+This guide will show you how to efficiently identify and manage large files using a simple Bash script, helping you reclaim valuable storage space on your Mac.
+
+## Common Methods for Finding Large Files
+
+### Built-in Tools
+macOS provides several built-in options for managing storage:
+1. **About This Mac > Storage**: Offers a general overview but lacks detailed file information
+2. **Finder's storage management**: Good for basic cleanup but not comprehensive
+3. **Disk Utility**: Primarily for disk management rather than file size analysis
+
+### Third-Party Applications
+While there are many paid applications available for disk space management, they often:
+- Require installation and regular updates
+- May include unnecessary features
+- Could impact system performance
+- Usually come with a subscription cost
+
+This is why a simple script can be more efficient and cost-effective.
+
+## How to Find the Biggest Files on Your Mac
+
+### Script
+
+The following Bash script is designed to identify and display the largest files on your Mac. It searches through your file system while excluding certain directories that typically contain system files or temporary data.
+
+```sh
+#!/bin/bash
+
+# Default number of files to show if not specified
+if [ -z "$1" ]; then
+    num_files=20
+else
+    num_files=$1
+fi
+
+# Print disk space information
+echo "==========================================="
+echo "DISK SPACE INFORMATION"
+echo "==========================================="
+df -h / | awk 'NR==2 {
+    printf "Total Space: %s\n", $2
+    printf "Used Space:  %s\n", $3
+    printf "Free Space:  %s\n", $4
+    printf "Usage:       %s\n", $5
+}'
+echo "==========================================="
+echo
+
+# Print script start message
+echo "Searching for the $num_files largest files on your Mac..."
+echo "This may take a while depending on your system size..."
+echo "You may be prompted for sudo password to search all directories"
+
+# Create temporary file to store results
+tmp_file=$(mktemp)
+
+# Use sudo to ensure we can access all directories
+# Exclude system directories that might cause issues
+sudo find / \                                                                                                                                                             -not \( -path "/System/*" -prune \) \
+    -not \( -path "/private/var/vm/*" -prune \) \
+    -not \( -path "/Library/Caches/*" -prune \) \
+    -type f -print0 2>/dev/null | \
+    xargs -0 du -h 2>/dev/null | \
+    sort -rh | \
+    head -n "$num_files" > "$tmp_file"
+
+# Clear screen and print results in a formatted way
+echo "==========================================="
+echo "TOP $num_files LARGEST FILES ON YOUR SYSTEM"
+echo "==========================================="
+echo
+echo "Size  |  File Path"
+echo "-------------------------------------------"
+while read -r line; do
+    size=$(echo "$line" | awk '{print $1}')
+    file=$(echo "$line" | cut -f2-)
+    printf "%-6s | %s\n" "$size" "$file"
+done < "$tmp_file"
+echo "==========================================="
+
+# Clean up temporary file
+rm "$tmp_file"
+
+echo "Scan complete!"
+```
+
+### Run the Script
+
+To run this script:
+
+1. **Open Terminal**: You can find Terminal in Applications > Utilities or by searching for it using Spotlight (Cmd + Space).
+
+2. **Create a New Script File**:
+   ```sh
+   nano find_large_files.sh
+   ```
+   Paste the script into the editor and save it by pressing `CTRL + X`, then `Y`, and `Enter`.
+
+3. **Make the Script Executable**:
+   ```sh
+   chmod +x find_large_files.sh
+   ```
+
+4. **Run the Script**:
+   Execute the script by typing:
+   ```sh
+   ./find_large_files.sh [number_of_files]
+   ```
+   Replace `[number_of_files]` with how many of the largest files you want to display (default is 20).
+   In this process you will be promted for a password and will be asked to give various wrights to the terminal to make queries.
+
+5. **View Results**: The script will display disk space information followed by a list of the largest files found on your Mac.
+  ```sh
+  ===========================================
+  DISK SPACE INFORMATION
+  ===========================================
+  Total Space: 460Gi
+  Used Space:  10Gi
+  Free Space:  369Gi
+  Usage:       3%
+  ===========================================
+
+  Searching for the 20 largest files on your Mac...
+  This may take a while depending on your system size...
+  You may be prompted for sudo password to search all directories
+  Password:
+  Sorry, try again.
+  Password:
+  ===========================================
+  TOP 20 LARGEST FILES ON YOUR SYSTEM
+  ===========================================
+
+  Size  |  File Path
+  -------------------------------------------
+  13G    | /Users/dragos/.diffusionbee/downloaded_assets/FLUX.1-schnell_flux_schnell_q5p_NNC_all.sqlite
+  13G    | /Users/dragos/.diffusionbee/downloaded_assets/FLUX.1-dev_flux_dev_q5p_NNC_all.sqlite
+  8.4G   | /Users/dragos/.ollama/models/blobs/sha256-6e41c39f4490a9e8b7a65916425c6ed97f04ed95bab991c4ab6a462ff84d1608
+  1.9G   | /Users/dragos/.ollama/models/blobs/sha256-dde5aa3fc5ffc17176b5e8bdc82f587b24b2678c6c66101bf7da77af9f7ccdff
+  949M   | /Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/MacOS/Resolve
+  929M   | /Volumes/Recovery/434769EB-F939-481F-88EE-514C0C40DFD7/usr/standalone/firmware/arm64eBaseSystem.dmg
+  869M   | /Users/dragos/Desktop/ytvideos/ghostty capcut_h264.mov
+  759M   | /Users/dragos/Documents/ai images tools.mp4
+  687M   | /Users/dragos/Desktop/ytvideos/ai image tools.mp4
+  611M   | /Users/dragos/Desktop/ytvideos/ghostty yt.mp4
+  585M   | /Applications/CapCut.app/Contents/Frameworks/libVECreator.dylib
+  551M   | /Users/dragos/Desktop/ytvideos/1219.mov
+  528M   | /Users/dragos/Documents/ghostty.mp4
+  516M   | /Users/dragos/Desktop/ytvideos/mac mini m4 pro ollama and phi-4.mov
+  514M   | /Applications/DaVinci Resolve/DaVinci Control Panels Setup.app/Contents/Frameworks/libQt6WebEngineCore.6.dylib
+  504M   | /Applications/Docker.app/Contents/Resources/linuxkit/boot.img
+  313M   | /Applications/Logi Tune.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework
+  307M   | /Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Applications/Electron.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework
+  277M   | /Applications/Ollama.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework
+  235M   | /Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/libtorch_cpu.dylib
+  ===========================================
+  Scan complete!
+  ```
+  6. **Take Action**: Now you can choose to delete or keep the files that are very big, is up to you.
+
+
+## Related Terminal Tools
+
+If you're getting comfortable with terminal-based tools, these might enhance your experience:
+
+- [Ghostty Terminal](https://www.bitdoze.com/ghostty-terminal/) - A modern terminal emulator offering enhanced features and better performance
+- [WezTerm](https://www.bitdoze.com/install-wezterm-mac/) - A powerful terminal emulator with extensive customization options
+- [Tmux Basics](https://www.bitdoze.com/tmux-basics/) - Learn to use Tmux for better terminal session management and productivity
+
+## Conclusions
+
+Managing disk space is crucial for maintaining optimal performance on your Mac, especialy with the prices that Apple are charging on storage :).
+
+By utilizing this Bash script, you can efficiently identify large files that may no longer be needed, allowing you to free up valuable storage space.
