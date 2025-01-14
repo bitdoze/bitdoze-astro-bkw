@@ -1,0 +1,104 @@
+---
+date: 2025-01-12T00:00:00Z
+title: "How To Locally Generate AI Images (Flux) on Mac"
+description: "Learn how you can use your own Mac to start and generate images with flux or stable difussion."
+image: "../../assets/images/25/01/easy-generate-local-images.jpg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["mac"]
+canonical: "https://www.bitdoze.com/ai-images-mac/"
+---
+
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+
+The new Mac Mini M4 Pro has brought unprecedented power to desktop computing, making it an excellent choice for AI image generation. In this article, we'll explore how to use the FLUX AI model on your Mac Mini M4 using DiffusionBee, a user-friendly application that simplifies the process of creating AI-generated images.
+
+## What is FLUX?
+
+FLUX is an advanced AI model developed by Black Forest Labs, known for producing high-quality images. It's particularly notable for its ability to generate photorealistic results and has quickly become a favorite among AI art enthusiasts.
+
+## Why Use DiffusionBee?
+
+[DiffusionBee](https://diffusionbee.com/) is often referred to as the fastest and easiest toolbox for running AI apps locally on Mac computers. It provides a straightforward interface for using various AI models, including FLUX, making it an ideal choice for both beginners and experienced users.
+
+DiffusionBee key Features:
+
+1. **Text-to-Image Generation:** DiffusionBee allows users to create stunning images from text prompts, transforming written descriptions into visual art using advanced AI technology.
+
+2. **Offline Functionality:** The application runs entirely on your local machine, ensuring privacy and security by processing all image generation without an internet connection.
+
+3. **Image Editing Tools:** DiffusionBee offers a comprehensive suite of image manipulation features, including image-to-image transformation, inpainting, outpainting, and generative fill.
+
+4. **High-Resolution Outputs:** Users can generate high-quality images with customizable dimensions, supporting resolutions up to 2K for clear, detailed visuals.
+
+5. **Custom Model Training:** DiffusionBee allows users to train their own image generation models using personal datasets, enabling the creation of highly personalized and unique artistic styles.
+
+These features make DiffusionBee a powerful and versatile tool for AI art creation, catering to both beginners and experienced artists alike.
+
+
+<YouTubeEmbed
+  url="https://www.youtube.com/embed/lD9EJGjTKj8"
+  label="How To Locally Generate AI Images (Flux) on Mac"
+/>
+
+
+## Step-by-Step Guide
+
+### 1. Download DiffusionBee
+
+- Visit the [DiffusionBee release page](https://github.com/divamgupta/diffusionbee-stable-diffusion-ui/releases/tag/2.5.3).
+- Download the latest version compatible with your Mac Mini M4 (arm64 architecture).
+- Look for a file named similar to "DiffusionBee_MPS_arm64-2.5.3.dmg" or newer.
+
+### 2. Install DiffusionBee
+
+- Locate the downloaded .dmg file in your Downloads folder.
+- Double-click the file to open it.
+- Drag the DiffusionBee icon into the Applications folder.
+
+### 3. Launch DiffusionBee
+
+- Open your Applications folder and double-click on the DiffusionBee app.
+- If you encounter any security warnings, right-click the app icon, select "Open," and confirm that you want to open the app.
+
+### 4. Access FLUX Models
+
+- In DiffusionBee, scroll down to the bottom of the home screen.
+- Look for the FLUX section.
+- Choose the flux model that you want to use.
+
+
+### 5. Download FLUX Models
+
+- In the FLUX section, you'll see available FLUX models.
+- Click on the download button next to the model you want to use.
+- Wait for the download to complete. The FLUX dev model is approximately 13.6GB.
+
+
+![diffusionbee models](../../assets/images/25/01/diffusionbee-models.jpeg)
+
+### 6. Generate Images with FLUX
+
+- Once the model is downloaded, select it from the model dropdown menu.
+- Enter your prompt in the text field.
+- Adjust any settings as desired (image size, number of steps, etc.).
+- Click the "Generate" button.
+
+![diffusionbee generate image](../../assets/images/25/01/diffusionbee-gen-image.png)
+
+### 7. How Much It Takes
+
+I have the M4 Pro base model with 24GB of RAM. When I am generating one image with Flux Dev and 25 steps at 704x704 it takes about 6 minutes to have an image generated. When I use the default model 30 seconds.
+
+The Flux generation on DiffusionBee is using 7 GB of RAM with 50% off GPU. THe standard one half of the RAM and GPU from Flux.
+
+## Tips for Optimal Performance
+
+- For better results, try using the "FLUX.1-schnell" model on Macs with 16GB RAM.
+- Close unnecessary applications to free up system resources.
+- Experiment with different prompts and settings to achieve the best results.
+- Use fewer steps for faster image generation.
+
+## Conclusion
+
+Generating AI images with FLUX on your Mac Mini M4 is now easier than ever, thanks to DiffusionBee. With just one click, you can create stunning, high-quality images right on your desktop. As you explore this powerful tool, remember that the key to great AI-generated art lies in experimentation and creativity. Enjoy your journey into the world of AI art creation!
