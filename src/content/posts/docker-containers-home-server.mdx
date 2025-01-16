@@ -1,5 +1,5 @@
 ---
-date: 2024-07-12T00:00:00Z
+date: 2025-01-16T00:00:00Z
 title: "Best 100+ Docker Containers for Home Server"
 description: "Check out this list with 100+ docker containers that you can use on your home server."
 image: "../../assets/images/24/07/docker-containers.jpeg"
@@ -9,7 +9,11 @@ tags: ["docker"]
 canonical: "https://www.bitdoze.com/docker-containers-home-server/"
 ---
 
+
+
 [Docker](https://www.docker.com/) is an open-source platform that allows you to develop, ship, and run applications in containers. Containers are lightweight, standalone, and executable packages that include everything needed to run a piece of software, including the code, runtime, system tools, libraries, and settings.
+
+As we move into 2025, Docker containers continue to evolve and provide even more powerful solutions for home servers. The ecosystem has grown significantly, with new applications offering enhanced features, better performance, and improved security. This comprehensive list covers both well-established containers and exciting new additions that are shaping the future of home server deployments.
 
 Key benefits of Docker:
 
@@ -278,17 +282,33 @@ Docker image: `filebrowser/filebrowser`
 
 For a detailed guide on how to deploy Filebrowser using Docker, check out this tutorial: [How to Deploy Filebrowser with Docker](https://www.bitdoze.com/deploy-filebrowser-docker/)
 
+
+### SFTPGo
+[SFTPGo](https://sftpgo.com/) is a fully featured and highly configurable SFTP server with optional HTTP/S, FTP/S and WebDAV support.
+
+Key features:
+
+- Virtual users and folders
+- Bandwidth throttling
+- Public key and password authentication
+- Web admin interface
+- REST API
+- Quota restrictions
+
+Docker image: `drakkan/sftpgo`
+
+
 ### Comparison Table
 
-| Feature               | Nextcloud | Syncthing | Seafile | ownCloud | Filebrowser |
-| --------------------- | --------- | --------- | ------- | -------- | ----------- |
-| File sync             | Yes       | Yes       | Yes     | Yes      | No          |
-| Collaboration tools   | Yes       | No        | Limited | Yes      | No          |
-| Self-hosted           | Yes       | Yes       | Yes     | Yes      | Yes         |
-| Mobile apps           | Yes       | Yes       | Yes     | Yes      | No          |
-| End-to-end encryption | Yes       | Yes       | Yes     | Yes      | No          |
-| Open-source           | Yes       | Yes       | Yes     | Yes      | Yes         |
-| Web-based file manager| Yes       | No        | Yes     | Yes      | Yes         |
+| Feature               | Nextcloud | Syncthing | Seafile | ownCloud | Filebrowser | SFTPGo |
+| --------------------- | --------- | --------- | ------- | -------- | ----------- | ------- |
+| File sync             | Yes       | Yes       | Yes     | Yes      | No          | No      |
+| Collaboration tools   | Yes       | No        | Limited | Yes      | No          | No      |
+| Self-hosted           | Yes       | Yes       | Yes     | Yes      | Yes         | Yes     |
+| Mobile apps           | Yes       | Yes       | Yes     | Yes      | No          | No      |
+| End-to-end encryption | Yes       | Yes       | Yes     | Yes      | No          | Yes     |
+| Open-source           | Yes       | Yes       | Yes     | Yes      | Yes         | Yes     |
+| Web-based file manager| Yes       | No        | Yes     | Yes      | Yes         | Yes     |
 
 These file sharing and sync containers offer a range of options to suit different needs and preferences. Whether you're looking for a comprehensive collaboration platform like Nextcloud or ownCloud, a simple yet powerful sync solution like Syncthing, a high-performance option like Seafile, or a lightweight file manager like Filebrowser, there's a Docker container that can meet your requirements.
 
@@ -686,6 +706,26 @@ Key features:
 - Extensible through plugins
 
 Docker image: `netdata/netdata`
+
+
+### Beszel
+
+[Beszel](https://beszel.dev/) is a lightweight, modern monitoring solution designed for small to medium-sized deployments.
+
+Key features:
+
+- Real-time server metrics monitoring
+- Notifications
+- Docker container statistics
+- Custom notification channels
+- Low resource footprint
+- Simple deployment process
+- Public key authentication
+- Multi-server support
+
+Docker image: `henrygd/beszel`
+
+> For more details on server monitoring you can check: [How To Monitor Server and Docker Resources:CPU,Memory...](https://www.bitdoze.com/sever-monitoring/)
 
 ### Comparison Table
 
@@ -1354,15 +1394,31 @@ Key features:
 
 Docker image: `linuxserver/piwigo`
 
+### Immich
+
+[Immich](https://github.com/immich-app/immich) is a high-performance self-hosted photo and video backup solution.
+
+Key features:
+
+- Real-time backup from mobile devices
+- Face recognition and detection
+- Location-based organization
+- Support for RAW photos
+- Built-in map view
+- Shared albums and user management
+
+Docker image: `ghcr.io/immich-app/immich-server`
+
+
 ### Comparison Table
 
-| Feature                 | PhotoPrism | Lychee  | Piwigo     |
-| ----------------------- | ---------- | ------- | ---------- |
-| AI-powered organization | Yes        | No      | No         |
-| Face recognition        | Yes        | No      | Via plugin |
-| Mobile support          | Yes        | Yes     | Yes        |
-| User management         | Basic      | No      | Advanced   |
-| Customization           | Limited    | Limited | Extensive  |
+| Feature                 | PhotoPrism | Lychee  | Piwigo     | Immich |
+| ----------------------- | ---------- | ------- | ---------- | ---------|
+| AI-powered organization | Yes        | No      | No         | Yes |
+| Face recognition        | Yes        | No      | Via plugin | Yes |
+| Mobile support          | Yes        | Yes     | Yes        | Yes |
+| User management         | Basic      | No      | Advanced   | Yes |
+| Customization           | Limited    | Limited | Extensive  | Limited |
 
 These photography and image management containers can help you organize and showcase your photo collection:
 
@@ -1504,6 +1560,69 @@ services:
 ```
 
 By using these Docker containers, you can easily set up and manage powerful e-book management solutions on your home server, helping you organize, access, and enjoy your digital library from any device.
+
+
+
+## Self-Hosted Database Solutions (Airtable Alternatives)
+
+Docker containers offer excellent solutions for creating self-hosted database management systems similar to Airtable. Let's explore some of the most popular options:
+
+### Baserow
+
+[Baserow](https://baserow.io/) is an open-source no-code database tool that provides a user-friendly interface for creating and managing relational databases.
+
+Key features:
+
+- Intuitive drag-and-drop interface
+- Multiple field types
+- Views (Grid, Gallery, Form)
+- User management and permissions
+- REST API
+- Extensible plugin system
+
+Docker image: `baserow/baserow`
+
+### NocoDB
+
+[NocoDB](https://nocodb.com/) transforms any MySQL, PostgreSQL, Microsoft SQL Server, SQLite, or MariaDB into a smart spreadsheet.
+
+Key features:
+
+- Multiple views (Grid, Gallery, Form, Kanban)
+- Role-based access control
+- REST and GraphQL APIs
+- Webhooks and integrations
+- Automations and workflows
+
+Docker image: `nocodb/nocodb`
+
+### Teable
+
+[Teable](https://github.com/teableio/teable) is a super fast, real-time, professional, developer-friendly database tool that provides spreadsheet-like interactions.
+
+Key features:
+
+- Direct PostgreSQL connection
+- Real-time collaboration
+- Professional data management
+- Developer-friendly API
+- Mobile-friendly interface
+- Extensible architecture
+
+Docker image: `teableio/teable`
+
+### Comparison Table
+
+| Feature | Baserow | NocoDB | Teable |
+|---------|----------|---------|---------|
+| Interface | Modern, intuitive | Spreadsheet-like | Modern, spreadsheet-like |
+| Database Support | PostgreSQL | Multiple | PostgreSQL |
+| API Support | REST | REST, GraphQL | REST |
+| Real-time | Yes | Limited | Yes |
+| Mobile Support | Yes | Yes | Yes |
+
+For more detailed information about self-hosted Airtable alternatives, check out our comprehensive guide: [Best Open Source Self-hosted Airtable Alternatives](https://www.bitdoze.com/self-hosted-airtable-alternatives/)
+
 
 ## Game Server Containers
 
