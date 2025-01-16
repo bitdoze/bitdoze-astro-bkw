@@ -67,9 +67,9 @@ Ghostty supports custom shaders, allowing you to apply visual effects to your te
   label="Ghostty Terminal: A Complete Setup Guide for Modern Mac Development"
 />
 
-### Ghosttly Install
+### Ghostty Install
 
-You can [download Ghosttly](https://ghostty.org/download) as a package on your Mac or you can install it with homebrew with:
+You can [download Ghostty](https://ghostty.org/download) as a package on your Mac or you can install it with homebrew with:
 
 ```sh
 brew install --cask ghostty
@@ -121,13 +121,13 @@ theme = Argonaut
 
 This configuration does the following:
 
-- Sets the font family to MesloLGS Nerd Font Mono. To list the fonts that are available in ghosttly you can run the bellow command:
+- Sets the font family to MesloLGS Nerd Font Mono. To list the fonts that are available in ghostty you can run the bellow command:
   ```sh
   ghostty +list-fonts
   ```
 - Changes the font size to 19
 - Sets the background opacity to 0.9 (90% opaque)
-- Applies the Argonaut color theme. To list the themes that are available in ghosttly you can run the bellow command:
+- Applies the Argonaut color theme. To list the themes that are available in ghostty you can run the bellow command:
   ```sh
   ghostty +list-themes
   ```
@@ -283,6 +283,25 @@ eval "$(zoxide init zsh)"
 After restarting your shell or running `source ~/.zshrc`, you can start using zoxide. For example, use `z` instead of `cd` to navigate to directories.
 
 By integrating tmux and zoxide with Ghostty, you're creating a powerful, efficient terminal environment. Tmux allows you to manage complex workflows with multiple panes and windows, while zoxide speeds up your navigation between projects and directories. Together with Ghostty's GPU acceleration and customizability, you'll have a terminal setup that significantly boosts your productivity.
+
+## Known Goostty Erros
+
+
+###  'xterm-ghostty': unknown terminal type
+
+When I try to run `top` on a bash Linux 6 environment I get the error: `'xterm-ghostty': unknown terminal type.` To fix that I just do in the session:
+
+```sh
+export TERM=xterm-256color
+```
+
+You can add that in your `.bashrc` if you have only a couple of servers I have thousands :)
+
+```sh
+echo "export TERM=xterm-256color" >> ~/.bashrc
+source ~/.bashrc
+```
+
 
 ## Conclusion
 
