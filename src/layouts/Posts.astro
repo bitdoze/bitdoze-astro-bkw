@@ -10,88 +10,81 @@ const { summary_length } = config.settings;
 const { className, posts, fluid } = Astro.props;
 ---
 
-<div
-  class={`row gy-5 gx-4 ${className} ${posts.length == 1 ? "justify-center" : ""} `}
->
+<div class={`row gy-5 gx-4 ${className}`}>
   {
     posts.map((post: any, i: number) => (
-      <div class={i === 0 && fluid != false ? "col-12" : "col-12 sm:col-6"}>
-        {post.data.image && (
-          <a
-            href={`/${post.slug}` + "/"}
-            class="rounded-lg block hover:text-primary overflow-hidden group"
-          >
-            <Image
-              class="group-hover:scale-[1.03] transition duration-300 w-full"
-              src={post.data.image}
-              alt={post.data.title}
-              width={i === 0 ? 925 : 445}
-              height={i === 0 ? 475 : 230}
-              transition:name={`image-${post.slug}`}
-            />
-          </a>
-        )}
-        <ul class="mt-6 mb-4 flex flex-wrap items-center text-text">
-          <li class="mr-5">
-            {authors
-              .filter((author) =>
-                post.data.authors
-                  .map((author: string) => slugify(author))
-                  .includes(slugify(author.data.title)),
-              )
-              .map((author) => (
+      <div class="col-12 sm:col-6">
+        <article class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden h-full flex flex-col">
+          {post.data.image && (
+            <a
+              href={`/${post.slug}` + "/"}
+              class="block aspect-video overflow-hidden"
+            >
+              <Image
+                class="object-cover w-full h-full transform hover:scale-105 transition duration-500"
+                src={post.data.image}
+                alt={post.data.title}
+                width={i === 0 ? 925 : 445}
+                height={i === 0 ? 475 : 230}
+                transition:name={`image-${post.slug}`}
+              />
+            </a>
+          )}
+          <div class="p-6 flex flex-col flex-grow">
+            <ul class="flex flex-wrap gap-4 items-center text-sm text-gray-600 mb-4">
+              <li>
+                {authors
+                  .filter((author) =>
+                    post.data.authors
+                      .map((author: string) => slugify(author))
+                      .includes(slugify(author.data.title)),
+                  )
+                  .map((author) => (
+                    <a
+                      href={`/authors/${slugify(author.data.title)}` + "/"}
+                      class="flex items-center hover:text-primary gap-2 font-medium"
+                    >
+                      {author.data.image && (
+                        <Image
+                          src={author.data.image}
+                          alt={author.data.title}
+                          height={32}
+                          width={32}
+                          class="rounded-full"
+                        />
+                      )}
+                      <span>{author.data.title}</span>
+                    </a>
+                  ))}
+              </li>
+              <li class="flex items-center gap-1 font-medium">
+                <Icon name="mdi:calendar-edit" class="h-4 w-4" />
+                <span>{dateFormat(post.data.date)}</span>
+              </li>
+            </ul>
+            
+            <h3 class="text-xl font-bold mb-3 flex-grow">
+              <a
+                href={`/${post.slug}` + "/"}
+                class="hover:text-primary transition duration-300"
+                transition:name={`title-${post.slug}`}
+              >
+                {post.data.title}
+              </a>
+            </h3>
+
+            <div class="flex flex-wrap gap-2 mt-auto">
+              {post.data.categories.map((category: string, i: number) => (
                 <a
-                  href={`/authors/${slugify(author.data.title)}` + "/"}
-                  class="flex items-center hover:text-primary font-medium"
+                  href={`/categories/${slugify(category)}` + "/"}
+                  class="inline-block px-3 py-1 bg-gray-100 hover:bg-primary hover:text-white rounded-full text-sm font-medium transition duration-300"
                 >
-                  {author.data.image && (
-                    <Image
-                      src={author.data.image}
-                      alt={author.data.title}
-                      height={50}
-                      width={50}
-                      class="mr-2 h-6 w-6 rounded-full"
-                    />
-                  )}
-                  <span>{author.data.title}</span>
+                  {humanize(category)}
                 </a>
               ))}
-          </li>
-          <li class="mr-5 flex items-center flex-wrap font-medium">
-            <Icon name="mdi:calendar-edit" class="mr-1 h-5 w-5 text-gray-600" />
-            <>{dateFormat(post.data.date)}</>
-          </li>
-          <li class="mr-5 flex items-center flex-wrap">
-            <Icon
-              name="mdi:folder"
-              class="mr-1 h-[18px] w-[18px] text-gray-600"
-            />
-            <>
-              <ul>
-                {post.data.categories.map((category: string, i: number) => (
-                  <li class="inline-block">
-                    <a
-                      href={`/categories/${slugify(category)}` + "/"}
-                      class="mr-2 hover:text-primary font-medium"
-                    >
-                      {humanize(category)}
-                      {i !== post.data.categories.length - 1 && ","}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </>
-          </li>
-        </ul>
-        <h3 class="mb-4">
-          <a
-            href={`/${post.slug}` + "/"}
-            class="block hover:text-primary transition duration-300"
-            transition:name={`title-${post.slug}`}
-          >
-            {post.data.title}
-          </a>
-        </h3>
+            </div>
+          </div>
+        </article>
       </div>
     ))
   }

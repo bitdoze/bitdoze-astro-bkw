@@ -18,106 +18,133 @@ export interface NavigationLink {
 const { main }: { main: NavigationLink[] } = menu;
 ---
 
-<header
-  class="scrolled bg-white header sticky py-4 top-0 z-40 flex-none mx-auto w-full transition-all ease-in duration-100 lg:drop-shadow-xl"
->
-  <nav class="navbar container overflow-y-auto md:overflow-visible">
-    <!-- logo -->
-    <div class="order-0">
-      <Logo />
-    </div>
-    <!-- navbar toggler -->
-    <input id="nav-toggle" type="checkbox" class="hidden" />
-    <label
-      id="show-button"
-      for="nav-toggle"
-      class="order-2 flex cursor-pointer items-center text-black md:order-1 md:hidden"
-    >
-      <svg class="h-6 fill-current" viewBox="0 0 20 20">
-        <title>Menu Open</title>
-        <path d="M0 3h20v2H0V3z m0 6h20v2H0V9z m0 6h20v2H0V0z"></path>
-      </svg>
-    </label>
-    <label
-      id="hide-button"
-      for="nav-toggle"
-      class="order-2 hidden cursor-pointer items-center text-black md:order-1"
-    >
-      <svg class="h-6 fill-current" viewBox="0 0 20 20">
-        <title>Menu Close</title>
-        <polygon
-          points="11 9 22 9 22 11 11 11 11 22 9 22 9 11 -2 11 -2 9 9 9 9 -2 11 -2"
-          transform="rotate(45 10 10)"></polygon>
-      </svg>
-    </label>
-    <!-- /navbar toggler -->
-    <ul
-      id="nav-menu"
-      class="navbar-nav order-3 hidden w-full md:order-1 md:flex md:w-auto"
-    >
-      {
-        main.map((menu) => (
-          <>
-            {menu.hasChildren ? (
-              <li class="nav-item nav-dropdown group relative">
-                <div class="flex items-center justify-center md:justify-start">
-                  <a
-                    href={menu.url}
-                    class="nav-link inline-flex items-center justify-center md:justify-start"
-                  >
-                    {menu.name}
-                  </a>
-                  <span class="inline-flex items-center justify-center ml-1 cursor-pointer">
-                    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
-                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                    </svg>
-                  </span>
-                </div>
-                <ul class="nav-dropdown-list hidden group-hover:block md:invisible md:absolute md:block md:opacity-0 md:group-hover:visible md:group-hover:opacity-100">
-                  {menu.children?.map((child) => (
-                    <li class="nav-dropdown-item">
-                      <a
-                        href={child.url}
-                        class="nav-dropdown-link block w-full text-center md:text-left"
-                      >
-                        {child.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ) : (
-              <li class="nav-item">
-                <a
-                  href={menu.url}
-                  class="nav-link block text-center md:text-left"
-                >
-                  {menu.name}
-                </a>
-              </li>
-            )}
-          </>
-        ))
-      }
-    </ul>
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+  <nav class="container mx-auto px-4 sm:px-6 relative">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex-shrink-0">
+        <Logo />
+      </div>
 
-    <div class="order-1 ml-auto flex md:order-2 md:ml-0">
-      <a
-        class="mr-2 inline-block cursor-pointer p-2 text-xl text-dark transition hover:text-primary md:mr-0"
-        href="/search/"
-        title="seach"
-        aria-label="seach"
-      >
-        <Icon name="mdi:magnify" />
-      </a>
-      <a
-        class="mr-2 inline-block cursor-pointer p-2 text-xl text-dark transition hover:text-primary md:mr-0"
-        href="/rss.xml"
-        title="RSS"
-        aria-label="RSS"
-      >
-        <Icon name="mdi:rss" />
-      </a>
+      <div class="hidden md:flex md:items-center md:space-x-6">
+        {
+          main.map((menu) => (
+            <div class="relative group">
+              <a
+                href={menu.url}
+                class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary rounded-lg transition-colors duration-200"
+              >
+                {menu.name}
+                {menu.hasChildren && (
+                  <Icon name="mdi:chevron-down" class="ml-1 h-4 w-4 transition-transform duration-200 group-hover:rotate-180" />
+                )}
+              </a>
+              {menu.hasChildren && (
+                <div class="absolute left-0 top-full w-48 opacity-0 translate-y-2 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
+                  <div class="rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden">
+                    <div class="relative bg-white p-2">
+                      {menu.children?.map((child) => (
+                        <a
+                          href={child.url}
+                          class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary rounded-lg transition-colors duration-200"
+                        >
+                          {child.name}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <a
+          href="/search/"
+          class="p-2 text-gray-600 hover:text-primary rounded-lg transition-colors duration-200"
+          aria-label="Search"
+        >
+          <Icon name="mdi:magnify" class="h-5 w-5" />
+        </a>
+        <a
+          href="/rss.xml"
+          class="p-2 text-gray-600 hover:text-primary rounded-lg transition-colors duration-200"
+          aria-label="RSS"
+        >
+          <Icon name="mdi:rss" class="h-5 w-5" />
+        </a>
+
+        <!-- Mobile menu button -->
+        <button
+          type="button"
+          class="md:hidden p-2 text-gray-600 hover:text-primary rounded-lg transition-colors duration-200"
+          aria-label="Toggle menu"
+          id="mobile-menu-button"
+        >
+          <Icon name="mdi:menu" class="h-6 w-6" id="menu-open" />
+          <Icon name="mdi:close" class="h-6 w-6 hidden" id="menu-close" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div class="md:hidden hidden absolute top-16 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg rounded-b-lg border-b border-gray-100 z-50" id="mobile-menu">
+      <div class="px-4 py-3 space-y-2">
+        {
+          main.map((menu) => (
+            <div class="space-y-2">
+              <button
+                class="w-full flex items-center justify-between px-3 py-2 text-base font-medium text-gray-700 hover:text-primary rounded-lg transition-colors duration-200"
+                onclick={menu.hasChildren ? `this.nextElementSibling.classList.toggle('hidden')` : null}
+              >
+                <a href={menu.url}>{menu.name}</a>
+                {menu.hasChildren && (
+                  <Icon name="mdi:chevron-down" class="h-5 w-5" />
+                )}
+              </button>
+              {menu.hasChildren && (
+                <div class="pl-4 space-y-2 hidden">
+                  {menu.children?.map((child) => (
+                    <a
+                      href={child.url}
+                      class="block px-3 py-2 text-sm text-gray-600 hover:text-primary rounded-lg transition-colors duration-200"
+                    >
+                      {child.name}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
+        }
+      </div>
     </div>
   </nav>
 </header>
+
+<script>
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuOpen = document.getElementById('menu-open');
+  const menuClose = document.getElementById('menu-close');
+
+  if (mobileMenuButton && mobileMenu && menuOpen && menuClose) {
+    mobileMenuButton.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+      menuOpen.classList.toggle('hidden');
+      menuClose.classList.toggle('hidden');
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!mobileMenu.contains(e.target as Node) && 
+          !mobileMenuButton.contains(e.target as Node) && 
+          !mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.add('hidden');
+        menuOpen.classList.remove('hidden');
+        menuClose.classList.add('hidden');
+      }
+    });
+  }
+</script>

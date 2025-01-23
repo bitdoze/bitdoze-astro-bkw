@@ -1,0 +1,81 @@
+---
+import { Image } from "astro:assets";
+import { getSinglePage } from "@lib/contentParser.astro";
+import { sortByDate } from "@lib/utils/sortFunctions";
+import { slugify } from "@lib/utils/textConverter";
+
+const posts = await getSinglePage("posts");
+const sortedPosts = sortByDate(posts);
+
+const tags = ["docker", "astro", "carrd"];
+const postsPerTag = 5;
+
+const tagPosts = tags.map((tag) => ({
+  tag,
+  posts: sortedPosts
+    .filter((post) => post.data.tags?.map((t: string) => slugify(t)).includes(tag))
+    .slice(0, postsPerTag),
+}));
+---
+
+<section class="py-8 bg-gray-50">
+  <div class="container">
+    <h2 class="text-3xl font-bold text-center mb-8">Popular Topics</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {
+        tagPosts.map(({ tag, posts }) => (
+          <div class="bg-white p-4 rounded-xl shadow-sm">
+            <h3 class="text-lg font-bold mb-3 text-gray-900 capitalize">{tag}</h3>
+            <div class="divide-y divide-gray-100">
+              {posts.map((post, index) => (
+                <a
+                  href={`/${post.slug}/`}
+                  class="flex items-center gap-3 group hover:bg-gray-50 rounded-lg transition-colors duration-300 py-3 first:pt-0 last:pb-0"
+                >
+                  <div class="relative flex-shrink-0 w-20">
+                    <div class="aspect-[16/9]">
+                      {post.data.image && (
+                        <Image
+                          src={post.data.image}
+                          alt={post.data.title}
+                          width={80}
+                          height={45}
+                          class="object-cover w-full h-full rounded-md group-hover:scale-105 transition duration-300"
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <div class="flex-grow min-w-0">
+                    <h4 class="text-xs font-medium text-gray-800 group-hover:text-primary transition-colors duration-300 line-clamp-2">
+                      {post.data.title}
+                    </h4>
+                  </div>
+                </a>
+              ))}
+            </div>
+            <div class="mt-3">
+              <a
+                href={`/tags/${tag}/`}
+                class="inline-flex items-center text-xs font-medium text-primary hover:text-primary/80 transition-colors duration-300"
+              >
+                View all {tag} posts
+                <svg
+                  class="w-3 h-3 ml-1"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14" />
+                  <path d="M12 5l7 7-7 7" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
