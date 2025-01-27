@@ -2,6 +2,7 @@
 import Logo from "@components/Logo.astro";
 import menu from "@config/menu.json";
 import { Icon } from "astro-icon/components";
+import MobileMenu from "@components/MobileMenu.astro";
 
 export interface ChildNavigationLink {
   name: string;
@@ -122,6 +123,8 @@ const { main }: { main: NavigationLink[] } = menu;
     </div>
   </nav>
 </header>
+
+<MobileMenu />
 
 <script>
   const mobileMenuButton = document.getElementById('mobile-menu-button');
