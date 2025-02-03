@@ -27,6 +27,9 @@ services:
       - "8080:80"
 ```
 
+> If you are interested to see some free cool open source self hosted apps you can check [toolhunt.net self hosted section](https://toolhunt.net/sh/).
+
+
 You might think you're just opening port 8080 on localhost, but what's actually happening is more complex. Docker is binding to `0.0.0.0:8080`, which means it's accessible from anywhere, not just your local machine. This is similar to the issue I encountered when [setting up containers for my home server](https://www.bitdoze.com/docker-containers-home-server/).
 
 The real kicker is that Docker modifies your iptables (the Linux firewall) directly to make this work. It adds its own rules before your regular firewall rules, which means those carefully crafted firewall configurations you set up might not be doing what you expect for your Docker containers.
