@@ -25,6 +25,7 @@ Whether you’re a developer managing multiple servers or a small business owner
 
 
 ## **What Is CrowdSec and How Can It Help You?**
+---
 
 ### Understanding CrowdSec
 
@@ -34,6 +35,11 @@ Here’s what makes CrowdSec a unique and powerful tool:
 - **Log Analysis:** CrowdSec parses and analyzes logs from various sources like SSH, Nginx, and custom applications.
 - **Real-time Remediation:** It uses "bouncers" (remediation components) to automatically block malicious IPs.
 - **Collaborative Threat Intelligence:** CrowdSec leverages a community-driven model where users share anonymized attack data to improve overall global security.
+
+
+![Understanding CrowdSec](../../assets/images/25/02/crowdsec1.png)
+
+
 
 **What Problem Does CrowdSec Solve?**
 Cyberattacks such as brute force, Distributed Denial of Service (DDoS), and credential stuffing are increasing in sophistication. While firewalls and intrusion detection systems (IDS) are helpful, they often lack real-time adaptability or community-sourced intelligence. CrowdSec not only detects these attacks but also provides actionable responses and leverages insights from other users to bolster your defenses.
@@ -67,7 +73,8 @@ By opting for CrowdSec, you not only protect your VPS but also contribute to a l
 
 
 
-## **2.1 Install CrowdSec**
+##  Install CrowdSec
+---
 
 Installing CrowdSec on your VPS is a straightforward process that involves adding a repository, installing the package, and configuring it to monitor logs. Below is a detailed step-by-step guide to help you get started.
 
@@ -177,7 +184,8 @@ The `crowdsecurity/sshd` collection indicates SSH monitoring is active.
 With CrowdSec installed and running, your VPS is now set up to detect and analyze potential threats targeting your SSH and other services.
 
 
-## **2.2 Installing the First Remediation Component (Firewall Bouncer)**
+##  Installing the First Remediation Component (Firewall Bouncer)
+---
 
 CrowdSec relies on remediation components called “bouncers” to block malicious actors based on detected attack patterns. The **firewall bouncer** is one of the most critical components for enhancing your VPS’s security since it works with your server’s firewall to block IPs flagged by CrowdSec.
 
@@ -268,7 +276,8 @@ By enabling the firewall bouncer, you’re taking the most critical step in acti
 
 
 
-## **2.3 See What Logs Are Monitored by CrowdSec**
+##  See What Logs Are Monitored by CrowdSec
+---
 
 CrowdSec is designed to analyze logs from various sources on your server to detect suspicious patterns and potential attacks. Upon installation, CrowdSec includes default collections for commonly used services, such as SSH and Nginx. These collections specify which log files CrowdSec monitors and define the detection scenarios for each service.
 
@@ -332,7 +341,8 @@ Keeping an eye on what logs are being monitored ensures that your server is full
 
 
 
-## **3. Linking to the CrowdSec Console (Optional)**
+##   Linking to the CrowdSec Console (Optional)
+---
 
 One of the standout features of CrowdSec is the **CrowdSec Console**, a cloud-based dashboard that provides insights into your server’s security performance. The console offers centralized management, detailed attack visualization, and aggregated metrics, making it easier to monitor security events across different systems or environments.
 
@@ -404,7 +414,8 @@ Here’s an example of what the CrowdSec Console’s overview might look like:
 
 
 
-## **4. Monitoring Application Logs (e.g., Nginx)**
+## Monitoring Application Logs (e.g., Nginx)
+---
 
 CrowdSec can monitor your application-specific logs, such as those from Nginx, Apache, or custom services, to detect and prevent attacks on web applications. This functionality ensures your entire server stack is secured, not just SSH. By analyzing logs from applications like Nginx, CrowdSec can detect patterns like bot attacks, vulnerability probes, or exploitation attempts.
 
@@ -500,7 +511,8 @@ When you enable Nginx log monitoring, CrowdSec can detect and mitigate the follo
 By monitoring Nginx logs with CrowdSec, you extend protection to your web applications, ensuring that both your server infrastructure and hosted services are secure.
 
 
-## **5. Useful CrowdSec Commands**
+## Useful CrowdSec Commands
+---
 
 After installing and configuring CrowdSec, it’s crucial to know how to monitor its activity, manage alerts and bans, and optimize its effectiveness. This section provides a breakdown of the most useful CrowdSec commands, empowering you to stay on top of your server's security.
 
@@ -674,11 +686,10 @@ By mastering these commands, you can efficiently manage, monitor, and optimize C
 
 
 
-Let's conclude this tutorial with **Chapter 6: Conclusion**!
 
----
 
 ##  Conclusion
+---
 
 Securing your VPS is a critical step in protecting your applications, data, and infrastructure from malicious cyber threats. SSH, being a common entry point for attackers, requires robust protection, and **CrowdSec** provides an effective, scalable, and community-driven solution to meet that need.
 
