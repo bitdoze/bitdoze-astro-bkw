@@ -1,0 +1,656 @@
+---
+date: 2025-02-26T00:00:00Z
+title: "Create a Multi-Page Website with FastHTML: Complete Structure Tutorial"
+description: "Learn how to build a structured multi-page website with FastHTML using reusable components, shared layouts, and organized directories. Perfect for Python developers wanting to create maintainable web applications."
+image: "../../assets/images/25/02/fasthtml-multiple-pages.jpg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["fasthtml", "python"]
+canonical: "https://www.bitdoze.com/fasthtml-multiple-pages/"
+---
+
+Welcome back to our FastHTML series! In the first article, [FastHTML - Getting Started](https://www.bitdoze.com/fasthtml-start/) we introduced the basics of FastHTML—a Python-based web framework that lets you build dynamic, responsive websites with minimal effort. We covered how to install FastHTML, create a simple page with components like headings and paragraphs, and add styling using the Tailwind CSS CDN script. If you haven't read it yet, don't worry—this article will bring you up to speed while guiding you through the next step: building a multi-page website with a consistent header and footer across all pages.
+
+In this article, we'll show you how to structure a FastHTML project to support multiple pages—like "Home," "About," and "Contact"—and ensure they share a cohesive design. By the end, you'll have a fully functional multi-page website that you can run locally and expand as needed. Let's dive in!
+
+## Why Multiple Pages?
+
+A multi-page website allows you to organize content logically and improve the user experience. While single-page applications have their place, most websites benefit from distinct pages for different purposes:
+
+- **Organization**: Separate pages keep your content structured—think of a "Home" page for an overview, "About" for your story, and "Contact" for communication details.
+- **Navigation**: Users expect to click links to explore different sections, making your site intuitive.
+- **Scalability**: As your site grows, adding new pages becomes a breeze.
+- **SEO Benefits**: Search engines can index individual pages, improving discoverability.
+- **User Experience**: Users can bookmark specific pages and use browser navigation (back/forward) naturally.
+
+FastHTML makes this process easy with its routing system and reusable components. Let's see how to set it up.
+
+
+## FastHTML Series
+
+Below are the articles on FastHTML to help you get started:
+
+- [FastHTML Get Started](https://www.bitdoze.com/fasthtml-start/)
+- [FastHTML Multiple Pages](https://www.bitdoze.com/fasthtml-multiple-pages/)
+
+## Creating a Multi-Page Website with FastHTML
+
+### Step 1: Setting Up Your Project Structure
+
+A well-organized project structure is crucial for maintaining a multi-page website, especially as it grows. Here's a recommended directory structure that keeps your code modular and maintainable:
+
+```
+mywebsite/
+├── main.py              # Main application entry point
+├── components.py        # Reusable UI components
+└── pages/               # Individual page content
+    ├── __init__.py      # Makes pages a proper Python package
+    ├── home.py          # Home page content
+    ├── about.py         # About page content
+    └── contact.py       # Contact page content
+```
+
+Let's understand each component:
+
+- **`main.py`**: This is your application's entry point that handles routing (URL mapping) and server setup. It connects pages to URLs and starts the FastHTML server.
+
+- **`components.py`**: Contains reusable components like headers, footers, and navigation menus that appear on multiple pages. This approach follows the DRY (Don't Repeat Yourself) principle.
+
+- **`pages/`**: A directory containing Python modules for each page on your website. Each file defines the content specific to that page.
+
+- **`pages/__init__.py`**: An empty file that makes the `pages` directory a proper Python package, allowing for cleaner imports.
+
+This modular structure gives you several advantages:
+
+1. **Separation of concerns**: Each file has a specific purpose
+2. **Maintainability**: Easy to find and update specific components
+3. **Scalability**: Simply add new files to the `pages/` directory as your site grows
+4. **Organization**: Logical grouping of related functionality
+
+Let's create these files one by one.
+
+### **Step 2: Creating Reusable Header and Footer Components**
+
+To ensure consistency across your website, we'll create reusable header and footer components. This approach ensures that navigation and branding remain uniform throughout the site, and any updates need to be made in just one place.
+
+First, let's create the `components.py` file:
+
+**File: `mywebsite/components.py`**
+
+```python
+from fasthtml.common import *
+
+def header(current_page="/"):
+    """
+    Creates a consistent header with navigation.
+
+    Args:
+        current_page: The current page path, used to highlight the active link
+
+    Returns:
+        A Header component with navigation
+    """
+    # Define the navigation links
+    nav_items = [
+        ("Home", "/"),
+        ("About", "/about"),
+        ("Contact", "/contact")
+    ]
+
+    # Create navigation items with appropriate styling
+    nav_links = []
+    for title, path in nav_items:
+        # Apply special styling to the current page link
+        is_current = current_page == path
+        link_class = "text-white hover:text-gray-300 px-3 py-2"
+        if is_current:
+            link_class += " font-bold underline"
+
+        nav_links.append(
+            Li(
+                A(title, href=path, cls=link_class)
+            )
+        )
+
+    return Header(
+        Div(
+            # Website logo/name
+            A("MyWebsite", href="/", cls="text-xl font-bold text-white"),
+
+            # Navigation menu
+            Nav(
+                Ul(
+                    *nav_links,
+                    cls="flex space-x-2"
+                ),
+                cls="ml-auto"
+            ),
+            cls="container mx-auto flex items-center justify-between px-4 py-3"
+        ),
+        cls="bg-blue-600 shadow-md"
+    )
+
+def footer():
+    """
+    Creates a consistent footer for all pages.
+
+    Returns:
+        A Footer component with copyright and links
+    """
+    current_year = 2025  # In a real app, use datetime to get current year
+
+    return Footer(
+        Div(
+            Div(
+                P(f"© {current_year} MyWebsite. All rights reserved.",
+                  cls="text-gray-500"),
+                cls="mb-4"
+            ),
+            Div(
+                A("Privacy Policy", href="#", cls="text-blue-500 hover:underline mr-4"),
+                A("Terms of Service", href="#", cls="text-blue-500 hover:underline"),
+                cls="text-sm"
+            ),
+            cls="container mx-auto px-4 py-6 text-center"
+        ),
+        cls="bg-gray-100 mt-8"
+    )
+
+def page_layout(title, content, current_page="/"):
+    """
+    Wraps page content with consistent header, footer, and styling.
+
+    Args:
+        title: The page title (appears in browser tab)
+        content: The main content of the page
+        current_page: The current page path for navigation highlighting
+
+    Returns:
+        A complete HTML page with header, content, and footer
+    """
+    return Html(
+        Head(
+            Title(title),
+            # Meta tags for better SEO and mobile display
+            Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+            Meta(name="description", content=f"{title} - MyWebsite built with FastHTML"),
+            # Include Tailwind CSS for styling
+            Script(src="https://cdn.tailwindcss.com")
+        ),
+        Body(
+            # Include header with current page highlighted
+            header(current_page),
+
+            # Main content area
+            Main(
+                Div(
+                    content,
+                    cls="container mx-auto px-4 py-8"
+                ),
+                cls="min-h-screen"  # Ensures footer stays at bottom
+            ),
+
+            # Include footer
+            footer()
+        )
+    )
+```
+
+Let's break down what we've created:
+
+1. **`header(current_page)`**:
+   - Creates a navigation bar with links to all pages
+   - Takes a `current_page` parameter to highlight the active page
+   - Uses Tailwind CSS classes for styling (background color, text color, spacing)
+   - Includes a website name/logo that links to the home page
+
+2. **`footer()`**:
+   - Creates a simple footer with copyright information and links
+   - Includes the current year (hardcoded for simplicity, but you could use `datetime.now().year`)
+   - Uses Tailwind CSS for styling and positioning
+
+3. **`page_layout(title, content, current_page)`**:
+   - Integrates the header and footer with the page-specific content
+   - Adds a page title that appears in the browser tab
+   - Includes meta tags for better SEO and mobile compatibility
+   - Adds the Tailwind CSS script for styling
+   - Ensures the main content has a minimum height to push the footer to the bottom
+
+These components ensure your website has a consistent look and feel across all pages. The `current_page` parameter in the header function allows for visual indication of which page the user is currently viewing.
+
+### **Step 3: Creating Individual Page Content**
+
+Now, let's create the content for each page. We'll store these in separate files within the `pages/` directory.
+
+First, create the `pages/__init__.py` file (it can be empty) to make the directory a proper Python package.
+
+**File: `mywebsite/pages/home.py`**
+
+```python
+from fasthtml.common import *
+
+def home():
+    """
+    Defines the home page content.
+
+    Returns:
+        Components representing the home page content
+    """
+    return Div(
+        # Hero section
+        Div(
+            H1("Welcome to MyWebsite",
+               cls="text-4xl font-bold text-gray-800 mb-4"),
+            P("Build beautiful web applications with FastHTML and Python.",
+              cls="text-xl text-gray-600 mb-6"),
+            Div(
+                A("Get Started",
+                  href="/about",
+                  cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"),
+                A("Learn More",
+                  href="/contact",
+                  cls="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"),
+                cls="flex"
+            ),
+            cls="py-12 text-center"
+        ),
+
+        # Features section
+        Div(
+            H2("Key Features", cls="text-3xl font-bold text-center mb-8"),
+            Div(
+                # Feature 1
+                Div(
+                    H3("Easy to Learn", cls="text-xl font-semibold mb-2"),
+                    P("Built on Python, making web development accessible to everyone.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                # Feature 2
+                Div(
+                    H3("Highly Productive", cls="text-xl font-semibold mb-2"),
+                    P("Create web applications faster with fewer lines of code.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                # Feature 3
+                Div(
+                    H3("Scalable", cls="text-xl font-semibold mb-2"),
+                    P("Easily expand your application as your needs grow.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                cls="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
+            ),
+            cls="py-8"
+        )
+    )
+```
+
+**File: `mywebsite/pages/about.py`**
+
+```python
+from fasthtml.common import *
+
+def about():
+    """
+    Defines the about page content.
+
+    Returns:
+        Components representing the about page content
+    """
+    return Div(
+        # Page header
+        H1("About Us",
+           cls="text-3xl font-bold text-gray-800 mb-6 text-center"),
+
+        # Main content
+        Div(
+            # Company description
+            Div(
+                H2("Our Story", cls="text-2xl font-semibold mb-4"),
+                P("Founded in 2025, MyWebsite was created to help developers build "
+                  "beautiful web applications using Python. Our mission is to make "
+                  "web development accessible, enjoyable, and productive.",
+                  cls="text-gray-600 mb-4"),
+                P("We believe that Python developers should be able to create "
+                  "stunning web applications without having to learn multiple "
+                  "languages and frameworks.",
+                  cls="text-gray-600 mb-4"),
+                cls="mb-8"
+            ),
+
+            # Team section
+            Div(
+                H2("Our Team", cls="text-2xl font-semibold mb-4"),
+                Div(
+                    # Team member 1
+                    Div(
+                        H3("Jane Doe", cls="text-xl font-semibold"),
+                        P("Founder & CEO", cls="text-gray-500 italic mb-2"),
+                        P("Python enthusiast with 15 years of experience in web development.",
+                          cls="text-gray-600"),
+                        cls="bg-white p-4 rounded shadow-md"
+                    ),
+                    # Team member 2
+                    Div(
+                        H3("John Smith", cls="text-xl font-semibold"),
+                        P("CTO", cls="text-gray-500 italic mb-2"),
+                        P("Full-stack developer with a passion for clean, maintainable code.",
+                          cls="text-gray-600"),
+                        cls="bg-white p-4 rounded shadow-md"
+                    ),
+                    cls="grid grid-cols-1 md:grid-cols-2 gap-6"
+                )
+            )
+        )
+    )
+```
+
+**File: `mywebsite/pages/contact.py`**
+
+```python
+from fasthtml.common import *
+
+def contact():
+    """
+    Defines the contact page with a form.
+
+    Returns:
+        Components representing the contact page content
+    """
+    return Div(
+        # Page header
+        H1("Contact Us",
+           cls="text-3xl font-bold text-gray-800 mb-6 text-center"),
+
+        # Contact information and form
+        Div(
+            # Contact info
+            Div(
+                H2("Get in Touch", cls="text-2xl font-semibold mb-4"),
+                P("We'd love to hear from you! Please use the form or contact "
+                  "information below to reach out.",
+                  cls="text-gray-600 mb-4"),
+                Div(
+                    P(Strong("Email: "), "info@mywebsite.com", cls="mb-2"),
+                    P(Strong("Phone: "), "+1 (555) 123-4567", cls="mb-2"),
+                    P(Strong("Address: "), "123 Web Street, Internet City, 10101", cls="mb-2"),
+                    cls="mb-6"
+                ),
+                cls="mb-8 md:pr-8"
+            ),
+
+            # Contact form
+            Div(
+                H2("Send a Message", cls="text-2xl font-semibold mb-4"),
+                Form(
+                    # Name field
+                    Div(
+                        Label("Name", For="name", cls="block text-gray-700 mb-1"),
+                        Input(type="text", id="name", name="name",
+                              placeholder="Your name",
+                              cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"),
+                        cls="mb-4"
+                    ),
+                    # Email field
+                    Div(
+                        Label("Email", For="email", cls="block text-gray-700 mb-1"),
+                        Input(type="email", id="email", name="email",
+                              placeholder="Your email",
+                              cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"),
+                        cls="mb-4"
+                    ),
+                    # Message field
+                    Div(
+                        Label("Message", For="message", cls="block text-gray-700 mb-1"),
+                        Textarea(id="message", name="message",
+                                placeholder="Your message",
+                                rows=5,
+                                cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"),
+                        cls="mb-6"
+                    ),
+                    # Submit button
+                    Button("Send Message",
+                           type="submit",
+                           cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+                    action="/submit-contact",
+                    method="post",
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                )
+            ),
+            cls="md:flex"
+        )
+    )
+```
+
+Each page file defines a function that returns the content specific to that page:
+
+1. **`home.py`**:
+   - Features a hero section with a welcome message and call-to-action buttons
+   - Includes a features section highlighting key benefits
+   - Uses a responsive grid layout for the features
+
+2. **`about.py`**:
+   - Contains the company story and team information
+   - Uses a responsive grid for team members
+   - Maintains consistent styling with the rest of the site
+
+3. **`contact.py`**:
+   - Provides contact information
+   - Includes a contact form with name, email, and message fields
+   - Uses form validation and focus states for better user experience
+
+These pages demonstrate how to create rich, styled content while keeping each page's code separate and maintainable.
+
+### **Step 4: Setting Up Routing in the Main Application**
+
+Finally, let's create the `main.py` file, which will serve as the entry point for our application. This file handles routing (mapping URLs to page content) and starts the FastHTML server.
+
+**File: `mywebsite/main.py`**
+
+```python
+from fasthtml.common import *
+
+# Import page content from the pages directory
+from pages.home import home as home_page
+from pages.about import about as about_page
+from pages.contact import contact as contact_page
+
+# Import the page layout component
+from components import page_layout
+
+# Initialize the FastHTML application
+app = FastHTML()
+
+# Define route for the home page
+@app.get("/")
+def home():
+    """Handler for the home page route."""
+    return page_layout(
+        title="Home - MyWebsite",
+        content=home_page(),
+        current_page="/"
+    )
+
+# Define route for the about page
+@app.get("/about")
+def about():
+    """Handler for the about page route."""
+    return page_layout(
+        title="About Us - MyWebsite",
+        content=about_page(),
+        current_page="/about"
+    )
+
+# Define route for the contact page
+@app.get("/contact")
+def contact():
+    """Handler for the contact page route."""
+    return page_layout(
+        title="Contact Us - MyWebsite",
+        content=contact_page(),
+        current_page="/contact"
+    )
+
+# Handle form submission (for the contact form)
+@app.post("/submit-contact")
+def submit_contact(name: str, email: str, message: str):
+    """
+    Handler for contact form submission.
+
+    In a real application, you might store this data or send an email.
+    """
+    # Simple acknowledgment page
+    acknowledgment = Div(
+        H1("Thank You!", cls="text-3xl font-bold text-gray-800 mb-4"),
+        P(f"Hello {name}, we've received your message and will respond to {email} soon.",
+          cls="text-xl text-gray-600 mb-6"),
+        A("Return Home", href="/", cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+        cls="text-center py-12"
+    )
+
+    return page_layout(
+        title="Thank You - MyWebsite",
+        content=acknowledgment,
+        current_page="/contact"
+    )
+
+# Handle 404 Not Found errors
+@app.get("/{path:path}")
+def not_found(path: str):
+    """Handler for any routes that don't match the defined routes."""
+    error_content = Div(
+        H1("404 - Page Not Found", cls="text-3xl font-bold text-gray-800 mb-4"),
+        P(f"Sorry, the page '/{path}' does not exist.",
+          cls="text-xl text-gray-600 mb-6"),
+        A("Return Home", href="/", cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+        cls="text-center py-12"
+    )
+
+    return page_layout(
+        title="404 Not Found - MyWebsite",
+        content=error_content,
+        current_page="/"
+    )
+
+# Run the application
+if __name__ == "__main__":
+    # Using FastHTML's built-in serve() function
+    serve()
+```
+
+Let's understand what's happening in the main application:
+
+1. **Imports**:
+   - We import the FastHTML framework
+   - We import each page's content function
+   - We import the `page_layout` function from our components file
+
+2. **Application Initialization**:
+   - We create a FastHTML application instance with `app = FastHTML()`
+
+3. **Route Definitions**:
+   - Each route (`/`, `/about`, `/contact`) is mapped to a handler function
+   - The handler functions use `page_layout` to wrap the page-specific content with our header and footer
+   - We pass the `current_page` parameter to highlight the active link in the navigation
+
+4. **Form Handling**:
+   - We define a handler for the contact form submission
+   - This demonstrates how to process POST requests and form data
+   - In a real application, you might store this data in a database or send an email
+
+5. **404 Error Handling**:
+   - We create a catch-all route to handle any URLs that don't match our defined routes
+   - This provides a user-friendly error page instead of the default 404 response
+
+6. **Server Startup**:
+   - We use FastHTML's built-in `serve()` function to start the application server
+   - This is simpler than manually configuring Uvicorn and includes auto-reload functionality
+
+With this setup, our application can handle multiple pages, form submissions, and even 404 errors, all while maintaining a consistent user interface.
+
+### **Step 5: Running and Testing Your Website**
+
+Now that we've created all the necessary files, let's run the application and test our multi-page website.
+
+1. **Navigate to your project directory**:
+   ```bash
+   cd mywebsite
+   ```
+
+2. **Run the application**:
+   ```bash
+   python main.py
+   ```
+
+3. **Open your browser** and visit:
+   - `http://localhost:5001/` (Home)
+   - `http://localhost:5001/about` (About)
+   - `http://localhost:5001/contact` (Contact)
+
+You should see a fully-functional multi-page website with consistent navigation, styling, and structure. Try clicking the links in the header to navigate between pages, and notice how the current page is highlighted in the navigation.
+
+If you encounter any issues, here are some troubleshooting tips:
+
+- **404 Errors**: Make sure the route paths in `main.py` match the `href` values in the header function.
+- **Import Errors**: Check that your directory structure is correct and that `pages/__init__.py` exists.
+- **Styling Issues**: Ensure the Tailwind CSS script is included in the `page_layout` function.
+- **Server Won't Start**: Verify that all required packages are installed and imports are correct.
+
+## **Extending Your Multi-Page Website**
+
+Now that you have a solid foundation for your multi-page website, you can extend it in various ways:
+
+### **Adding More Pages**
+
+To add a new page (e.g., "Services"):
+
+1. Create a new file `pages/services.py` with the page content function
+2. Import the function in `main.py`
+3. Add a new route handler in `main.py`
+4. Add a link to the page in the `header` function in `components.py`
+
+### **Adding Dynamic Content**
+
+You can make your pages more dynamic by:
+
+- Fetching data from external APIs
+- Reading content from a database
+- Generating content based on user input or URL parameters
+
+### **Implementing User Authentication**
+
+For pages that require authentication:
+
+- Add login/register pages
+- Implement session management
+- Create protected routes that redirect unauthenticated users
+
+### **Enhancing the User Interface**
+
+Improve the user experience with:
+
+- More sophisticated Tailwind CSS styling
+- Interactive components using HTMX
+- Client-side validation for forms
+- Animated transitions between pages
+
+## **Conclusion**
+
+Congratulations! You've successfully created a multi-page website with FastHTML that features consistent navigation, styling, and structure. This approach demonstrates the power and flexibility of FastHTML for building web applications quickly and efficiently.
+
+By organizing your project into reusable components and separate page files, you've created a maintainable codebase that's easy to extend as your website grows. The shared layout ensures a consistent user experience across all pages, while the modular structure keeps your code clean and organized.
+
+Here's a summary of what we've covered:
+
+1. **Project Structure**: Creating a clean, modular organization for your code
+2. **Reusable Components**: Building header, footer, and layout functions
+3. **Page Content**: Defining separate content for each page
+4. **Routing**: Mapping URLs to page content
+5. **Form Handling**: Processing user input from forms
+6. **Error Handling**: Creating a custom 404 page
+
+This foundation gives you everything you need to continue building and expanding your FastHTML website. In the next article, we'll explore advanced styling options and interactive components to make your website even more impressive.
+
+Happy coding!
