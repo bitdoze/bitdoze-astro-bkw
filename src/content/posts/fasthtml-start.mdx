@@ -1,0 +1,826 @@
+---
+date: 2025-02-26T00:00:00Z
+title: "FastHTML For Beginners: Build An UI to Python App in 5 Minutes"
+description: "Master FastHTML quickly! Learn to add a user interface to your Python app in just 5 minutes with our beginner-friendly guide."
+image: "../../assets/images/25/02/fasthtml-start.jpg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["fasthtml", "python"]
+canonical: "https://www.bitdoze.com/fasthtml-start/"
+---
+
+[FastHTML](https://fastht.ml/) is an innovative Python-based web framework designed to make web development accessible and enjoyable for beginners while providing robust tools for seasoned developers. By blending Python's simplicity with HTML-like syntax, FastHTML allows you to create dynamic and responsive web applications without wrestling with complex setups or unfamiliar languages.
+
+## Why FastHTML?
+
+Unlike traditional web development that requires knowledge of HTML, CSS, JavaScript and possibly frameworks like React or Vue, FastHTML lets you build complete web applications using just Python. Here's why it's particularly valuable for beginners:
+
+- **Single Language**: Build both backend and frontend with just Python
+- **Simpler Than Alternatives**: More approachable than Django or Flask for UI development
+- **Hypermedia-Driven**: Built-in support for HTMX allows interactivity without JavaScript
+- **Python-Native Syntax**: Use familiar Python functions instead of learning template languages
+- **No Build Tools**: No need for npm, webpack, or other JavaScript build tools
+
+This article serves as your entry point into FastHTML, guiding you through installation, basic syntax, and the use of various components with practical examples. By the end, you'll be equipped to build your first FastHTML project with confidence.
+
+## Installing FastHTML
+
+Before diving into coding, you need to set up FastHTML on your machine. The first prerequisite is Python, version 3.7 or higher. If you don't have Python installed, head to the [Python install on MAC](https://www.bitdoze.com/install-upgrade-python-mac/) and download the latest version compatible with your operating macOS. Follow the installation prompts, ensuring you check the option to add Python to your system's PATH, which makes running Python commands easier from the terminal.
+
+If you have other OS than Mac you should check the python website for the tutorial.
+
+With Python ready, installing FastHTML is a breeze. Open your terminal (Command Prompt on Windows, Terminal on macOS/Linux) and follow these steps:
+
+**1. Create a virtual environment for the project and activate it**
+
+```sh
+python3 -m venv fhenv
+source fhenv/bin/activate
+# On Windows:
+# fhenv\Scripts\activate
+```
+
+This creates an isolated environment for your project, preventing package conflicts. A virtual environment is like a separate, clean installation of Python where you can install packages without affecting your system Python installation.
+
+**2. Install FastHTML**
+
+```bash
+pip install python-fasthtml
+```
+
+This fetches the FastHTML package and its dependencies. You can also check the official [FastHTML documentation](https://docs.fastht.ml/) for more details.
+
+## Understanding FastHTML Syntax
+
+FastHTML's standout feature is its ability to let you write web pages using Python functions that mimic HTML tags. Instead of juggling separate HTML files, you define your page structure directly in Python:
+
+```python
+from fasthtml.common import *
+
+# Creating a paragraph element
+paragraph = P("Hello, World!")
+```
+
+In this snippet, `P` is a FastHTML function that generates an HTML `<p>` tag with "Hello, World!" as its content. This gets converted to `<p>Hello, World!</p>` when rendered. FastHTML provides similar functions for all standard HTML elements—`H1` for headings, `Div` for divisions, `Ul` and `Li` for lists, and so on.
+
+Here's a quick mapping of some common HTML elements to FastHTML functions:
+
+| HTML | FastHTML | Example |
+|------|----------|---------|
+| `<p>` | `P()` | `P("Text")` |
+| `<h1>` | `H1()` | `H1("Heading")` |
+| `<div>` | `Div()` | `Div(P("Child element"))` |
+| `<a>` | `A()` | `A("Link text", href="https://example.com")` |
+| `<input>` | `Input()` | `Input(type="text", name="username")` |
+
+To build a complete webpage, you combine these functions into a structure:
+
+```python
+page = Html(
+    Head(
+        Title("My First Page")
+    ),
+    Body(
+        H1("Welcome to FastHTML"),
+        P("This is a simple page built with FastHTML.")
+    )
+)
+```
+
+This code produces a complete HTML document with a title, heading, and paragraph. The nested structure mirrors HTML's hierarchy, making it easy to visualize how components fit together.
+
+**How FastHTML Functions Work**
+
+Each FastHTML function takes:
+- Positional arguments for child elements or content
+- Keyword arguments for HTML attributes
+
+For example, in `P("Hello", cls="greeting")`:
+- `"Hello"` is the content of the paragraph
+- `cls="greeting"` becomes the HTML attribute `class="greeting"`
+
+Note: We use `cls` instead of `class` because `class` is a reserved keyword in Python.
+
+## Building Your First Web Page
+
+Let's put this into action by creating a simple web page. Create a file called `main.py` and add the following code:
+
+```python
+from fasthtml.common import *
+
+# Create a FastHTML application
+app = FastHTML()
+
+# Define a route for the root URL "/"
+@app.get("/")
+def home():
+    page = Html(
+        Head(
+            Title("Getting Started with FastHTML"),
+            Script(src="https://cdn.tailwindcss.com")  # Including Tailwind CSS for styling
+        ),
+        Body(
+            H1("FastHTML Basics", cls="text-2xl font-bold mb-4"),
+            P("Below is a list of features:", cls="mb-2"),
+            Ul(
+                Li("Easy to learn"),
+                Li("Python-based"),
+                Li("Dynamic and responsive")
+            )
+        )
+    )
+    return page
+
+# Start the FastHTML server
+if __name__ == "__main__":
+    serve()
+```
+
+Let's break this down:
+
+1. We import all FastHTML components with `from fasthtml.common import *`
+2. We create a FastHTML application with `app = FastHTML()`
+3. We define a route handler for the root URL (`/`) using the `@app.get("/")` decorator
+4. Our `home()` function returns a complete HTML page structure
+5. The `serve()` function starts the FastHTML server
+
+Save the file, then run it from your terminal:
+
+```bash
+python main.py
+```
+
+You should see output similar to:
+
+```
+Link: http://localhost:5001
+INFO:     Will watch for changes in these directories: ['/path/to/your/project']
+INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)
+```
+
+Open your browser and navigate to `http://localhost:5001`. You'll see a page with a heading, paragraph, and bullet list. The `@app.get("/")` decorator tells FastHTML to serve this page at the root URL.
+
+**What's Happening Behind the Scenes**
+
+When you visit `http://localhost:5001`:
+1. FastHTML receives the request for the root URL (`/`)
+2. It calls the `home()` function
+3. The function returns a page structure built with FastHTML components
+4. FastHTML converts these components to HTML
+5. The HTML is sent to your browser
+
+FastHTML handles all the HTTP server details so you can focus on building your UI.
+
+## Basic UI Components
+
+Let's explore the fundamental FastHTML components you can use to build interfaces. We'll start with the basics and progressively build more complex UIs.
+
+### Text Elements
+
+Text elements are the foundation of any interface. FastHTML makes creating them intuitive:
+
+```python
+# Headings
+heading1 = H1("Main Heading", cls="text-2xl font-bold")
+heading2 = H2("Subheading", cls="text-xl font-semibold")
+
+# Paragraphs
+paragraph = P("This is a paragraph of text.", cls="mb-4")
+
+# Formatted text
+bold_text = Strong("This text is bold")
+italic_text = Em("This text is italicized")
+```
+
+Here's a complete example showing various text elements:
+
+```python
+@app.get("/text-elements")
+def text_elements():
+    return Html(
+        Head(Title("Text Elements")),
+        Body(
+            H1("Heading Level 1", cls="text-3xl font-bold"),
+            H2("Heading Level 2", cls="text-2xl font-semibold"),
+            H3("Heading Level 3", cls="text-xl font-medium"),
+            P("This is a regular paragraph with some ",
+              Strong("bold text"), " and some ",
+              Em("italicized text"), " mixed in."),
+            P("You can also use ", Code("code snippets"), " inline.")
+        )
+    )
+```
+
+When rendered, this creates a hierarchy of text elements with different sizes and styles. The `cls` attribute sets CSS classes that style the elements. In this example, we're using Tailwind CSS classes like `text-3xl` (for font size) and `font-bold` (for font weight).
+
+### Containers and Layout
+
+Organizing content is key to good UI design. FastHTML provides container elements for structuring your page:
+
+```python
+# Basic container
+container = Div(
+    H2("Section Title"),
+    P("Content inside a container"),
+    cls="p-4 bg-gray-100 rounded"
+)
+
+# Grid layout (with Tailwind CSS)
+grid = Div(
+    Div(P("Column 1"), cls="p-2"),
+    Div(P("Column 2"), cls="p-2"),
+    Div(P("Column 3"), cls="p-2"),
+    cls="grid grid-cols-3 gap-4"
+)
+```
+
+The `Div` component is extremely versatile for creating containers and layout structures. When combined with CSS frameworks like Tailwind, you can create responsive layouts with minimal effort.
+
+Here's a layout example using nested containers:
+
+```python
+@app.get("/layout")
+def layout_demo():
+    return Html(
+        Head(
+            Title("Layout Demo"),
+            Script(src="https://cdn.tailwindcss.com")
+        ),
+        Body(
+            Div(
+                H1("Page Layout Example", cls="text-2xl font-bold mb-4"),
+
+                # Main layout grid with sidebar and content
+                Div(
+                    # Sidebar
+                    Div(
+                        H2("Sidebar", cls="text-xl mb-2"),
+                        Ul(
+                            Li("Home"),
+                            Li("About"),
+                            Li("Services"),
+                            Li("Contact"),
+                            cls="space-y-2"
+                        ),
+                        cls="bg-gray-100 p-4 rounded"
+                    ),
+
+                    # Main content
+                    Div(
+                        H2("Main Content", cls="text-xl mb-2"),
+                        P("This is the main content area of our layout example."),
+                        P("You can structure complex layouts using nested Div elements."),
+                        cls="bg-white p-4 rounded"
+                    ),
+
+                    # Grid with 1 column on mobile, 4 columns on medium screens and up
+                    cls="grid grid-cols-1 md:grid-cols-4 gap-4"
+                ),
+                cls="container mx-auto p-4"
+            )
+        )
+    )
+```
+
+This creates a responsive layout with:
+- A sidebar that contains navigation links
+- A main content area
+- A layout that adapts to different screen sizes (1 column on mobile, 4 columns on larger screens)
+
+### Links and Buttons
+
+Interactive elements like links and buttons allow users to navigate and take actions:
+
+```python
+# Basic link
+link = A("Visit Google", href="https://google.com", cls="text-blue-500 hover:underline")
+
+# Button
+button = Button("Click Me", cls="bg-blue-500 text-white px-4 py-2 rounded")
+```
+
+The `A` component creates HTML anchor tags (`<a>`) for links, while the `Button` component creates HTML button elements (`<button>`).
+
+Let's create a navigation bar with links and buttons:
+
+```python
+@app.get("/navigation")
+def navigation_demo():
+    return Html(
+        Head(
+            Title("Navigation Demo"),
+            Script(src="https://cdn.tailwindcss.com")
+        ),
+        Body(
+            # Navigation bar
+            Div(
+                Div(
+                    # Logo/site name
+                    A("FastHTML Demo", href="/", cls="text-xl font-bold text-white"),
+
+                    # Navigation links and login button
+                    Div(
+                        A("Home", href="/", cls="text-white hover:text-gray-200 mx-2"),
+                        A("Features", href="/features", cls="text-white hover:text-gray-200 mx-2"),
+                        A("Docs", href="/docs", cls="text-white hover:text-gray-200 mx-2"),
+                        Button("Login", cls="bg-white text-blue-600 px-3 py-1 rounded ml-4"),
+                        cls="flex items-center"
+                    ),
+                    cls="flex justify-between items-center"
+                ),
+                cls="bg-blue-600 p-4"
+            ),
+
+            # Page content
+            Div(
+                H1("Welcome to FastHTML", cls="text-3xl font-bold mb-4"),
+                P("This example shows a navigation bar with links and a button."),
+                cls="container mx-auto p-4"
+            )
+        )
+    )
+```
+
+This creates a navigation bar with:
+- A site logo/name on the left
+- Navigation links in the center
+- A login button on the right
+- Hover effects on the links
+- A clean, modern appearance thanks to Tailwind CSS
+
+### Forms and Inputs
+
+Forms allow users to input data. FastHTML makes creating forms straightforward:
+
+```python
+# Text input
+text_input = Input(type="text", name="username", placeholder="Enter username")
+
+# Password input
+password_input = Input(type="password", name="password", placeholder="Enter password")
+
+# Complete form
+login_form = Form(
+    Label("Username:", Input(type="text", name="username")),
+    Label("Password:", Input(type="password", name="password")),
+    Button("Submit", type="submit"),
+    action="/submit",
+    method="post"
+)
+```
+
+The `Form` component creates HTML form elements, while `Input` creates various input types based on the `type` attribute. The `action` attribute specifies where the form data will be sent, and the `method` attribute specifies the HTTP method (GET or POST).
+
+Let's create a complete contact form:
+
+```python
+@app.get("/contact")
+def contact_form():
+    return Html(
+        Head(
+            Title("Contact Form"),
+            Script(src="https://cdn.tailwindcss.com")
+        ),
+        Body(
+            Div(
+                H1("Contact Us", cls="text-2xl font-bold mb-4"),
+
+                # Contact form
+                Form(
+                    # Name field
+                    Div(
+                        Label("Name:", For="name", cls="block mb-1"),
+                        Input(type="text", id="name", name="name", placeholder="Your name",
+                              cls="w-full p-2 border rounded mb-3"),
+                        cls="mb-4"
+                    ),
+
+                    # Email field
+                    Div(
+                        Label("Email:", For="email", cls="block mb-1"),
+                        Input(type="email", id="email", name="email", placeholder="Your email",
+                              cls="w-full p-2 border rounded mb-3"),
+                        cls="mb-4"
+                    ),
+
+                    # Message field
+                    Div(
+                        Label("Message:", For="message", cls="block mb-1"),
+                        Textarea(id="message", name="message", placeholder="Your message", rows=5,
+                                cls="w-full p-2 border rounded mb-3"),
+                        cls="mb-4"
+                    ),
+
+                    # Submit button
+                    Button("Send Message", type="submit",
+                           cls="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"),
+
+                    # Form attributes
+                    action="/submit-contact",
+                    method="post",
+                    cls="max-w-md mx-auto bg-gray-50 p-6 rounded shadow"
+                ),
+                cls="container mx-auto p-4"
+            )
+        )
+    )
+```
+
+This creates a styled contact form with:
+- Text input for name
+- Email input for email address
+- Textarea for the message
+- Submit button
+- Form submission handling to "/submit-contact"
+- Proper styling and layout for all elements
+
+### Lists and Tables
+
+Organizing data with lists and tables is common in web applications:
+
+```python
+# Unordered list
+unordered_list = Ul(
+    Li("Item 1"),
+    Li("Item 2"),
+    Li("Item 3")
+)
+
+# Ordered list
+ordered_list = Ol(
+    Li("First item"),
+    Li("Second item"),
+    Li("Third item")
+)
+
+# Basic table
+table = Table(
+    Thead(
+        Tr(
+            Th("Name"),
+            Th("Email"),
+            Th("Role")
+        )
+    ),
+    Tbody(
+        Tr(
+            Td("John Doe"),
+            Td("john@example.com"),
+            Td("Admin")
+        ),
+        Tr(
+            Td("Jane Smith"),
+            Td("jane@example.com"),
+            Td("User")
+        )
+    )
+)
+```
+
+The `Ul` and `Ol` components create unordered and ordered lists, while `Li` creates list items. The `Table`, `Thead`, `Tbody`, `Tr`, `Th`, and `Td` components create HTML table elements.
+
+Here's a data table example:
+
+```python
+@app.get("/data-table")
+def data_table():
+    return Html(
+        Head(
+            Title("Data Table"),
+            Script(src="https://cdn.tailwindcss.com")
+        ),
+        Body(
+            Div(
+                H1("User Data", cls="text-2xl font-bold mb-4"),
+
+                # User data table
+                Table(
+                    # Table header
+                    Thead(
+                        Tr(
+                            Th("ID", cls="p-2 border"),
+                            Th("Name", cls="p-2 border"),
+                            Th("Email", cls="p-2 border"),
+                            Th("Role", cls="p-2 border"),
+                            Th("Actions", cls="p-2 border"),
+                            cls="bg-gray-100"
+                        )
+                    ),
+
+                    # Table body
+                    Tbody(
+                        # Row 1
+                        Tr(
+                            Td("1", cls="p-2 border"),
+                            Td("John Doe", cls="p-2 border"),
+                            Td("john@example.com", cls="p-2 border"),
+                            Td("Admin", cls="p-2 border"),
+                            Td(Button("Edit", cls="bg-blue-500 text-white px-2 py-1 rounded mr-2"),
+                               Button("Delete", cls="bg-red-500 text-white px-2 py-1 rounded"),
+                               cls="p-2 border"),
+                        ),
+                        # Row 2
+                        Tr(
+                            Td("2", cls="p-2 border"),
+                            Td("Jane Smith", cls="p-2 border"),
+                            Td("jane@example.com", cls="p-2 border"),
+                            Td("User", cls="p-2 border"),
+                            Td(Button("Edit", cls="bg-blue-500 text-white px-2 py-1 rounded mr-2"),
+                               Button("Delete", cls="bg-red-500 text-white px-2 py-1 rounded"),
+                               cls="p-2 border"),
+                        ),
+                        # Row 3
+                        Tr(
+                            Td("3", cls="p-2 border"),
+                            Td("Robert Johnson", cls="p-2 border"),
+                            Td("robert@example.com", cls="p-2 border"),
+                            Td("Editor", cls="p-2 border"),
+                            Td(Button("Edit", cls="bg-blue-500 text-white px-2 py-1 rounded mr-2"),
+                               Button("Delete", cls="bg-red-500 text-white px-2 py-1 rounded"),
+                               cls="p-2 border"),
+                        )
+                    ),
+                    cls="w-full border-collapse"
+                ),
+                cls="container mx-auto p-4 overflow-x-auto"
+            )
+        )
+    )
+```
+
+This creates a styled data table with:
+- Column headers (ID, Name, Email, Role, Actions)
+- Multiple rows of data
+- Action buttons in the last column
+- Proper styling for all elements
+- Horizontal scrolling for small screens
+
+## Adding Interactivity with HTMX
+
+FastHTML seamlessly integrates with [HTMX](https://htmx.org/), a library that allows you to access AJAX, CSS Transitions, WebSockets and Server Sent Events directly in HTML, without writing JavaScript. FastHTML includes HTMX by default, but we're including it explicitly in this example for clarity.
+
+Here's a simple counter example:
+
+```python
+from fasthtml.common import *
+
+app = FastHTML()
+
+# A simple counter variable to demonstrate state
+counter = 0
+
+@app.get("/")
+def home():
+    return Html(
+        Head(
+            Title("HTMX Counter Example"),
+            # Include HTMX library - FastHTML actually includes this by default
+            Script(src="https://unpkg.com/htmx.org@1.9.6"),
+            Script(src="https://cdn.tailwindcss.com")
+        ),
+        Body(
+            Div(
+                H1("HTMX Counter", cls="text-2xl font-bold mb-4"),
+                Div(
+                    # Counter display with unique ID for targeting
+                    P(f"Current count: {counter}", id="counter", cls="text-xl mb-4"),
+
+                    # Increment button with HTMX attributes
+                    Button("Increment",
+                           # Make a POST request to /increment when clicked
+                           hx_post="/increment",
+                           # Update the element with id="counter"
+                           hx_target="#counter",
+                           cls="bg-blue-500 text-white px-4 py-2 rounded mr-2"),
+
+                    # Decrement button with HTMX attributes
+                    Button("Decrement",
+                           # Make a POST request to /decrement when clicked
+                           hx_post="/decrement",
+                           # Update the element with id="counter"
+                           hx_target="#counter",
+                           cls="bg-red-500 text-white px-4 py-2 rounded"),
+                    cls="p-4 bg-gray-100 rounded"
+                ),
+                cls="container mx-auto p-4"
+            )
+        )
+    )
+
+# Handler for increment button
+@app.post("/increment")
+def increment():
+    global counter
+    counter += 1
+    # Return just the counter element, not the whole page
+    return P(f"Current count: {counter}", id="counter", cls="text-xl mb-4")
+
+# Handler for decrement button
+@app.post("/decrement")
+def decrement():
+    global counter
+    counter -= 1
+    # Return just the counter element, not the whole page
+    return P(f"Current count: {counter}", id="counter", cls="text-xl mb-4")
+
+if __name__ == "__main__":
+    serve()
+```
+
+### Understanding HTMX Attributes
+
+FastHTML provides special attributes for HTMX integration:
+
+1. `hx_post` - Sends a POST request to the specified URL when the element is clicked
+2. `hx_get` - Sends a GET request to the specified URL when the element is clicked
+3. `hx_target` - Specifies which element to update with the response (using CSS selector syntax)
+4. `hx_swap` - Controls how the response is swapped in (e.g., "innerHTML", "outerHTML", "beforeend")
+5. `hx_trigger` - Specifies when to trigger the request (e.g., "click", "change", etc.)
+
+In FastHTML, these attributes are provided as Python parameters, with underscores replacing hyphens (e.g., `hx_post` instead of `hx-post`).
+
+### How the Counter Works
+
+1. When you click the "Increment" button, HTMX sends a POST request to `/increment`
+2. The server runs the `increment()` function, which increases the counter value
+3. The function returns just the updated paragraph element
+4. HTMX replaces the content of the element with id="counter" with the response
+5. The page updates without a full refresh
+
+This pattern is powerful for creating interactive web applications without writing JavaScript.
+
+## Building a Todo Application
+
+Let's combine everything we've learned to build a simple todo application:
+
+```python
+from fasthtml.common import *
+from dataclasses import dataclass
+
+app = FastHTML()
+
+# Our simple data store
+todos = []
+todo_id_counter = 0
+
+# Define the data structure for a todo item
+@dataclass
+class Todo:
+    id: int
+    title: str
+    completed: bool = False
+
+@app.get("/")
+def home():
+    return Html(
+        Head(
+            Title("FastHTML Todo App"),
+            Script(src="https://unpkg.com/htmx.org@1.9.6"),
+            Script(src="https://cdn.tailwindcss.com")
+        ),
+        Body(
+            Div(
+                H1("Todo Application", cls="text-2xl font-bold mb-4"),
+
+                # Add new todo form
+                Form(
+                    Div(
+                        Input(type="text", name="title", placeholder="Add a new todo",
+                              cls="p-2 border rounded w-full md:w-80"),
+                        Button("Add", type="submit",
+                               cls="bg-blue-500 text-white px-4 py-2 rounded ml-2"),
+                        cls="flex items-center mb-4"
+                    ),
+                    # When the form is submitted, send a POST request to /add-todo
+                    hx_post="/add-todo",
+                    # Update the element with id="todo-list"
+                    hx_target="#todo-list",
+                    # Add the new todo at the end of the list
+                    hx_swap="beforeend"
+                ),
+
+                # Todo list container
+                Div(
+                    id="todo-list",
+                    cls="space-y-2"
+                ),
+                cls="container mx-auto p-4 max-w-md"
+            )
+        )
+    )
+
+# Handler for adding a new todo
+@app.post("/add-todo")
+def add_todo(title: str):
+    global todo_id_counter
+    # Skip if the title is empty
+    if not title.strip():
+        return ""
+
+    # Create a new todo and add it to the list
+    todo_id_counter += 1
+    new_todo = Todo(id=todo_id_counter, title=title)
+    todos.append(new_todo)
+
+    # Return the HTML for the new todo item
+    return create_todo_item(new_todo)
+
+# Handler for toggling a todo's completed status
+@app.post("/toggle-todo/{id}")
+def toggle_todo(id: int):
+    for todo in todos:
+        if todo.id == id:
+            # Toggle the completed status
+            todo.completed = not todo.completed
+            # Return the updated todo item HTML
+            return create_todo_item(todo)
+    return ""
+
+# Handler for deleting a todo
+@app.delete("/delete-todo/{id}")
+def delete_todo(id: int):
+    global todos
+    # Remove the todo with the specified id
+    todos = [todo for todo in todos if todo.id != id]
+    # Return an empty string since we're removing the element
+    return ""
+
+# Helper function to create the HTML for a todo item
+def create_todo_item(todo: Todo):
+    # Add strikethrough style if the todo is completed
+    completed_class = "line-through text-gray-500" if todo.completed else ""
+
+    return Div(
+        Div(
+            # Checkbox for marking the todo as completed
+            Input(type="checkbox",
+                  checked=todo.completed,
+                  hx_post=f"/toggle-todo/{todo.id}",
+                  hx_target=f"#todo-{todo.id}",
+                  hx_swap="outerHTML",
+                  cls="mr-2"),
+            # Todo title
+            Span(todo.title, cls=completed_class),
+            cls="flex-grow"
+        ),
+        # Delete button
+        Button("×",
+               hx_delete=f"/delete-todo/{todo.id}",
+               hx_target=f"#todo-{todo.id}",
+               hx_swap="outerHTML",
+               cls="text-red-500 font-bold"),
+        # Unique ID for targeting this todo item
+        id=f"todo-{todo.id}",
+        cls="flex items-center p-2 border rounded"
+    )
+
+if __name__ == "__main__":
+    serve()
+```
+
+**How the Todo App Works**
+
+1. **Data Structure**: We use a Python dataclass to define the structure of a todo item
+2. **UI Structure**: The main page has a form for adding todos and a container for displaying them
+3. **Adding Todos**:
+   - The form sends a POST request to `/add-todo` when submitted
+   - The server creates a new todo and returns the HTML for it
+   - HTMX adds the new todo to the end of the list
+4. **Toggling Todos**:
+   - The checkbox sends a POST request to `/toggle-todo/{id}` when clicked
+   - The server toggles the todo's completed status and returns the updated HTML
+   - HTMX replaces the todo item with the updated version
+5. **Deleting Todos**:
+   - The delete button sends a DELETE request to `/delete-todo/{id}` when clicked
+   - The server removes the todo from the list
+   - HTMX removes the todo item from the page
+
+This demonstrates how FastHTML can be used to build a complete interactive application with minimal code.
+
+## The FastHTML Advantage
+
+Now that you've seen FastHTML in action, let's summarize its key advantages:
+
+1. **Python-Powered UI**: Write both your backend and frontend in Python
+2. **Declarative Syntax**: Create UIs by composing functions rather than writing HTML templates
+3. **Integrated Interactivity**: Built-in support for HTMX makes adding interactivity simple
+4. **No Context Switching**: Stay in Python throughout your development workflow
+5. **Minimal Dependencies**: No need for a complex JavaScript stack
+6. **Quick Development**: Build functional UIs in minutes rather than hours
+
+FastHTML is particularly well-suited for:
+- Internal tools and dashboards
+- Prototypes and MVPs
+- Data visualization applications
+- Admin interfaces
+- Any application where development speed is prioritized over complex UI interactions
+
+## Conclusion
+
+FastHTML empowers beginners to craft web applications using Python's familiar syntax, sidestepping the complexities of traditional web development. In this guide, we've walked through installing FastHTML, mastering its HTML-like syntax, and building various UI components from simple text elements to complete interactive applications.
+
+You've seen how to:
+- Create basic HTML elements using Python functions
+- Structure layouts with containers and grids
+- Build forms for user input
+- Create interactive UIs with
