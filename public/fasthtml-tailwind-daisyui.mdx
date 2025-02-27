@@ -1,0 +1,1232 @@
+---
+date: 2025-02-26T00:00:00Z
+title: "FastHTML with Tailwind CSS & DaisyUI 5: Styling Guide for Python Developers"
+description: "Learn how to transform your FastHTML website with Tailwind CSS and DaisyUI 5. This step-by-step tutorial shows Python developers how to create beautiful interfaces with utility classes and pre-built components."
+image: "../../assets/images/25/02/fasthtml-start.jpg"
+categories: ["vps"]
+authors: ["Dragos"]
+tags: ["fasthtml", "python", "tailwind", "daisyui"]
+canonical: "https://www.bitdoze.com/fasthtml-tailwind-daisyui/"
+---
+
+Welcome to the third article in our FastHTML series! In our [previous article](https://www.bitdoze.com/fasthtml-multiple-pages/), you learned how to create a multi-page website with FastHTML, complete with shared layouts and organized directory structure. While the site now functions well, it might still lack visual polish. This is where proper styling comes in.
+
+In this guide, we'll transform your functional FastHTML website into a visually stunning application using **Tailwind CSS** and **DaisyUI 5**. Tailwind is a utility-first CSS framework that allows rapid UI development through composable classes, while DaisyUI extends Tailwind with pre-built components—all without writing custom CSS. By the end of this tutorial, you'll have a professional-looking website that's not only functional but also aesthetically pleasing.
+
+## Understanding Utility-First CSS with Tailwind
+
+Before we dive in, let's understand why Tailwind CSS is revolutionary for developers, especially those coming from a Python background:
+
+### Traditional CSS vs. Utility-First CSS
+
+With traditional CSS, you typically:
+1. Create custom class names
+2. Write CSS rules in separate files
+3. Switch between HTML and CSS files constantly
+4. Manage growing stylesheets that become difficult to maintain
+
+Tailwind's utility-first approach changes this workflow by:
+1. Providing pre-defined utility classes
+2. Allowing styling directly in your HTML/components
+3. Eliminating the need to write and maintain custom CSS
+4. Keeping styles localized to components (similar to FastHTML's philosophy)
+
+For Python developers used to FastHTML's component-based approach, this is a natural fit!
+
+## Setting Up Tailwind CSS and DaisyUI 5 in FastHTML
+
+Let's integrate these powerful styling tools into our multi-page FastHTML project. We'll build on the project structure from our previous article:
+
+```
+mywebsite/
+├── main.py
+├── components.py
+└── pages/
+    ├── __init__.py
+    ├── home.py
+    ├── about.py
+    └── contact.py
+```
+
+### Step 1: Integrating Tailwind CSS and DaisyUI 5
+
+First, we'll update our `components.py` file to include Tailwind CSS and DaisyUI via CDN. While a production site would use a build process for better performance, using CDNs is perfect for learning and development.
+
+**File: `mywebsite/components.py`**
+
+```python
+from fasthtml.common import *
+
+def header(current_page="/"):
+    """
+    Creates a consistent header with navigation using Tailwind and DaisyUI styling.
+
+    Args:
+        current_page: The current page path, used to highlight the active link
+
+    Returns:
+        A styled Header component with navigation
+    """
+    # Define the navigation links
+    nav_items = [
+        ("Home", "/"),
+        ("About", "/about"),
+        ("Contact", "/contact")
+    ]
+
+    # Create navigation items with appropriate styling
+    nav_links = []
+    for title, path in nav_items:
+        # Apply special styling to the current page link
+        is_current = current_page == path
+        link_class = "btn btn-ghost normal-case text-lg"
+        if is_current:
+            link_class += " btn-active"
+
+        nav_links.append(
+            Li(
+                A(title, href=path, cls=link_class)
+            )
+        )
+
+    return Header(
+        # DaisyUI navbar component
+        Div(
+            Div(
+                # Website logo/name
+                A("MyWebsite", href="/", cls="btn btn-ghost normal-case text-xl"),
+                cls="navbar-start"
+            ),
+            # Navigation links in the center
+            Div(
+                Ul(
+                    *nav_links,
+                    cls="menu menu-horizontal px-1"
+                ),
+                cls="navbar-center"
+            ),
+            # Right side of navbar (could contain search, login, etc.)
+            Div(
+                # Theme toggle button using DaisyUI 5's theme controller
+                Label(
+                    Input(type="checkbox", cls="toggle theme-controller"),
+                    cls="swap swap-rotate"
+                ),
+                cls="navbar-end"
+            ),
+            cls="navbar bg-base-100"
+        ),
+        cls="shadow-lg"
+    )
+
+def footer():
+    """
+    Creates a consistent footer with Tailwind and DaisyUI styling.
+
+    Returns:
+        A styled Footer component
+    """
+    current_year = 2025  # In a real app, use datetime to get current year
+
+    return Footer(
+        # DaisyUI footer component
+        Div(
+            Div(
+                Div(
+                    # Footer title
+                    Span("MyWebsite", cls="footer-title"),
+                    # Footer links
+                    A("About us", href="/about", cls="link link-hover"),
+                    A("Contact", href="/contact", cls="link link-hover"),
+                    A("Jobs", href="#", cls="link link-hover"),
+                    A("Press kit", href="#", cls="link link-hover"),
+                    cls="flex flex-col"
+                ),
+                Div(
+                    Span("Legal", cls="footer-title"),
+                    A("Terms of use", href="#", cls="link link-hover"),
+                    A("Privacy policy", href="#", cls="link link-hover"),
+                    A("Cookie policy", href="#", cls="link link-hover"),
+                    cls="flex flex-col"
+                ),
+                cls="footer p-10 bg-base-200 text-base-content"
+            ),
+            Div(
+                P(f"© {current_year} MyWebsite - All rights reserved",
+                  cls="text-center py-4 text-base-content"),
+                cls="footer footer-center p-4 bg-base-300"
+            )
+        )
+    )
+
+def page_layout(title, content, current_page="/"):
+    """
+    Wraps page content with consistent header, footer, and styling.
+    Integrates Tailwind CSS and DaisyUI 5.
+
+    Args:
+        title: The page title (appears in browser tab)
+        content: The main content of the page
+        current_page: The current page path for navigation highlighting
+
+    Returns:
+        A complete HTML page with header, content, and footer with Tailwind/DaisyUI styling
+    """
+    return Html(
+        Head(
+            Title(title),
+            # Meta tags for better SEO and mobile display
+            Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+            Meta(name="description", content=f"{title} - MyWebsite built with FastHTML"),
+
+            # Tailwind CSS
+            Script(src="https://cdn.tailwindcss.com"),
+
+            # DaisyUI CSS (which extends Tailwind)
+            Link(href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css", rel="stylesheet", type="text/css"),
+
+            # Tailwind config script with DaisyUI 5 theming
+            Script("""
+                tailwind.config = {
+                    theme: {
+                        extend: {
+                            colors: {
+                                primary: "#4f46e5",
+                                secondary: "#0ea5e9"
+                            }
+                        }
+                    },
+                    // DaisyUI 5 plugin configuration would normally go in CSS
+                    // but we're simulating it here for the CDN approach
+                    daisyui: {
+                        themes: ["light", "dark"]
+                    }
+                }
+            """, type="text/javascript")
+        ),
+        Body(
+            # data-theme attribute enables DaisyUI theming
+            # We start with the light theme but users can toggle it
+            Div(
+                # Include header with current page highlighted
+                header(current_page),
+
+                # Main content area
+                Main(
+                    content,
+                    cls="min-h-screen p-4"
+                ),
+
+                # Include footer
+                footer(),
+
+                # Apply DaisyUI theming
+                data_theme="light"
+            )
+        )
+    )
+```
+
+In this updated `components.py`:
+
+1. **Header**: We've transformed the basic header into a DaisyUI navbar with:
+   - A brand name in the navbar-start section
+   - Navigation links in the navbar-center
+   - A theme toggle switch in the navbar-end using DaisyUI 5's theme controller
+   - Highlighting for the current page
+
+2. **Footer**: We've created a two-part footer using DaisyUI's footer component:
+   - Main section with links organized in columns
+   - Bottom section with copyright information
+
+3. **Page Layout**: We've integrated:
+   - Tailwind CSS via CDN
+   - DaisyUI 5 via CDN (using the latest beta version)
+   - A Tailwind configuration script for theme customization
+   - A theme toggle functionality
+   - Responsive container for the main content
+
+### Step 2: Styling the Home Page with Tailwind and DaisyUI
+
+Now, let's update our home page to use Tailwind CSS and DaisyUI 5 components.
+
+**File: `mywebsite/pages/home.py`**
+
+```python
+from fasthtml.common import *
+
+def home():
+    """
+    Defines the home page with Tailwind CSS and DaisyUI styling.
+
+    Returns:
+        Components representing the styled home page content
+    """
+    return Div(
+        # Hero section using DaisyUI
+        Div(
+            Div(
+                H1("Welcome to MyWebsite",
+                   cls="text-5xl font-bold mb-6"),
+                P("Build beautiful web applications with FastHTML, Tailwind CSS, and DaisyUI 5.",
+                  cls="py-6 text-lg"),
+                Div(
+                    A("Get Started",
+                      href="/about",
+                      cls="btn btn-primary mr-4"),
+                    A("Learn More",
+                      href="/contact",
+                      cls="btn btn-outline"),
+                ),
+                cls="max-w-md"
+            ),
+            cls="hero min-h-[70vh] bg-base-200"
+        ),
+
+        # Features section
+        Div(
+            Div(
+                H2("Why choose FastHTML with Tailwind & DaisyUI?",
+                   cls="text-3xl font-bold text-center mb-12"),
+
+                # Feature cards in a responsive grid
+                Div(
+                    # Feature 1
+                    Div(
+                        Div(
+                            # DaisyUI card
+                            Div(
+                                Div(
+                                    # Card icon (using an emoji for simplicity)
+                                    Div("🚀", cls="text-4xl mb-4"),
+                                    H3("Fast Development", cls="text-xl font-bold mb-2"),
+                                    P("Build web applications in minutes instead of hours with FastHTML's Python-based components.",
+                                      cls="text-base-content/70"),
+                                    cls="card-body items-center text-center"
+                                ),
+                                cls="card bg-base-100 shadow-xl"
+                            )
+                        )
+                    ),
+
+                    # Feature 2
+                    Div(
+                        Div(
+                            # DaisyUI card
+                            Div(
+                                Div(
+                                    # Card icon
+                                    Div("🎨", cls="text-4xl mb-4"),
+                                    H3("Beautiful UI", cls="text-xl font-bold mb-2"),
+                                    P("Create stunning interfaces with Tailwind CSS and DaisyUI 5 without writing complex CSS.",
+                                      cls="text-base-content/70"),
+                                    cls="card-body items-center text-center"
+                                ),
+                                cls="card bg-base-100 shadow-xl"
+                            )
+                        )
+                    ),
+
+                    # Feature 3
+                    Div(
+                        Div(
+                            # DaisyUI card
+                            Div(
+                                Div(
+                                    # Card icon
+                                    Div("🔧", cls="text-4xl mb-4"),
+                                    H3("Customizable", cls="text-xl font-bold mb-2"),
+                                    P("Easily customize themes, components, and styles to match your brand identity.",
+                                      cls="text-base-content/70"),
+                                    cls="card-body items-center text-center"
+                                ),
+                                cls="card bg-base-100 shadow-xl"
+                            )
+                        )
+                    ),
+
+                    cls="grid grid-cols-1 md:grid-cols-3 gap-8"
+                ),
+                cls="container mx-auto px-4 py-16"
+            )
+        ),
+
+        # Call-to-action section
+        Div(
+            Div(
+                Div(
+                    H2("Ready to get started?", cls="text-3xl font-bold"),
+                    P("Join thousands of developers who are building with FastHTML, Tailwind CSS, and DaisyUI 5.",
+                      cls="py-6"),
+                    A("Contact Us", href="/contact", cls="btn btn-primary"),
+                ),
+                cls="hero-content text-center"
+            ),
+            cls="hero bg-base-200 py-12"
+        )
+    )
+```
+
+Here's what we've done with the home page:
+
+1. **Hero Section**: Using DaisyUI's hero component with:
+   - A large, bold heading
+   - Descriptive paragraph
+   - Two styled buttons (primary and outline)
+
+2. **Features Section**: Created a responsive grid of feature cards:
+   - Three cards highlighting key benefits
+   - Each card with an emoji icon, heading, and description
+   - Shadow effect for visual depth
+   - Responsive layout (1 column on mobile, 3 columns on desktop)
+
+3. **Call-to-Action Section**: Added a final section to encourage user engagement:
+   - Secondary hero component
+   - Bold heading and description
+   - Primary button linking to the contact page
+
+### Step 3: Styling the About Page
+
+Now let's update the about page with Tailwind and DaisyUI 5 components.
+
+**File: `mywebsite/pages/about.py`**
+
+```python
+from fasthtml.common import *
+
+def about():
+    """
+    Defines the about page with Tailwind CSS and DaisyUI styling.
+
+    Returns:
+        Components representing the styled about page content
+    """
+    return Div(
+        # Page header
+        Div(
+            H1("About Us",
+               cls="text-4xl font-bold text-center mb-2"),
+            P("Learn more about our team and mission",
+              cls="text-lg text-center text-base-content/70 mb-8"),
+            cls="py-12 bg-base-200"
+        ),
+
+        # Company story section
+        Div(
+            Div(
+                # Using DaisyUI's card for the company info
+                Div(
+                    Div(
+                        H2("Our Story", cls="text-2xl font-bold mb-4"),
+                        P("Founded in 2025, MyWebsite was created to help developers build "
+                          "beautiful web applications using Python. Our mission is to make "
+                          "web development accessible, enjoyable, and productive.",
+                          cls="mb-4"),
+                        P("We believe that Python developers should be able to create "
+                          "stunning web applications without having to learn multiple "
+                          "languages and frameworks.",
+                          cls="mb-4"),
+                        cls="prose lg:prose-xl mx-auto"
+                    ),
+                    cls="card-body"
+                ),
+                cls="card bg-base-100 shadow-xl mb-12 max-w-3xl mx-auto"
+            ),
+            cls="container mx-auto px-4 py-8"
+        ),
+
+        # Team section
+        Div(
+            Div(
+                H2("Meet Our Team", cls="text-3xl font-bold text-center mb-12"),
+
+                # Team members in a responsive grid
+                Div(
+                    # Team member 1
+                    Div(
+                        Div(
+                            # Using DaisyUI's card
+                            Div(
+                                Div(
+                                    # Avatar
+                                    Div(
+                                        Div(
+                                            img(src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg",
+                                                alt="Jane Doe"),
+                                            cls="w-24 rounded-full"
+                                        ),
+                                        cls="avatar mb-4"
+                                    ),
+                                    H3("Jane Doe", cls="text-xl font-bold"),
+                                    P("Founder & CEO", cls="text-base-content/70 mb-2"),
+                                    P("Python enthusiast with 15 years of experience in web development.",
+                                      cls="mb-4"),
+
+                                    # Social media links
+                                    Div(
+                                        A(Span("Twitter"), href="#", cls="btn btn-sm btn-ghost"),
+                                        A(Span("LinkedIn"), href="#", cls="btn btn-sm btn-ghost"),
+                                        A(Span("GitHub"), href="#", cls="btn btn-sm btn-ghost"),
+                                        cls="flex justify-center space-x-2"
+                                    ),
+
+                                    cls="card-body items-center text-center"
+                                ),
+                                cls="card bg-base-100 shadow-xl"
+                            )
+                        )
+                    ),
+
+                    # Team member 2
+                    Div(
+                        Div(
+                            # Using DaisyUI's card
+                            Div(
+                                Div(
+                                    # Avatar
+                                    Div(
+                                        Div(
+                                            img(src="https://daisyui.com/images/stock/photo-1507003211169-0a1dd7228f2d.jpg",
+                                                alt="John Smith"),
+                                            cls="w-24 rounded-full"
+                                        ),
+                                        cls="avatar mb-4"
+                                    ),
+                                    H3("John Smith", cls="text-xl font-bold"),
+                                    P("CTO", cls="text-base-content/70 mb-2"),
+                                    P("Full-stack developer with a passion for clean, maintainable code.",
+                                      cls="mb-4"),
+
+                                    # Social media links
+                                    Div(
+                                        A(Span("Twitter"), href="#", cls="btn btn-sm btn-ghost"),
+                                        A(Span("LinkedIn"), href="#", cls="btn btn-sm btn-ghost"),
+                                        A(Span("GitHub"), href="#", cls="btn btn-sm btn-ghost"),
+                                        cls="flex justify-center space-x-2"
+                                    ),
+
+                                    cls="card-body items-center text-center"
+                                ),
+                                cls="card bg-base-100 shadow-xl"
+                            )
+                        )
+                    ),
+
+                    # Team member 3
+                    Div(
+                        Div(
+                            # Using DaisyUI's card
+                            Div(
+                                Div(
+                                    # Avatar
+                                    Div(
+                                        Div(
+                                            img(src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg",
+                                                alt="Sarah Johnson"),
+                                            cls="w-24 rounded-full"
+                                        ),
+                                        cls="avatar mb-4"
+                                    ),
+                                    H3("Sarah Johnson", cls="text-xl font-bold"),
+                                    P("Lead Designer", cls="text-base-content/70 mb-2"),
+                                    P("UI/UX specialist with an eye for detail and user-centric design.",
+                                      cls="mb-4"),
+
+                                    # Social media links
+                                    Div(
+                                        A(Span("Twitter"), href="#", cls="btn btn-sm btn-ghost"),
+                                        A(Span("LinkedIn"), href="#", cls="btn btn-sm btn-ghost"),
+                                        A(Span("GitHub"), href="#", cls="btn btn-sm btn-ghost"),
+                                        cls="flex justify-center space-x-2"
+                                    ),
+
+                                    cls="card-body items-center text-center"
+                                ),
+                                cls="card bg-base-100 shadow-xl"
+                            )
+                        )
+                    ),
+
+                    cls="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                ),
+                cls="container mx-auto px-4"
+            ),
+            cls="bg-base-200 py-16"
+        )
+    )
+```
+
+Here's what we've done with the about page:
+
+1. **Page Header**: A simple, clean header with:
+   - Large, bold title
+   - Subtitle with slightly reduced opacity for visual hierarchy
+   - Subtle background color to separate it from the content
+
+2. **Company Story**: A styled card containing:
+   - Heading for the section
+   - Paragraphs about the company's mission
+   - DaisyUI's prose classes for proper typography
+
+3. **Team Section**: A responsive grid of team member cards:
+   - Each card with an avatar, name, title, and description
+   - Social media links for each team member
+   - Responsive layout (1 column on mobile, 2 on tablet, 3 on desktop)
+   - Subtle background color to separate it from other sections
+
+### Step 4: Styling the Contact Page
+
+Finally, let's update the contact page with a styled form and contact information.
+
+**File: `mywebsite/pages/contact.py`**
+
+```python
+from fasthtml.common import *
+
+def contact():
+    """
+    Defines the contact page with a styled form using Tailwind CSS and DaisyUI 5.
+
+    Returns:
+        Components representing the styled contact page content
+    """
+    return Div(
+        # Page header
+        Div(
+            H1("Contact Us",
+               cls="text-4xl font-bold text-center mb-2"),
+            P("We'd love to hear from you!",
+              cls="text-lg text-center text-base-content/70 mb-8"),
+            cls="py-12 bg-base-200"
+        ),
+
+        # Contact information and form
+        Div(
+            Div(
+                # Two-column layout for contact info and form
+                Div(
+                    # Left column: Contact information
+                    Div(
+                        H2("Get in Touch", cls="text-2xl font-bold mb-6"),
+
+                        # Contact details with icons
+                        Div(
+                            Div(
+                                # Using DaisyUI's stat component for nice formatting
+                                Div(
+                                    Div("📍", cls="text-2xl"),
+                                    Div("Address", cls="stat-title"),
+                                    Div("123 Web Street, Internet City, 10101", cls="stat-value text-base"),
+                                    cls="stat"
+                                ),
+
+                                Div(
+                                    Div("📧", cls="text-2xl"),
+                                    Div("Email", cls="stat-title"),
+                                    Div("info@mywebsite.com", cls="stat-value text-base"),
+                                    cls="stat"
+                                ),
+
+                                Div(
+                                    Div("📱", cls="text-2xl"),
+                                    Div("Phone", cls="stat-title"),
+                                    Div("+1 (555) 123-4567", cls="stat-value text-base"),
+                                    cls="stat"
+                                ),
+
+                                cls="stats stats-vertical shadow bg-base-100 w-full"
+                            ),
+                            cls="mb-8"
+                        ),
+
+                        # Business hours
+                        Div(
+                            H3("Business Hours", cls="text-xl font-bold mb-4"),
+                            Div(
+                                Div(
+                                    # Days using DaisyUI's table
+                                    Table(
+                                        Tbody(
+                                            Tr(
+                                                Td("Monday - Friday"),
+                                                Td("9:00 AM - 5:00 PM")
+                                            ),
+                                            Tr(
+                                                Td("Saturday"),
+                                                Td("10:00 AM - 2:00 PM")
+                                            ),
+                                            Tr(
+                                                Td("Sunday"),
+                                                Td("Closed")
+                                            )
+                                        )
+                                    ),
+                                    cls="overflow-x-auto"
+                                ),
+                                cls="card bg-base-100 shadow-xl"
+                            )
+                        ),
+
+                        cls="md:pr-8 mb-8 md:mb-0"
+                    ),
+
+                    # Right column: Contact form
+                    Div(
+                        Div(
+                            Div(
+                                H2("Send a Message", cls="text-2xl font-bold mb-6"),
+
+                                # Contact form using DaisyUI 5 components
+                                Form(
+                                    # Using DaisyUI 5's new fieldset component
+                                    Div(
+                                        # Name field with label
+                                        Div(
+                                            Label("Name", For="name", cls="label"),
+                                            Input(type="text", id="name", name="name",
+                                                placeholder="Your name",
+                                                cls="input input-bordered w-full"),
+                                            cls="form-control mb-4"
+                                        ),
+
+                                        # Email field with label
+                                        Div(
+                                            Label("Email", For="email", cls="label"),
+                                            Input(type="email", id="email", name="email",
+                                                placeholder="Your email",
+                                                cls="input input-bordered w-full"),
+                                            cls="form-control mb-4"
+                                        ),
+
+                                        # Subject field with label
+                                        Div(
+                                            Label("Subject", For="subject", cls="label"),
+                                            Input(type="text", id="subject", name="subject",
+                                                placeholder="What is this regarding?",
+                                                cls="input input-bordered w-full"),
+                                            cls="form-control mb-4"
+                                        ),
+
+                                        # Message field with label
+                                        Div(
+                                            Label("Message", For="message", cls="label"),
+                                            Textarea(id="message", name="message",
+                                                    placeholder="Your message",
+                                                    rows=5,
+                                                    cls="textarea textarea-bordered w-full h-32"),
+                                            cls="form-control mb-6"
+                                        ),
+                                        cls="fieldset"
+                                    ),
+
+                                    # Submit button
+                                    Button("Send Message",
+                                           type="submit",
+                                           cls="btn btn-primary w-full"),
+
+                                    action="/submit-contact",
+                                    method="post",
+                                    cls="w-full"
+                                ),
+
+                                cls="card-body"
+                            ),
+                            cls="card bg-base-100 shadow-xl"
+                        )
+                    ),
+
+                    # Responsive layout: stack on mobile, side-by-side on desktop
+                    cls="md:flex gap-8"
+                ),
+                cls="container mx-auto px-4 py-12"
+            )
+        ),
+
+        # Map section (placeholder)
+        Div(
+            Div(
+                H2("Find Us", cls="text-2xl font-bold mb-6 text-center"),
+                # This would be replaced with an actual map in a real application
+                Div(
+                    P("Map placeholder - In a real application, you would embed a Google Map or other map service here.",
+                      cls="text-center p-12"),
+                    cls="bg-base-100 rounded-box shadow-lg h-64 flex items-center justify-center"
+                ),
+                cls="container mx-auto px-4 py-12"
+            ),
+            cls="bg-base-200"
+        )
+    )
+```
+
+Here's what we've done with the contact page:
+
+1. **Page Header**: Consistent with other pages, providing a clear title and subtitle
+
+2. **Two-Column Layout**: A responsive layout with:
+   - Contact information on the left (stacked on mobile)
+   - Contact form on the right (stacked on mobile)
+
+3. **Contact Information**:
+   - Styled stats for address, email, and phone
+   - Business hours in a table
+   - Card component for visual separation
+
+4. **Contact Form**:
+   - DaisyUI 5's form components (input, textarea, button)
+   - New fieldset component for grouping form elements
+   - Proper labels and placeholders
+   - Full-width elements for better usability
+   - Proper spacing between fields
+
+5. **Map Section**:
+   - A placeholder for a map (in a real application, this would be an embedded map)
+   - Separated by a background color change
+
+### Step 5: Setting Up the Main Application
+
+Finally, let's update the main application file to use our newly styled pages.
+
+**File: `mywebsite/main.py`**
+
+```python
+from fasthtml.common import *
+
+# Import page content from the pages directory
+from pages.home import home as home_page
+from pages.about import about as about_page
+from pages.contact import contact as contact_page
+
+# Import the page layout component
+from components import page_layout
+
+# Initialize the FastHTML application
+app = FastHTML()
+
+# Define route for the home page
+@app.get("/")
+def home():
+    """Handler for the home page route."""
+    return page_layout(
+        title="Home - MyWebsite",
+        content=home_page(),
+        current_page="/"
+    )
+
+# Define route for the about page
+@app.get("/about")
+def about():
+    """Handler for the about page route."""
+    return page_layout(
+        title="About Us - MyWebsite",
+        content=about_page(),
+        current_page="/about"
+    )
+
+# Define route for the contact page
+@app.get("/contact")
+def contact():
+    """Handler for the contact page route."""
+    return page_layout(
+        title="Contact Us - MyWebsite",
+        content=contact_page(),
+        current_page="/contact"
+    )
+
+# Handle form submission (for the contact form)
+@app.post("/submit-contact")
+def submit_contact(name: str, email: str, subject: str = "", message: str = ""):
+    """
+    Handler for contact form submission.
+
+    In a real application, you might store this data or send an email.
+    """
+    # Create a thank you page with DaisyUI styling
+    acknowledgment = Div(
+        # Alert component for success message
+        Div(
+            Div(
+                Div("✓", cls="text-2xl"),
+                P("Your message has been sent successfully!", cls="font-bold"),
+                cls="flex items-center space-x-2"
+            ),
+            cls="alert alert-success mb-8"
+        ),
+
+        # Details of the submission
+        Div(
+            H2("Thank You!", cls="text-3xl font-bold mb-6"),
+            P(f"Hello {name}, we've received your message and will respond to {email} soon.",
+              cls="text-lg mb-6"),
+
+            # Display the message details
+            Div(
+                Div(
+                    H3("Your Message", cls="text-xl font-bold mb-4"),
+                    P(f"Subject: {subject}", cls="mb-2 font-semibold"),
+                    P(message, cls="italic")
+                ),
+                cls="card-body"
+            ),
+            cls="card bg-base-100 shadow-xl mb-8"
+        ),
+
+        # Return home button
+        Div(
+            A("Return Home", href="/", cls="btn btn-primary"),
+            cls="text-center"
+        ),
+
+        cls="max-w-2xl mx-auto py-12"
+    )
+
+    return page_layout(
+        title="Thank You - MyWebsite",
+        content=acknowledgment,
+        current_page="/contact"
+    )
+
+# Handle 404 Not Found errors
+@app.get("/{path:path}")
+def not_found(path: str):
+    """Handler for any routes that don't match the defined routes."""
+    # Create a styled 404 page
+    error_content = Div(
+        Div(
+            # DaisyUI's alert component for error
+            Div(
+                Div(
+                    Div("⚠️", cls="text-2xl"),
+                    P("Page not found!", cls="font-bold"),
+                    cls="flex items-center space-x-2"
+                ),
+                cls="alert alert-error mb-8"
+            ),
+
+            H1("404 - Page Not Found", cls="text-4xl font-bold text-center mb-4"),
+            P(f"Sorry, the page '/{path}' you are looking for does not exist.",
+              cls="text-xl text-center mb-8"),
+
+            # Return home button
+            Div(
+                A("Return Home", href="/", cls="btn btn-primary"),
+                cls="text-center"
+            ),
+
+            cls="max-w-lg mx-auto py-16"
+        ),
+        cls="min-h-screen flex items-center justify-center"
+    )
+
+    return page_layout(
+        title="404 Not Found - MyWebsite",
+        content=error_content,
+        current_page="/"
+    )
+
+# Run the application
+if __name__ == "__main__":
+    # Using FastHTML's built-in serve() function
+    serve()
+```
+
+## Understanding DaisyUI 5 Core Concepts
+
+DaisyUI 5 brings several improvements over previous versions. Here are the key concepts you should understand:
+
+### Theme Management in DaisyUI 5
+
+DaisyUI 5 introduces a new way to manage themes through CSS files. While we're using CDN for simplicity, in a production environment you would define themes like this:
+
+```css
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
+}
+```
+
+This new syntax allows you to:
+- Specify which themes to include (reducing bundle size)
+- Set default themes with `--default` flag
+- Set preferred dark themes with `--prefersdark` flag
+
+### Creating Custom Themes in DaisyUI 5
+
+DaisyUI 5 uses CSS custom properties for theme colors, allowing for more flexibility and better color science with OKLCH colors:
+
+```css
+@plugin "daisyui/theme" {
+  name: "mytheme";
+  default: true;
+
+  --color-primary: oklch(55% 0.3 240);
+  --color-secondary: oklch(70% 0.25 200);
+  --color-accent: oklch(65% 0.25 160);
+  --color-neutral: oklch(50% 0.05 240);
+
+  /* border radius */
+  --radius-selector: 1rem;
+  --radius-field: 0.25rem;
+}
+```
+
+### New Components in DaisyUI 5
+
+DaisyUI 5 introduces several new components:
+
+1. **List**: For displaying data in list format
+2. **Status**: For showing the status of items
+3. **Calendar**: For date picking and displaying
+4. **Fieldset**: For grouping form controls
+5. **Filter**: For data filtering interfaces
+6. **Label**: Enhanced form labels
+7. **Validator**: For form validation
+
+While we haven't used all of these in our example project, they're available for more complex interfaces.
+
+## Utility-First Approach with Tailwind
+
+Tailwind CSS takes a utility-first approach to styling, providing low-level utility classes that you can combine to build custom designs directly in your FastHTML components. This approach offers several advantages:
+
+1. **No CSS Files**: You don't need to write or maintain separate CSS files
+2. **No Naming Conventions**: No need to invent class names for every element
+3. **Rapid Development**: Make changes directly in your components without switching files
+4. **Responsive Design**: Built-in responsive modifiers like `md:` and `lg:`
+
+### Common Utility Categories
+
+Here are some common categories of utility classes you'll use in Tailwind:
+
+#### Typography
+
+- `text-{size}`: Font size (e.g., `text-sm`, `text-lg`, `text-2xl`)
+- `font-{weight}`: Font weight (e.g., `font-normal`, `font-bold`)
+- `text-{color}`: Text color (e.g., `text-blue-500`, `text-gray-800`)
+- `text-{alignment}`: Text alignment (e.g., `text-center`, `text-left`)
+
+#### Spacing
+
+- `m-{size}`, `mx-{size}`, `my-{size}`, `mt-{size}`, etc.: Margin
+- `p-{size}`, `px-{size}`, `py-{size}`, `pt-{size}`, etc.: Padding
+
+#### Layout
+
+- `flex`, `grid`: Display mode
+- `items-{position}`: Align items (e.g., `items-center`)
+- `justify-{position}`: Justify content (e.g., `justify-between`)
+- `w-{size}`, `h-{size}`: Width and height
+
+#### Backgrounds and Borders
+
+- `bg-{color}`: Background color (e.g., `bg-blue-500`)
+- `border`, `border-{size}`: Border width
+- `rounded`, `rounded-{size}`: Border radius
+
+#### Responsive Design
+
+- `{breakpoint}:{utility}`: Apply utility at a specific breakpoint (e.g., `md:flex-row`)
+- Common breakpoints: `sm`, `md`, `lg`, `xl`, `2xl`
+
+### Understanding DaisyUI 5 Components
+
+DaisyUI extends Tailwind by providing pre-built components that simplify common UI patterns. Here are some key components we've used:
+
+#### Button Components
+
+```html
+<button class="btn">Button</button>
+<button class="btn btn-primary">Primary</button>
+<button class="btn btn-outline">Outline</button>
+<button class="btn btn-sm">Small</button>
+```
+
+#### Card Components
+
+```html
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <h2 class="card-title">Title</h2>
+    <p>Content</p>
+  </div>
+</div>
+```
+
+#### Form Components
+
+```html
+<input class="input input-bordered" />
+<textarea class="textarea textarea-bordered"></textarea>
+<label class="label">Label</label>
+<div class="fieldset">Form fields group</div>
+```
+
+#### Alert Components
+
+```html
+<div class="alert alert-success">Success message</div>
+<div class="alert alert-error">Error message</div>
+<div class="alert alert-warning">Warning message</div>
+```
+
+#### Navbar Components
+
+```html
+<div class="navbar bg-base-100">
+  <div class="navbar-start">Start content</div>
+  <div class="navbar-center">Center content</div>
+  <div class="navbar-end">End content</div>
+</div>
+```
+
+## Testing and Previewing Your Styled Website
+
+Now that you've implemented all the styling, let's run the application and see the results:
+
+1. **Navigate to your project directory**:
+   ```bash
+   cd mywebsite
+   ```
+
+2. **Run the application**:
+   ```bash
+   python main.py
+   ```
+
+3. **Open your browser** and visit:
+   - `http://localhost:5001/` (Home)
+   - `http://localhost:5001/about` (About)
+   - `http://localhost:5001/contact` (Contact)
+
+Your website should now have a professional, cohesive design with:
+- A responsive navigation header
+- Styled content sections
+- DaisyUI 5 components like cards, buttons, and forms
+- A consistent footer
+- Dark/light theme toggle
+
+Try clicking the theme toggle in the navbar to switch between light and dark modes. This demonstrates how DaisyUI 5 themes can completely transform your site's appearance with minimal effort.
+
+## Making Further Customizations
+
+Now that you understand the basics of Tailwind CSS and DaisyUI 5 in FastHTML, you can further customize your website:
+
+### Custom Color Palette with OKLCH Colors
+
+DaisyUI 5 uses modern OKLCH colors for better color accuracy. To define custom colors in your CDN setup, add this to your page layout:
+
+```python
+Script("""
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: "oklch(55% 0.3 240)",      // Rich blue
+                    secondary: "oklch(70% 0.25 200)",   // Turquoise
+                    accent: "oklch(65% 0.25 160)"       // Green
+                }
+            }
+        },
+        daisyui: {
+            themes: [{
+                light: {
+                    primary: "oklch(55% 0.3 240)",
+                    secondary: "oklch(70% 0.25 200)",
+                    accent: "oklch(65% 0.25 160)"
+                }
+            }, "dark"]
+        }
+    }
+""", type="text/javascript")
+```
+
+### Additional DaisyUI 5 Components
+
+Explore other DaisyUI 5 components to enhance your site:
+
+- **New Components**: Try the new Calendar, List, Status, and Validator components
+- **Modal Dialogs**: For popups and confirmations
+- **Tabs**: For organizing content
+- **Dropdown Menus**: For navigation or actions
+- **Carousel**: For image slideshows
+
+Check the [DaisyUI documentation](https://daisyui.com/components/) for all available components and their usage.
+
+### Custom Layouts
+
+Experiment with different layout techniques:
+
+- **CSS Grid**: For complex, two-dimensional layouts
+- **Flexbox**: For simpler, one-dimensional layouts
+- **Responsive Patterns**: Different layouts for different screen sizes
+
+## Common Patterns and Best Practices
+
+As you work with Tailwind CSS and DaisyUI 5 in FastHTML, keep these best practices in mind:
+
+### 1. Organize Related Styles
+
+Group related Tailwind classes together for readability:
+
+```python
+# Instead of this (mixed order)
+cls="text-lg font-bold m-2 p-4 text-blue-500 rounded"
+
+# Do this (organized by category)
+cls="text-lg font-bold text-blue-500 p-4 m-2 rounded"
+```
+
+### 2. Extract Repeated Patterns
+
+For repeated style patterns, consider creating helper functions:
+
+```python
+def primary_button(text, href="#"):
+    return A(text, href=href, cls="btn btn-primary")
+
+def section_heading(text):
+    return H2(text, cls="text-3xl font-bold text-center mb-8")
+```
+
+### 3. Use Responsive Prefixes Consistently
+
+Be consistent with your responsive design approach:
+
+```python
+# Mobile-first approach (recommended)
+cls="block md:flex"  # Stack on mobile, row on desktop
+
+# Desktop-first approach
+cls="flex sm:block"  # Row on desktop, stack on mobile
+```
+
+### 4. Keep Accessibility in Mind
+
+Use proper semantic HTML and ARIA attributes alongside your styling:
+
+```python
+Button("Close",
+       cls="btn btn-sm btn-circle",
+       aria_label="Close")
+```
+
+## Conclusion
+
+Congratulations! You've successfully integrated Tailwind CSS and DaisyUI 5 into your FastHTML project, creating a visually appealing, responsive, and professionally styled website. Let's recap what you've learned:
+
+1. **Utility-First CSS**: Using Tailwind's approach to style elements directly in your FastHTML components
+2. **Component Library**: Leveraging DaisyUI 5's pre-built components to speed up development
+3. **Modern Color System**: Working with OKLCH colors for better visual results
+4. **Theme Management**: Using DaisyUI 5's new theming system
+5. **Responsive Design**: Creating layouts that work well on all device sizes
+
+By combining FastHTML's Python-based components with Tailwind CSS and DaisyUI 5, you've created a powerful development workflow that offers:
+
+- **Rapid Development**: Build UIs quickly without writing custom CSS
+- **Consistent Design**: Maintain visual consistency through utility classes and components
+- **Flexibility**: Customize every aspect of your design directly in your components
+- **Maintainability**: Keep styling co-located with your component structure
+- **Responsive Design**: Ensure your site works well on all devices
+
+In the next article, we'll explore how to add dynamic functionality to your FastHTML website, including form handling, database integration, and user authentication. This will complete your journey from a static website to a fully functional web application.
+
+Until then, experiment with different Tailwind utilities and DaisyUI 5 components to refine your design skills and create even more impressive UIs with FastHTML!

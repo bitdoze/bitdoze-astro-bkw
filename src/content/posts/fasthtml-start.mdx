@@ -564,7 +564,7 @@ This creates a styled data table with:
 
 ## Adding Interactivity with HTMX
 
-FastHTML seamlessly integrates with [HTMX](https://htmx.org/), a library that allows you to access AJAX, CSS Transitions, WebSockets and Server Sent Events directly in HTML, without writing JavaScript. FastHTML includes HTMX by default, but we're including it explicitly in this example for clarity.
+FastHTML seamlessly integrates with HTMX, a library that allows you to access AJAX, CSS Transitions, WebSockets and Server Sent Events directly in HTML, without writing JavaScript. FastHTML includes HTMX by default, so there's no need to import it separately in most cases.
 
 Here's a simple counter example:
 
@@ -578,40 +578,29 @@ counter = 0
 
 @app.get("/")
 def home():
-    return Html(
-        Head(
-            Title("HTMX Counter Example"),
-            # Include HTMX library - FastHTML actually includes this by default
-            Script(src="https://unpkg.com/htmx.org@1.9.6"),
-            Script(src="https://cdn.tailwindcss.com")
-        ),
-        Body(
+    return Titled("HTMX Counter Example",
+        Div(
+            H1("HTMX Counter", cls="text-2xl font-bold mb-4"),
             Div(
-                H1("HTMX Counter", cls="text-2xl font-bold mb-4"),
-                Div(
-                    # Counter display with unique ID for targeting
-                    P(f"Current count: {counter}", id="counter", cls="text-xl mb-4"),
+                # Counter display with unique ID for targeting
+                P(f"Current count: {counter}", id="counter", cls="text-xl mb-4"),
 
-                    # Increment button with HTMX attributes
-                    Button("Increment",
-                           # Make a POST request to /increment when clicked
-                           hx_post="/increment",
-                           # Update the element with id="counter"
-                           hx_target="#counter",
-                           cls="bg-blue-500 text-white px-4 py-2 rounded mr-2"),
+                # Increment button with HTMX attributes
+                Button("Increment",
+                      hx_post="/increment",
+                      hx_target="#counter",
+                      cls="bg-blue-500 text-white px-4 py-2 rounded mr-2"),
 
-                    # Decrement button with HTMX attributes
-                    Button("Decrement",
-                           # Make a POST request to /decrement when clicked
-                           hx_post="/decrement",
-                           # Update the element with id="counter"
-                           hx_target="#counter",
-                           cls="bg-red-500 text-white px-4 py-2 rounded"),
-                    cls="p-4 bg-gray-100 rounded"
-                ),
-                cls="container mx-auto p-4"
-            )
-        )
+                # Decrement button with HTMX attributes
+                Button("Decrement",
+                      hx_post="/decrement",
+                      hx_target="#counter",
+                      cls="bg-red-500 text-white px-4 py-2 rounded"),
+                cls="p-4 bg-gray-100 rounded"
+            ),
+            cls="container mx-auto p-4"
+        ),
+        Script(src="https://cdn.tailwindcss.com")
     )
 
 # Handler for increment button
@@ -630,8 +619,7 @@ def decrement():
     # Return just the counter element, not the whole page
     return P(f"Current count: {counter}", id="counter", cls="text-xl mb-4")
 
-if __name__ == "__main__":
-    serve()
+serve()
 ```
 
 ### Understanding HTMX Attributes
@@ -679,41 +667,35 @@ class Todo:
 
 @app.get("/")
 def home():
-    return Html(
-        Head(
-            Title("FastHTML Todo App"),
-            Script(src="https://unpkg.com/htmx.org@1.9.6"),
-            Script(src="https://cdn.tailwindcss.com")
-        ),
-        Body(
-            Div(
-                H1("Todo Application", cls="text-2xl font-bold mb-4"),
+    return Titled("FastHTML Todo App",
+        Div(
+            H1("Todo Application", cls="text-2xl font-bold mb-4"),
 
-                # Add new todo form
-                Form(
-                    Div(
-                        Input(type="text", name="title", placeholder="Add a new todo",
-                              cls="p-2 border rounded w-full md:w-80"),
-                        Button("Add", type="submit",
-                               cls="bg-blue-500 text-white px-4 py-2 rounded ml-2"),
-                        cls="flex items-center mb-4"
-                    ),
-                    # When the form is submitted, send a POST request to /add-todo
-                    hx_post="/add-todo",
-                    # Update the element with id="todo-list"
-                    hx_target="#todo-list",
-                    # Add the new todo at the end of the list
-                    hx_swap="beforeend"
-                ),
-
-                # Todo list container
+            # Add new todo form
+            Form(
                 Div(
-                    id="todo-list",
-                    cls="space-y-2"
+                    Input(type="text", name="title", placeholder="Add a new todo",
+                          cls="p-2 border rounded w-full md:w-80"),
+                    Button("Add", type="submit",
+                           cls="bg-blue-500 text-white px-4 py-2 rounded ml-2"),
+                    cls="flex items-center mb-4"
                 ),
-                cls="container mx-auto p-4 max-w-md"
-            )
-        )
+                # When the form is submitted, send a POST request to /add-todo
+                hx_post="/add-todo",
+                # Update the element with id="todo-list"
+                hx_target="#todo-list",
+                # Add the new todo at the end of the list
+                hx_swap="beforeend"
+            ),
+
+            # Todo list container
+            Div(
+                id="todo-list",
+                cls="space-y-2"
+            ),
+            cls="container mx-auto p-4 max-w-md"
+        ),
+        Script(src="https://cdn.tailwindcss.com")
     )
 
 # Handler for adding a new todo
@@ -781,8 +763,7 @@ def create_todo_item(todo: Todo):
         cls="flex items-center p-2 border rounded"
     )
 
-if __name__ == "__main__":
-    serve()
+serve()
 ```
 
 **How the Todo App Works**
@@ -830,4 +811,6 @@ You've seen how to:
 - Create basic HTML elements using Python functions
 - Structure layouts with containers and grids
 - Build forms for user input
-- Create interactive UIs with
+- Create interactive UIs with HTMX integration
+
+With FastHTML, you can focus on your application's functionality rather than wrestling with multiple languages and frameworks. Its intuitive approach makes web development more accessible while providing the power and flexibility needed for real-world applications.
