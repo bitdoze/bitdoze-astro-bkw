@@ -1,4 +1,4 @@
-# Ads.txt v20241210
+# Ads.txt v20250220
 managerdomain=journeymv.com
 contact=sales@journeymv.com
 ownerdomain=bitdoze.com
@@ -57,7 +57,7 @@ loopme.com, 11556, RESELLER, 6c8d5f95897a5a3b
 amxrtb.com, 105199663, RESELLER
 smartadserver.com, 4106, RESELLER, 060d053dcf45cbf3
 contextweb.com, 562963, RESELLER, 89ff185a4c4e857c
-zeta.com, 591, RESELLER
+zetaglobal.com, 591, RESELLER
 disqus.com, 591, RESELLER
 admanmedia.com, 953, RESELLER
 betweendigital.com, 44808, RESELLER
@@ -126,6 +126,3 @@ emxdgt.com, 1403, DIRECT, 1e1d41537f7cad7f
 conversantmedia.com, 100316, RESELLER, 03113cd04947736d
 video.unrulymedia.com, 232050197, DIRECT
 trustx.org, 5606, DIRECT, 1d2c8a747a749d25
-
-
-
