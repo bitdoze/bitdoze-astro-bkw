@@ -1,0 +1,1152 @@
+---
+date: 2025-03-03T00:00:00Z
+title: "Building a Simple AI-Powered Web App with FastHTML and Pydantic AI"
+description: "Learn how to build a modern AI title generator web app using FastHTML and Pydantic AI with OpenRouter integration. This step-by-step tutorial covers creating a modular project structure, implementing AI services, and building a responsive user interface for generating optimized content titles."
+image: "../../assets/images/25/03/fasthtml-pydenticai-tools.jpg"
+categories: ["web-development"]
+authors: ["Dragos"]
+tags: ["fasthtml"]
+canonical: "https://www.bitdoze.com/fasthtml-pydenticai-tools/"
+---
+
+
+Welcome to the next article in our FastHTML series! In this tutorial, we'll build a practical AI-powered web application using FastHTML and Pydantic AI.
+
+If you're new to FastHTML, I recommend checking out our previous articles:
+- [FastHTML Get Started](https://www.bitdoze.com/fasthtml-start/) - Where we cover the basics of creating your first FastHTML page
+- [FastHTML Multiple Pages](https://www.bitdoze.com/fasthtml-multiple-pages/) - Where we explore creating a multi-page website with consistent navigation
+
+Now we're taking things to the next level by adding AI capabilities to our FastHTML website. Unlike traditional web development that requires JavaScript frameworks, Python developers can now create full-featured web applications with AI integration using pure Python. Isn't that cool?
+
+Our project today is an AI Title Generator - a handy tool that helps content creators develop engaging titles for blogs, YouTube videos, social media posts, and more. By the end of this tutorial, you'll have a working title generator that you can customize and extend with other AI features.
+
+Don't worry if you're new to AI integration - we'll break everything down into manageable steps and explain how each part works. Let's dive in and start building!
+
+
+## Project Structure Overview
+
+Here's the exact structure we'll build:
+
+```
+ai-title-generator/
+├── main.py                # Main application entry point
+├── config.py              # Configuration settings
+├── ai_service.py          # AI integration module
+├── components/            # Reusable UI components
+│   ├── __init__.py
+│   ├── header.py          # Page header
+│   ├── footer.py          # Page footer
+│   └── page_layout.py     # Layout template
+├── pages/                 # Individual page content
+│   ├── __init__.py
+│   ├── home.py            # Home page
+│   └── title_generator.py # Title generator page
+└── tools/                 # AI tools
+    ├── __init__.py
+    └── title_generator.py # Title generation tool
+```
+
+This structure follows software design best practices:
+
+- **Separation of concerns**: Each module has a specific responsibility
+- **Component reusability**: UI elements are compartmentalized for reuse
+- **Modular design**: Different aspects of the application are organized into logical groups
+- **Scalability**: Easy to add new features or AI tools
+
+
+
+## Building a Simple AI-Powered Web App with FastHTML and Pydantic AI
+
+### Step 1: Setting Up the Project
+
+First, let's create our project directory and install the required packages:
+
+```bash
+mkdir -p ai-title-generator/components ai-title-generator/pages ai-title-generator/tools
+cd ai-title-generator
+touch components/__init__.py pages/__init__.py tools/__init__.py
+python3 -m venv .venv
+source .venv/bin/activate
+pip install python-fasthtml python-dotenv openai pydantic-ai
+```
+
+Here we're installing:
+- **python-fasthtml**: The Python-based web framework that lets us build HTML interfaces with Python code
+- **python-dotenv**: For loading environment variables from a .env file
+- **openai**: The official OpenAI Python client (compatible with OpenRouter)
+- **pydantic-ai**: A library that combines structured data validation with AI capabilities
+
+Now let's create our configuration file to manage environment variables:
+
+**File: `config.py`**
+
+```python
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# API configuration
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+
+# Default model to use
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "openai/gpt-3.5-turbo")
+
+# Application settings
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+APP_NAME = "AI Title Generator"
+```
+
+**Explanation**:
+- We use `load_dotenv()` to load environment variables from a .env file
+- We set up configuration for OpenRouter API access
+- We define a default AI model with a fallback to GPT-3.5 Turbo
+- We set application-wide settings like DEBUG mode and APP_NAME
+- All these settings are centralized for easy updates
+
+Create a `.env` file in your project root with your OpenRouter API key:
+
+**File: `.env`**
+
+```
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+DEFAULT_MODEL=openai/gpt-3.5-turbo
+DEBUG=True
+```
+
+This file will be read by the `python-dotenv` library but won't be committed to version control, keeping your API keys secure.
+
+### Step 2: Creating the AI Service
+
+The AI service acts as a bridge between our application and AI models. It handles all communication with OpenRouter's API and provides a clean interface for our application to use.
+
+**File: `ai_service.py`**
+
+```python
+from openai import AsyncOpenAI
+from pydantic_ai import Agent
+from pydantic_ai.models.openai import OpenAIModel
+import config
+from typing import Optional, List, Dict, Any
+
+class AIService:
+    """Service for interacting with AI models via OpenRouter."""
+
+    def __init__(self, model_name: Optional[str] = None):
+        """
+        Initialize the AI service.
+
+        Args:
+            model_name: Name of the model to use, defaults to config.DEFAULT_MODEL
+        """
+        self.model_name = model_name or config.DEFAULT_MODEL
+        self.client = AsyncOpenAI(
+            api_key=config.OPENROUTER_API_KEY,
+            base_url=config.OPENROUTER_BASE_URL,
+        )
+
+        # Initialize the Pydantic AI agent
+        model = OpenAIModel(self.model_name, openai_client=self.client)
+        self.agent = Agent(model)
+
+    async def chat_completion(self,
+                           user_message: str,
+                           system_prompt: Optional[str] = None,
+                           temperature: float = 0.7) -> str:
+        """
+        Get a chat completion from the AI model.
+
+        Args:
+            user_message: The user's message/query
+            system_prompt: Optional system instructions
+            temperature: Controls randomness (0.0-1.0)
+
+        Returns:
+            The AI's response as a string
+        """
+        messages = []
+
+        # Add system message if provided
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+
+        # Add user message
+        messages.append({"role": "user", "content": user_message})
+
+        # Call the OpenAI API directly for more control
+        response = await self.client.chat.completions.create(
+            model=self.model_name,
+            messages=messages,
+            temperature=temperature,
+        )
+
+        # Extract and return the response text
+        return response.choices[0].message.content
+
+    async def structured_completion(self,
+                                 user_message: str,
+                                 output_schema: Any,
+                                 system_prompt: Optional[str] = None) -> Any:
+        """
+        Get a structured completion using Pydantic AI.
+
+        Args:
+            user_message: The user's message/query
+            output_schema: Pydantic model defining the output structure
+            system_prompt: Optional system instructions
+
+        Returns:
+            An instance of the output_schema Pydantic model
+        """
+        # Create a prompt dictionary
+        prompt = {"query": user_message}
+
+        # Set system prompt if provided
+        if system_prompt:
+            self.agent.system_prompt = system_prompt
+
+        # Get structured response using Pydantic AI
+        result = await self.agent.run(
+            input=prompt,
+            output_schema=output_schema
+        )
+
+        return result
+```
+
+**Explanation**:
+- The `AIService` class provides two main methods for interacting with AI models:
+  - `chat_completion`: A standard method that returns free-form text responses
+  - `structured_completion`: Uses Pydantic AI to return validated, structured data
+
+- The class initializes an OpenAI client configured to use OpenRouter's API endpoint
+- We use async methods for better performance and responsiveness
+- `temperature` parameter controls how random or deterministic the AI responses are
+- The Pydantic AI agent will force responses to conform to a specific data structure
+
+### Step 3: Creating the Title Generator Tool
+
+Now let's create the tool that generates titles. This tool uses our AI service and implements specific logic for title generation.
+
+**File: `tools/title_generator.py`**
+
+```python
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel
+from ai_service import AIService
+import re
+
+class TitleGenerationRequest(BaseModel):
+    """Schema for title generation request."""
+    topic: str
+    platform: str = "Blog"
+    style: str = "Professional"
+    number_of_titles: int = 5
+
+class TitleGenerationResponse(BaseModel):
+    """Schema for title generation response."""
+    titles: List[str]
+
+class TitleGenerator:
+    """Tool for generating titles for various platforms."""
+
+    def __init__(self):
+        """Initialize the title generator tool."""
+        self.name = "AI Title Generator"
+        self.description = "Generate engaging titles for blogs, YouTube videos, or social media posts."
+        self.ai_service = AIService()
+
+    async def generate_titles(self,
+                           topic: str,
+                           platform: str = "Blog",
+                           style: str = "Professional",
+                           number_of_titles: int = 5) -> List[str]:
+        """
+        Generate titles based on the given parameters.
+
+        Args:
+            topic: The subject to generate titles about
+            platform: The platform (Blog, YouTube, etc.)
+            style: The writing style
+            number_of_titles: Number of titles to generate
+
+        Returns:
+            A list of generated titles
+        """
+        # Create system prompt
+        system_prompt = """
+        You are an expert title generator specializing in creating engaging, click-worthy titles
+        that are appropriate for different platforms. Follow these guidelines:
+
+        - Create titles that grab attention without being misleading
+        - Adapt the style and format to the specified platform
+        - Ensure titles are relevant to the topic
+        - Keep titles concise and effective
+        - Return only the titles as a numbered list
+        """
+
+        # Create user prompt
+        user_prompt = f"""
+        Generate {number_of_titles} engaging {platform} titles about: {topic}
+
+        Style: {style}
+
+        Return only the titles as a numbered list.
+        """
+
+        # Get raw response from AI
+        raw_response = await self.ai_service.chat_completion(
+            user_message=user_prompt,
+            system_prompt=system_prompt,
+            temperature=0.8
+        )
+
+        # Process response to extract titles
+        titles = self._extract_titles_from_response(raw_response, number_of_titles)
+
+        return titles
+
+    def _extract_titles_from_response(self, response: str, expected_count: int) -> List[str]:
+        """
+        Extract titles from the AI response.
+
+        Args:
+            response: The raw AI response text
+            expected_count: Expected number of titles
+
+        Returns:
+            List of extracted titles
+        """
+        # Remove any markdown or extra formatting
+        clean_response = response.strip()
+
+        # Try to extract numbered list items (e.g., "1. Title here")
+        numbered_pattern = r"^\s*\d+\.?\s*(.+)$"
+        titles = []
+
+        # Process line by line
+        for line in clean_response.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+
+            # Try to match numbered pattern
+            match = re.match(numbered_pattern, line)
+            if match:
+                title = match.group(1).strip()
+                if title:
+                    titles.append(title)
+            elif not line.startswith('#') and len(line) > 15:
+                # If not a numbered item but looks like a title
+                # (not a heading and reasonably long)
+                titles.append(line)
+
+        # If we couldn't extract properly, just split by newlines and take non-empty lines
+        if not titles:
+            titles = [line.strip() for line in clean_response.split('\n')
+                     if line.strip() and len(line.strip()) > 10]
+
+        # Return up to the expected count
+        return titles[:expected_count]
+```
+
+**Explanation**:
+- We define two Pydantic models:
+  - `TitleGenerationRequest`: Defines the expected input parameters
+  - `TitleGenerationResponse`: Defines the expected output format
+
+- The `TitleGenerator` class has:
+  - Metadata like name and description
+  - A method to generate titles using the AI service
+  - A helper method to extract clean title strings from the AI's response
+
+- The system prompt provides detailed instructions for the AI model
+- We use regular expressions to parse the titles from the numbered list
+- The code includes fallback extraction logic in case the AI doesn't format its response as expected
+- We limit the titles to the requested count
+
+### Step 4: Creating UI Components
+
+Next, we'll create reusable UI components for our application. Let's start with the header.
+
+**File: `components/header.py`**
+
+```python
+from fasthtml.common import *
+import config
+
+def header(current_page="/"):
+    """
+    Creates a consistent header with navigation.
+
+    Args:
+        current_page: The current page path
+
+    Returns:
+        A Header component with navigation
+    """
+    nav_items = [
+        ("Home", "/"),
+        ("Title Generator", "/title-generator")
+    ]
+
+    nav_links = []
+    for title, path in nav_items:
+        is_current = current_page == path
+        link_class = "text-white hover:text-gray-300 px-3 py-2"
+        if is_current:
+            link_class += " font-bold underline"
+
+        nav_links.append(
+            Li(
+                A(title, href=path, cls=link_class)
+            )
+        )
+
+    return Header(
+        Div(
+            A(config.APP_NAME, href="/", cls="text-xl font-bold text-white"),
+            Nav(
+                Ul(
+                    *nav_links,
+                    cls="flex space-x-2"
+                ),
+                cls="ml-auto"
+            ),
+            cls="container mx-auto flex items-center justify-between px-4 py-3"
+        ),
+        cls="bg-blue-600 shadow-md"
+    )
+```
+
+**Explanation**:
+- The `header` function creates a navigation bar with links to different pages
+- It takes a `current_page` parameter to highlight the active menu item
+- We use Tailwind CSS classes for styling:
+  - `bg-blue-600`: Blue background color
+  - `shadow-md`: Medium shadow for depth
+  - `flex` and `justify-between`: Flexbox layout for positioning
+- The function builds HTML elements like `Header`, `Div`, `Nav`, etc. using FastHTML components
+- The navigation items are generated dynamically, making it easy to add new pages
+
+Now, let's create the footer component:
+
+**File: `components/footer.py`**
+
+```python
+from fasthtml.common import *
+import config
+
+def footer():
+    """Creates a consistent footer."""
+    return Footer(
+        Div(
+            P(f"© 2025 {config.APP_NAME}. Built with FastHTML and Pydantic AI.",
+              cls="text-center text-gray-500"),
+            cls="container mx-auto px-4 py-6"
+        ),
+        cls="bg-gray-100 mt-auto"
+    )
+```
+
+**Explanation**:
+- The `footer` function creates a simple footer with copyright information
+- It uses the `APP_NAME` from the config file to maintain consistency
+- The `mt-auto` class pushes the footer to the bottom of the page
+- It has a light gray background with centered text
+
+Finally, let's create the page layout component that brings everything together:
+
+**File: `components/page_layout.py`**
+
+```python
+from fasthtml.common import *
+from .header import header
+from .footer import footer
+
+def page_layout(title, content, current_page="/"):
+    """
+    Creates a consistent page layout with header and footer.
+
+    Args:
+        title: The page title
+        content: The main content components
+        current_page: The current page path
+
+    Returns:
+        A complete HTML page
+    """
+    return Html(
+        Head(
+            Title(title),
+            Meta(charset="UTF-8"),
+            Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+            # Include Tailwind CSS for styling
+            Script(src="https://cdn.tailwindcss.com"),
+        ),
+        Body(
+            Div(
+                header(current_page),
+                Main(
+                    Div(
+                        content,
+                        cls="container mx-auto px-4 py-8"
+                    ),
+                    cls="flex-grow"
+                ),
+                footer(),
+                cls="flex flex-col min-h-screen"
+            )
+        )
+    )
+```
+
+**Explanation**:
+- The `page_layout` function creates a complete HTML page with:
+  - Proper HTML document structure
+  - Metadata in the `<head>` section
+  - The header component with current page highlighted
+  - The main content area
+  - The footer component
+- It uses a flexbox layout to ensure the footer stays at the bottom:
+  - `flex flex-col min-h-screen`: Makes the container a flex column with minimum height of viewport
+  - `flex-grow`: Makes the main content area expand to fill available space
+- The Tailwind CSS is included via CDN for simplicity
+- The viewport meta tag ensures responsive behavior on mobile devices
+
+### Step 5: Creating Pages
+
+Now let's create the individual pages of our application, starting with the home page:
+
+**File: `pages/home.py`**
+
+```python
+from fasthtml.common import *
+import config
+
+def home():
+    """
+    Defines the home page content.
+
+    Returns:
+        Components representing the home page content
+    """
+    return Div(
+        # Hero section
+        Div(
+            H1(config.APP_NAME,
+               cls="text-4xl font-bold text-center text-gray-800 mb-4"),
+            P("Create engaging titles for your content with AI assistance.",
+              cls="text-xl text-center text-gray-600 mb-6"),
+            Div(
+                A("Generate Titles →",
+                  href="/title-generator",
+                  cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+                cls="flex justify-center"
+            ),
+            cls="py-12"
+        ),
+
+        # Features section
+        Div(
+            H2("Features", cls="text-3xl font-bold text-center mb-8"),
+            Div(
+                # Feature 1
+                Div(
+                    H3("Platform-Specific", cls="text-xl font-semibold mb-2"),
+                    P("Generate titles optimized for blogs, YouTube, social media, and more.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                # Feature 2
+                Div(
+                    H3("Multiple Styles", cls="text-xl font-semibold mb-2"),
+                    P("Choose from professional, casual, clickbait, or informative styles.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                # Feature 3
+                Div(
+                    H3("AI-Powered", cls="text-xl font-semibold mb-2"),
+                    P("Utilizes advanced AI models to craft engaging, relevant titles.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                cls="grid grid-cols-1 md:grid-cols-3 gap-6"
+            ),
+            cls="py-8"
+        ),
+
+        # How it works section
+        Div(
+            H2("How It Works", cls="text-3xl font-bold text-center mb-8"),
+            Div(
+                # Step 1
+                Div(
+                    Div(
+                        "1",
+                        cls="flex items-center justify-center bg-blue-600 text-white text-xl font-bold rounded-full w-10 h-10 mb-4"
+                    ),
+                    H3("Enter Your Topic", cls="text-xl font-semibold mb-2"),
+                    P("Describe what your content is about in detail.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                # Step 2
+                Div(
+                    Div(
+                        "2",
+                        cls="flex items-center justify-center bg-blue-600 text-white text-xl font-bold rounded-full w-10 h-10 mb-4"
+                    ),
+                    H3("Choose Settings", cls="text-xl font-semibold mb-2"),
+                    P("Select the platform and style that matches your needs.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                # Step 3
+                Div(
+                    Div(
+                        "3",
+                        cls="flex items-center justify-center bg-blue-600 text-white text-xl font-bold rounded-full w-10 h-10 mb-4"
+                    ),
+                    H3("Get Results", cls="text-xl font-semibold mb-2"),
+                    P("Review multiple title options and choose your favorite.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                cls="grid grid-cols-1 md:grid-cols-3 gap-6"
+            ),
+            cls="py-8"
+        )
+    )
+```
+
+**Explanation**:
+- The home page is divided into three main sections:
+  1. **Hero section**: A prominent call-to-action area with a heading, description, and button
+  2. **Features section**: Highlights key features of the application in a responsive grid
+  3. **How it works section**: Explains the process in a step-by-step format
+
+- We use Tailwind CSS extensively for styling:
+  - Responsive grid with `grid-cols-1 md:grid-cols-3` (1 column on mobile, 3 on medium+ screens)
+  - Consistent card styling with `bg-white p-6 rounded-lg shadow-md`
+  - Proper spacing with margin and padding classes
+  - Text styling with size, weight, and color classes
+
+- The UI follows a clean, modern design pattern with:
+  - Clear visual hierarchy
+  - Ample white space
+  - Consistent visual elements
+  - Step indicators with numbered circles
+
+Next, let's create the title generator page with its form and results view:
+
+**File: `pages/title_generator.py`**
+
+```python
+from fasthtml.common import *
+
+def title_generator_form():
+    """
+    Defines the title generator form page.
+
+    Returns:
+        Components representing the title generator form
+    """
+    return Div(
+        # Page header
+        H1("AI Title Generator", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        # Generator form
+        Div(
+            Form(
+                # Topic field
+                Div(
+                    Label("What's your content about?", For="topic",
+                          cls="block text-gray-700 mb-2"),
+                    Textarea(
+                        id="topic",
+                        name="topic",
+                        placeholder="Describe your content topic in detail for better results...",
+                        rows=3,
+                        required=True,
+                        cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
+                    ),
+                    cls="mb-4"
+                ),
+
+                # Platform selection
+                Div(
+                    Label("Platform:", For="platform", cls="block text-gray-700 mb-2"),
+                    Select(
+                        Option("Blog", value="Blog", selected=True),
+                        Option("YouTube", value="YouTube"),
+                        Option("Social Media", value="Social Media"),
+                        Option("Email Subject", value="Email Subject"),
+                        Option("News Article", value="News Article"),
+                        id="platform",
+                        name="platform",
+                        cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
+                    ),
+                    cls="mb-4"
+                ),
+
+                # Style selection
+                Div(
+                    Label("Style:", For="style", cls="block text-gray-700 mb-2"),
+                    Select(
+                        Option("Professional", value="Professional", selected=True),
+                        Option("Casual", value="Casual"),
+                        Option("Clickbait", value="Clickbait"),
+                        Option("Informative", value="Informative"),
+                        Option("Funny", value="Funny"),
+                        id="style",
+                        name="style",
+                        cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
+                    ),
+                    cls="mb-4"
+                ),
+
+                # Number of titles
+                Div(
+                    Label("Number of titles:", For="number_of_titles", cls="block text-gray-700 mb-2"),
+                    Select(
+                        Option("5", value="5", selected=True),
+                        Option("10", value="10"),
+                        Option("15", value="15"),
+                        id="number_of_titles",
+                        name="number_of_titles",
+                        cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
+                    ),
+                    cls="mb-6"
+                ),
+
+                # Submit button
+                Button(
+                    "Generate Titles",
+                    type="submit",
+                    cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                ),
+
+                action="/title-generator/generate",
+                method="post",
+                cls="bg-white p-6 rounded-lg shadow-md mb-8"
+            ),
+
+            # Tips section
+            Div(
+                H3("Tips for Better Titles", cls="text-xl font-semibold mb-2"),
+                Ul(
+                    Li("Be specific about your topic for more relevant titles", cls="mb-1"),
+                    Li("Include your target audience for better context", cls="mb-1"),
+                    Li("Mention key points you want to highlight", cls="mb-1"),
+                    Li("For YouTube, specify if it's a tutorial, review, etc.", cls="mb-1"),
+                    cls="list-disc pl-5 text-gray-600"
+                ),
+                cls="bg-blue-50 p-4 rounded-lg mt-6"
+            ),
+
+            cls="max-w-2xl mx-auto"
+        )
+    )
+
+def title_generator_results(topic, platform, style, titles):
+    """
+    Defines the title generator results page.
+
+    Args:
+        topic: The topic that was entered
+        platform: The platform that was selected
+        style: The style that was selected
+        titles: List of generated titles
+
+    Returns:
+        Components representing the results page
+    """
+    # Create list items for each title
+    title_items = []
+    for i, title in enumerate(titles):
+        title_items.append(
+            Li(
+                Div(
+                    P(title, cls="font-medium"),
+                    Button(
+                        "Copy",
+                        type="button",
+                        onclick=f"navigator.clipboard.writeText('{title.replace("'", "\\'")}'); this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy', 2000);",
+                        cls="ml-auto text-sm bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
+                    ),
+                    cls="flex justify-between items-center"
+                ),
+                cls="p-3 border-b last:border-b-0"
+            )
+        )
+
+    return Div(
+        # Page header
+        H1("Generated Titles", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        # Results container
+        Div(
+            # Query summary
+            Div(
+                H2("Your Request", cls="text-xl font-semibold mb-2"),
+                P(
+                    Strong("Topic: "), Span(topic), Br(),
+                    Strong("Platform: "), Span(platform), Br(),
+                    Strong("Style: "), Span(style),
+                    cls="text-gray-600 mb-4"
+                ),
+                cls="mb-6"
+            ),
+
+            # Titles list
+            Div(
+                H2("Title Options", cls="text-xl font-semibold mb-2"),
+                P("Click 'Copy' to copy any title to your clipboard.", cls="text-gray-600 mb-3"),
+                Ul(
+                    *title_items,
+                    cls="border rounded divide-y"
+                ),
+                cls="mb-6"
+            ),
+
+            # Action buttons
+            Div(
+                A("Generate More",
+                  href="/title-generator",
+                  cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-3"),
+                A("Back to Home",
+                  href="/",
+                  cls="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"),
+                cls="flex"
+            ),
+
+            cls="bg-white p-6 rounded-lg shadow-md mb-8 max-w-2xl mx-auto"
+        )
+    )
+```
+
+**Explanation**:
+- This file contains two functions:
+  1. `title_generator_form()`: Creates the input form for generating titles
+  2. `title_generator_results()`: Creates the results page showing generated titles
+
+- The form includes:
+  - A textarea for entering the topic
+  - Dropdown selects for platform, style, and number of titles
+  - A submit button to trigger generation
+  - A tips section for better results
+
+- Form components are structured with:
+  - Proper `<label>` elements for accessibility
+  - Input validation (required attribute)
+  - Focus states and visual feedback
+  - Clear organization with consistent spacing
+
+- The results page includes:
+  - A summary of the user's request
+  - A list of generated titles
+  - Copy buttons with JavaScript for each title
+  - Navigation buttons to generate more or return home
+
+- The copy button uses a small JavaScript snippet to:
+  1. Copy the title text to the clipboard
+  2. Change the button text to "Copied!" temporarily
+  3. Revert back to "Copy" after 2 seconds
+
+### Step 6: Creating the Main Application
+
+Finally, let's create the main application file that ties everything together:
+
+**File: `main.py`**
+
+```python
+from fasthtml.common import *
+
+# Import page content
+from pages.home import home as home_page
+from pages.title_generator import title_generator_form, title_generator_results
+
+# Import the page layout component
+from components.page_layout import page_layout
+
+# Import title generator tool
+from tools.title_generator import TitleGenerator
+
+# Import config
+import config
+
+# Initialize the FastHTML application
+app = FastHTML()
+
+# Initialize title generator tool
+title_generator = TitleGenerator()
+
+@app.get("/")
+def home():
+    """Handler for the home page route."""
+    return page_layout(
+        title=f"Home - {config.APP_NAME}",
+        content=home_page(),
+        current_page="/"
+    )
+
+@app.get("/title-generator")
+def title_generator_page():
+    """Handler for the title generator page route."""
+    return page_layout(
+        title=f"Title Generator - {config.APP_NAME}",
+        content=title_generator_form(),
+        current_page="/title-generator"
+    )
+
+@app.post("/title-generator/generate")
+async def generate_titles(topic: str, platform: str, style: str, number_of_titles: str):
+    """
+    Handler for processing title generation requests.
+
+    Args:
+        topic: The content topic
+        platform: The target platform
+        style: The title style
+        number_of_titles: Number of titles to generate
+    """
+    try:
+        # Validate inputs
+        if not topic:
+            error_message = Div(
+                H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+                P("Please provide a topic for your titles.", cls="mb-4"),
+                A("Try Again", href="/title-generator",
+                  cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+                cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+            )
+
+            return page_layout(
+                title=f"Error - {config.APP_NAME}",
+                content=error_message,
+                current_page="/title-generator"
+            )
+
+        # Convert number_of_titles to integer
+        num_titles = int(number_of_titles)
+
+        # Generate titles
+        titles = await title_generator.generate_titles(
+            topic=topic,
+            platform=platform,
+            style=style,
+            number_of_titles=num_titles
+        )
+
+        # Return the results page
+        return page_layout(
+            title=f"Generated Titles - {config.APP_NAME}",
+            content=title_generator_results(
+                topic=topic,
+                platform=platform,
+                style=style,
+                titles=titles
+            ),
+            current_page="/title-generator"
+        )
+    except Exception as e:
+        # Handle errors
+        error_message = Div(
+            H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+            P(f"An error occurred while generating titles: {str(e)}", cls="mb-4"),
+            A("Try Again", href="/title-generator",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+        return page_layout(
+            title=f"Error - {config.APP_NAME}",
+            content=error_message,
+            current_page="/title-generator"
+        )
+
+@app.get("/{path:path}")
+def not_found(path: str):
+    """Handler for 404 Not Found errors."""
+    error_content = Div(
+        H1("404 - Page Not Found", cls="text-3xl font-bold text-gray-800 mb-4"),
+        P(f"Sorry, the page '/{path}' does not exist.", cls="mb-4"),
+        A("Return Home", href="/",
+          cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+        cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md text-center"
+    )
+
+    return page_layout(
+        title=f"404 Not Found - {config.APP_NAME}",
+        content=error_content,
+        current_page="/"
+    )
+
+# Run the application
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=5001, reload=True)
+```
+
+**Explanation**:
+- This file serves as the entry point for our FastHTML application and defines:
+  - Route handlers for different URLs
+  - The application's behavior when processing form submissions
+  - Error handling for invalid inputs and unexpected errors
+  - A catch-all handler for 404 errors
+
+- The core functionality includes:
+  - Route `/`: Displays the home page
+  - Route `/title-generator`: Displays the title generator form
+  - Route `/title-generator/generate`: Processes the form submission (POST route)
+  - Route `/{path:path}`: Catches any undefined routes and shows a 404 page
+
+- The `generate_titles` function:
+  1. Validates user input
+  2. Converts string parameters to appropriate types
+  3. Calls the title generator tool to generate titles
+  4. Returns the results page with generated titles
+  5. Handles errors and provides user-friendly error messages
+
+- We use FastHTML's routing decorators (`@app.get()` and `@app.post()`) to:
+  - Map URLs to specific handler functions
+  - Automatically extract form data as function parameters
+
+- The error handling implements defensive programming:
+  - Checks for empty input
+  - Uses try/except to catch any unexpected errors
+  - Provides clear error messages with actionable next steps
+
+- The application server is configured to:
+  - Run on all network interfaces (0.0.0.0)
+  - Use port 5001
+  - Enable auto-reload during development for faster iteration
+
+### Step 7: Running Your Application
+
+To run the application:
+
+1. Make sure you've set up your `.env` file with your OpenRouter API key:
+
+```bash
+echo "OPENROUTER_API_KEY=your_api_key_here" > .env
+```
+
+2. Run the application:
+
+```bash
+python main.py
+```
+
+3. Open your browser and visit `http://localhost:5001`
+
+You should see the home page with information about the title generator. From here, you can navigate to the title generator and begin creating AI-powered titles.
+
+#### Using the Title Generator
+
+1. **Navigate to the Title Generator page**:
+   - Click "Generate Titles" button on the home page, or
+   - Click "Title Generator" in the navigation menu
+
+2. **Enter your requirements**:
+   - Type your content topic in the textarea
+   - Select the platform (Blog, YouTube, etc.)
+   - Choose a style (Professional, Casual, etc.)
+   - Specify how many titles you want
+
+3. **Generate titles**:
+   - Click "Generate Titles" to submit the form
+   - Wait briefly while the AI processes your request
+   - Review the generated titles on the results page
+
+4. **Use the results**:
+   - Click "Copy" next to any title to copy it to your clipboard
+   - Generate more titles by clicking "Generate More"
+   - Return to the home page by clicking "Back to Home"
+
+#### Application Flow
+
+Here's how the application works behind the scenes:
+
+1. **FastHTML routing** receives the HTTP request
+2. The appropriate **handler function** processes the request based on the URL
+3. For form submissions, the **TitleGenerator tool** connects to the AI model
+4. The **AIService** sends the request to OpenRouter's API
+5. The AI model generates recommendations
+6. The response is **processed and formatted**
+7. A **response page** is rendered with the results
+8. The user sees clean, formatted titles they can use for their content
+
+## Enhancing the Title Generator
+
+This title generator can be enhanced in several ways:
+
+1. **Add more platforms**: Expand the options to include more specific platforms like TikTok, Pinterest, or LinkedIn. This would require updating the platform dropdown and potentially adjusting the system prompt for more platform-specific guidance.
+
+2. **Add SEO options**: Include settings for generating SEO-friendly titles with keyword optimization. You could add fields for target keywords and SEO requirements.
+
+3. **Add title length options**: Allow users to specify if they want short, medium, or long titles, which can be important for different platforms that have different character limits.
+
+4. **Create a title variation tool**: Add a feature to generate variations of an existing title. This would be valuable for A/B testing titles for the same content.
+
+5. **Add a favorites system**: Allow users to save their favorite generated titles. This would require adding user sessions or a simple database.
+
+6. **Implement a history feature**: Keep track of previously generated titles so users can refer back to them.
+
+7. **Add formatting options**: Allow users to specify capitalization styles, or include options for including numbers, questions, or emotional hooks in titles.
+
+8. **Implement user feedback**: Add a rating system for generated titles to help improve the AI model's performance over time.
+
+## Advanced Implementation Ideas
+
+For those looking to take this project further, here are some advanced ideas:
+
+1. **User authentication**: Add login functionality to allow users to save preferences and title history.
+
+2. **Custom AI models**: Integrate with fine-tuned models specifically trained for title generation.
+
+3. **Analytics**: Track usage patterns to understand which types of titles users prefer.
+
+4. **Batch processing**: Allow users to generate titles for multiple topics at once.
+
+5. **Export functionality**: Enable exporting title lists to CSV or other formats.
+
+6. **A/B testing integration**: Connect with platforms like Google Optimize to test title effectiveness.
+
+7. **Competitor analysis**: Add features to analyze existing popular titles in specific niches.
+
+## Conclusion
+
+You've now built a complete AI-powered title generator web application using FastHTML and Pydantic AI. This project demonstrates several key concepts:
+
+1. **Python-based web development**: Building a full-stack web application without JavaScript frameworks
+2. **AI integration**: Connecting to powerful language models through OpenRouter
+3. **Modular application design**: Creating maintainable code through separation of concerns
+4. **Responsive UI**: Building a clean, mobile-friendly interface with Tailwind CSS
+5. **Error handling**: Implementing robust error handling for a better user experience
+
+The power of this approach is that you can create sophisticated web applications entirely in Python, leveraging AI capabilities through a clean, type-safe interface. The modular architecture allows you to easily extend this application with additional AI tools or enhance the existing title generator with more features.
+
+This application pattern can be adapted to create many other AI-powered tools, such as:
+- Content summarizers
+- Product description generators
+- Social media post creators
+- Email draft writers
+- SEO description optimizers
+
+By combining FastHTML's intuitive component system with Pydantic AI's structured approach to AI interactions, you can rapidly develop AI-powered web applications that provide real value to users while maintaining clean, maintainable code.
+
+Happy coding!
+
+## FastHTML Series
+
+Below are the articles in our FastHTML series to help you get started:
+
+- [FastHTML Get Started](https://www.bitdoze.com/fasthtml-start/)
+- [FastHTML Multiple Pages](https://www.bitdoze.com/fasthtml-multiple-pages/)
+- [FastHTML Complex AI Tools](https://www.bitdoze.com/fasthtml-complex-ai-tools/)
+- [Building a Simple AI-Powered Web App with FastHTML and Pydantic AI](https://www.bitdoze.com/fasthtml-pydenticai-tools/)

@@ -1,0 +1,1685 @@
+---
+date: 2025-03-03T00:00:00Z
+title: "Building a Multi-Page AI Tools Website with FastHTML: Complete Guide"
+description: "Learn how to build a structured multi-page AI tools website with FastHTML using reusable components, shared layouts, and a modular tool system. Perfect for Python developers wanting to create maintainable web applications."
+image: "../../assets/images/25/03/fasthtml-complex-ai-tools.jpg"
+categories: ["web-development"]
+authors: ["Dragos"]
+tags: ["fasthtml"]
+canonical: "https://www.bitdoze.com/fasthtml-complex-ai-tools/"
+---
+
+Welcome to our FastHTML series! In our previous article, [FastHTML Multiple Pages](https://www.bitdoze.com/fasthtml-multiple-pages/) and [Building a Simple AI-Powered Web App with FastHTML and Pydantic AI](https://www.bitdoze.com/fasthtml-pydenticai-tools/), we explored how to create a basic multi-page website with consistent header and footer components. Today, we're taking it a step further by building a complete AI tools platform called "Bit Tools" using FastHTML.
+
+In this article, we'll show you how to create a modular, maintainable website that offers multiple AI-powered tools to users. By the end, you'll understand how to structure a FastHTML project with reusable components, implement a tool registry system, and create a seamless user experience across multiple pages. Let's dive in!
+
+## What We're Building: Bit Tools Platform
+
+The Bit Tools platform is a website that offers various AI-powered content creation tools, including:
+
+- **Title Generator**: Creates engaging titles for YouTube videos, articles, or TikTok posts
+- **Social Post Generator**: Generates social media content for different platforms
+- **Blog Outline Generator**: Creates structured outlines for blog posts
+
+Each tool has its own dedicated page with a custom form for user input, and the results are displayed in a user-friendly format. The website has a consistent layout with a header, footer, and navigation system that highlights the current page.
+
+## Project Structure Overview
+
+A well-organized project structure is crucial for maintaining a multi-page website, especially as it grows. Here's the directory structure we'll use for our Bit Tools platform:
+
+```
+bit-tools/
+├── main.py                 # Main application entry point
+├── requirements.txt        # Project dependencies
+├── components/             # Reusable UI components
+│   ├── __init__.py
+│   ├── header.py           # Navigation header
+│   ├── footer.py           # Page footer
+│   ├── page_layout.py      # Shared page layout
+│   └── social_icons.py     # Social media icons
+├── pages/                  # Individual page content
+│   ├── __init__.py
+│   ├── home.py             # Home page content
+│   ├── about.py            # About page content
+│   ├── contact.py          # Contact page content
+│   ├── tools.py            # Tools listing page
+│   └── tool_pages.py       # Individual tool pages
+└── tools/                  # Tool implementations
+    ├── __init__.py
+    ├── base.py             # Base tool class
+    ├── base_types.py       # Type definitions
+    ├── errors.py           # Error handling
+    ├── factory.py          # Tool factory
+    ├── registry.py         # Tool registry
+    ├── title_generator.py  # Title generator tool
+    ├── social_post_generator.py  # Social post generator tool
+    ├── blog_outline_generator.py # Blog outline generator tool
+    └── utils.py            # Utility functions
+```
+
+This structure follows several important principles:
+
+1. **Separation of concerns**: Each file has a specific purpose
+2. **Modularity**: Components are reusable across pages
+3. **Scalability**: Easy to add new pages and tools
+4. **Organization**: Logical grouping of related functionality
+
+Let's explore each part of this structure in detail.
+
+## Setting Up the Project
+
+First, let's set up our project with the necessary dependencies. Create a `requirements.txt` file with the following content:
+
+```python
+python-fasthtml
+python-dotenv
+pydantic-ai
+openai
+```
+
+These dependencies include:
+- **FastHTML**: The web framework we're using to build our application
+- **python-dotenv**: For loading environment variables
+- **pydantic-ai**: For working with AI models and data validation
+- **openai**: For interacting with OpenAI's API for our AI tools
+
+To install these dependencies, run:
+
+```bash
+pip install -r requirements.txt
+```
+
+
+## The Utility Layer
+
+### OpenAI Integration with `utility.py`
+
+The `utility.py` file creates a bridge between our application and AI services like OpenAI or OpenRouter.
+
+**File: `tools/utility.py`**
+
+```python
+from openai import AsyncOpenAI
+from pydantic_ai import Agent
+from pydantic_ai.models.openai import OpenAIModel
+
+def create_pydantic_agent(model_name, api_key, base_url):
+    """
+    Create a Pydantic AI Agent connected to OpenRouter.
+
+    Args:
+        model_name: The model to use (e.g., "openai/gpt-4o-mini")
+        api_key: OpenRouter API key
+        base_url: Base URL for OpenRouter API
+
+    Returns:
+        An initialized Pydantic AI Agent
+    """
+    client = AsyncOpenAI(
+        api_key=api_key,
+        base_url=base_url,
+    )
+
+    model = OpenAIModel(model_name, openai_client=client)
+    return Agent(model)
+```
+
+This utility function:
+
+1. **Creates an AI Agent**: Initializes a Pydantic AI Agent, which serves as a wrapper for interactions with the AI model.
+2. **Configures API Access**: Sets up a connection to OpenAI or compatible services like OpenRouter using the provided credentials.
+3. **Abstracts Complexity**: Hides the details of API initialization, making it easier to use AI capabilities throughout the application.
+
+The function accepts three parameters:
+- `model_name`: The specific AI model to use (e.g., "openai/gpt-4o-mini")
+- `api_key`: Authentication key for the API service
+- `base_url`: The endpoint URL for the API service
+
+This abstraction allows us to easily switch between different models or services without changing our tool implementations.
+
+### Base Tool Implementation with `base.py`
+
+The `base.py` file defines the foundation for all tools in our system, providing a consistent interface and shared functionality.
+
+**File: `tools/base.py`**
+
+```python
+from abc import ABC, abstractmethod
+from typing import Dict, Any, List, Optional
+
+class BaseTool(ABC):
+    """
+    Abstract base class for all AI tools.
+
+    This provides a standard interface for tool implementation,
+    making it easier to add new tools to the system.
+    """
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Return the name of the tool."""
+        pass
+
+    @property
+    @abstractmethod
+    def description(self) -> str:
+        """Return a description of what the tool does."""
+        pass
+
+    @property
+    def icon(self) -> str:
+        # Default icon if not overridden
+        return """<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 9.563C9 9.252 9.252 9 9.563 9h4.874c.311 0 .563.252.563.563v4.874c0 .311-.252.563-.563.563H9.564A.562.562 0 0 1 9 14.437V9.564Z" />
+        </svg>"""
+
+    @property
+    def id(self) -> str:
+        """Return the tool ID used in URLs and for lookup."""
+        return self.name.lower().replace(' ', '-')
+
+    @property
+    def route(self) -> str:
+        """Return the URL route for the tool."""
+        return f"/tools/{self.id}"
+
+    @abstractmethod
+    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Process the inputs and return the results.
+
+        Args:
+            inputs: Dictionary of input parameters from the form
+
+        Returns:
+            Dictionary of results to be passed to the results page
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def input_form_fields(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Return the configuration for the input form fields.
+
+        Returns:
+            Dictionary containing form field definitions
+        """
+        pass
+
+    def validate_inputs(self, inputs: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Validate the inputs and return detailed error information.
+
+        Args:
+            inputs: Dictionary of input parameters from the form
+
+        Returns:
+            List of error dictionaries with field, code, and message
+        """
+        errors = []
+
+        for field_id, field_config in self.input_form_fields.items():
+            # Check required fields
+            if field_config.get("required", False) and not inputs.get(field_id):
+                errors.append({
+                    "field": field_id,
+                    "code": "required",
+                    "message": f"{field_config.get('label', field_id)} is required"
+                })
+
+            # Check field-specific validation
+            if field_id in inputs and inputs[field_id]:
+                # Example: max length validation
+                max_length = field_config.get("maxLength")
+                if max_length and len(str(inputs[field_id])) > max_length:
+                    errors.append({
+                        "field": field_id,
+                        "code": "max_length",
+                        "message": f"{field_config.get('label', field_id)} exceeds maximum length of {max_length}"
+                    })
+
+                # Example: min length validation
+                min_length = field_config.get("minLength")
+                if min_length and len(str(inputs[field_id])) < min_length:
+                    errors.append({
+                        "field": field_id,
+                        "code": "min_length",
+                        "message": f"{field_config.get('label', field_id)} must be at least {min_length} characters"
+                    })
+
+        return errors
+```
+
+Key aspects of the `BaseTool` class:
+
+1. **Abstract Base Class**: Uses Python's ABC module to define an interface that all tools must implement.
+2. **Core Properties**:
+   - `name`: The display name of the tool
+   - `description`: A description of what the tool does
+   - `icon`: SVG icon for visual representation (with a default implementation)
+   - `id`: A URL-friendly identifier derived from the name
+   - `route`: The URL path where the tool can be accessed
+3. **Abstract Methods**:
+   - `process()`: The main method that handles user inputs and returns results
+   - `input_form_fields()`: Defines the form fields for user input
+4. **Input Validation**: The `validate_inputs()` method checks user inputs against requirements like "required", "maxLength", and "minLength".
+
+This base class ensures consistency across all tools and reduces code duplication by implementing common functionality like input validation.
+
+### Specialized Tool Types with `base_types.py`
+
+The `base_types.py` file extends the base tool concept with specialized types for different AI tasks.
+
+**File: `tools/base_types.py`**
+
+```python
+from abc import ABC, abstractmethod
+from typing import Dict, Any, List, Optional
+from .base import BaseTool
+
+class TextGenerationTool(BaseTool, ABC):
+    """Base class for text generation tools."""
+
+    @property
+    def tool_type(self) -> str:
+        return "text_generation"
+
+    @property
+    def default_system_prompt(self) -> str:
+        """Default system prompt for this tool type."""
+        return """
+        You are a versatile text generation assistant. Create high-quality,
+        engaging content based on the user's requirements.
+        """
+
+    def get_system_prompt(self) -> str:
+        """Get the system prompt, allowing for customization."""
+        return self.default_system_prompt
+
+    @abstractmethod
+    async def generate_text(self, inputs: Dict[str, Any]) -> List[str]:
+        """Generate text based on inputs."""
+        pass
+
+    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """Process inputs and generate text."""
+        try:
+            # Validate inputs
+            validation_errors = self.validate_inputs(inputs)
+            if validation_errors:
+                return {"error": "Validation failed", "validation_errors": validation_errors}
+
+            # Generate text
+            generated_texts = await self.generate_text(inputs)
+
+            # Return results
+            return {
+                "metadata": {
+                    **{k: v for k, v in inputs.items() if k in self.input_form_fields},
+                    "count": len(generated_texts)
+                },
+                "titles": generated_texts  # Using 'titles' for backward compatibility
+            }
+        except Exception as e:
+            return {"error": f"Failed to generate text: {str(e)}"}
+
+class TextTransformationTool(BaseTool, ABC):
+    """Base class for text transformation tools."""
+
+    @property
+    def tool_type(self) -> str:
+        return "text_transformation"
+
+    @abstractmethod
+    async def transform_text(self, text: str, options: Dict[str, Any]) -> str:
+        """Transform the input text based on options."""
+        pass
+
+    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """Process inputs and transform text."""
+        try:
+            # Validate inputs
+            validation_errors = self.validate_inputs(inputs)
+            if validation_errors:
+                return {"error": "Validation failed", "validation_errors": validation_errors}
+
+            # Get input text
+            text = inputs.get("text", "").strip()
+            if not text:
+                return {"error": "Please provide text to transform."}
+
+            # Transform text
+            transformed_text = await self.transform_text(
+                text,
+                {k: v for k, v in inputs.items() if k != "text"}
+            )
+
+            # Return results
+            return {
+                "metadata": {
+                    **{k: v for k, v in inputs.items() if k in self.input_form_fields},
+                },
+                "original_text": text,
+                "transformed_text": transformed_text
+            }
+        except Exception as e:
+            return {"error": f"Failed to transform text: {str(e)}"}
+```
+
+This file defines two specialized tool types:
+
+1. **TextGenerationTool**:
+   - Creates new content based on user inputs
+   - Provides a default system prompt for AI interactions
+   - Implements the `process()` method from `BaseTool` with logic specific to text generation
+   - Returns a standardized response format with metadata and generated texts
+
+2. **TextTransformationTool**:
+   - Transforms existing text based on user options
+   - Focuses on taking input text and options, returning modified text
+   - Handles validation and error cases
+   - Returns a standardized response with the original and transformed text
+
+These specialized classes further reduce code duplication by implementing common patterns for each type of tool. When creating a new tool, developers only need to implement the specific logic for their tool type.
+
+### Error Handling with `errors.py`
+
+The `errors.py` file provides a structured approach to error handling throughout the application.
+
+**File: `tools/errors.py`**
+
+```python
+from enum import Enum
+from typing import Dict, Any, Optional
+
+class ErrorCode(Enum):
+    """Error codes for tool-related errors."""
+    INVALID_INPUT = "invalid_input"
+    API_ERROR = "api_error"
+    RATE_LIMIT = "rate_limit"
+    INTERNAL_ERROR = "internal_error"
+
+class ToolError(Exception):
+    """Base exception for tool-related errors."""
+
+    def __init__(
+        self,
+        code: ErrorCode,
+        message: str,
+        details: Optional[Dict[str, Any]] = None
+    ):
+        self.code = code
+        self.message = message
+        self.details = details or {}
+        super().__init__(message)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert the error to a dictionary for API responses."""
+        return {
+            "error": {
+                "code": self.code.value,
+                "message": self.message,
+                "details": self.details
+            }
+        }
+```
+
+This error handling system:
+
+1. **Defines Error Codes**: Uses an enum to standardize error types across the application
+2. **Custom Exception Class**: Extends Python's Exception class with additional context and metadata
+3. **Serializable Errors**: Provides a `to_dict()` method to convert errors to a consistent JSON format for API responses
+4. **Structured Details**: Allows adding specific details about what caused the error
+
+This approach ensures errors are handled consistently and provides clear, informative messages to users when something goes wrong.
+
+### Configuration Management with `config.py`
+
+The `config.py` file centralizes application configuration settings.
+
+**File: `tools/config.py`**
+
+```python
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# OpenRouter API configuration
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+
+# Default model to use
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL")
+
+# Application settings
+DEBUG = True
+```
+
+The configuration file:
+
+1. **Loads Environment Variables**: Uses python-dotenv to load settings from a `.env` file
+2. **API Credentials**: Stores API keys and endpoints for external services
+3. **Model Settings**: Configures which AI model to use by default
+4. **Application Settings**: Manages global application behavior like debug mode
+
+This centralized approach makes it easy to update settings across the application and keeps sensitive information like API keys out of the codebase.
+
+
+
+## Creating Reusable Components
+
+One of the key principles of maintainable web development is creating reusable components. Let's start by implementing our header, footer, and page layout components.
+
+### Header Component
+
+The header component provides navigation and branding for our website. It highlights the current page and adapts to different screen sizes.
+
+**File: `components/header.py`**
+
+```python
+from fasthtml.common import *
+
+def header(current_page="/"):
+    """
+    Creates a consistent header with navigation.
+
+    Args:
+        current_page: The current page path, used to highlight the active link
+
+    Returns:
+        A Header component with navigation
+    """
+    nav_items = [
+        ("Home", "/"),
+        ("Tools", "/tools"),
+        ("About", "/about"),
+        ("Contact", "/contact")
+    ]
+
+    nav_links = []
+    for title, path in nav_items:
+        is_current = current_page == path or (
+            current_page.startswith("/tools/") and path == "/tools"
+        )
+        link_class = "text-white hover:text-gray-300 px-3 py-2"
+        if is_current:
+            link_class += " font-bold underline"
+
+        nav_links.append(
+            Li(
+                A(title, href=path, cls=link_class)
+            )
+        )
+
+    return Header(
+        Div(
+            A("Bit Tools", href="/", cls="text-xl font-bold text-white"),
+            Nav(
+                Ul(
+                    *nav_links,
+                    cls="flex space-x-2"
+                ),
+                cls="ml-auto"
+            ),
+            cls="container mx-auto flex items-center justify-between px-4 py-3"
+        ),
+        cls="bg-blue-600 shadow-md"
+    )
+```
+
+This header component:
+- Takes a `current_page` parameter to highlight the active navigation link
+- Creates a list of navigation items with appropriate styling
+- Handles special cases like highlighting the "Tools" link when on individual tool pages
+- Uses Tailwind CSS classes for styling
+
+Let's break down the code in more detail:
+
+1. **Navigation Items Definition** (lines 118-123):
+   ```python
+   nav_items = [
+       ("Home", "/"),
+       ("Tools", "/tools"),
+       ("About", "/about"),
+       ("Contact", "/contact")
+   ]
+   ```
+   This creates a list of tuples, each containing a navigation label and its corresponding URL path.
+
+2. **Active Link Detection** (lines 127-132):
+   ```python
+   is_current = current_page == path or (
+       current_page.startswith("/tools/") and path == "/tools"
+   )
+   ```
+   This checks if the current page matches the navigation item's path. The special condition handles tool detail pages (like "/tools/title-generator") to still highlight the "Tools" navigation item.
+
+3. **Navigation Link Creation** (lines 134-138):
+   ```python
+   nav_links.append(
+       Li(
+           A(title, href=path, cls=link_class)
+       )
+   )
+   ```
+   This creates an HTML list item (`<li>`) containing an anchor tag (`<a>`) for each navigation item.
+
+4. **Header Structure** (lines 140-153):
+   The header is structured with a container div that holds the logo and navigation, using Flexbox for layout.
+
+### Footer Component
+
+The footer component provides copyright information and appears at the bottom of every page.
+
+**File: `components/footer.py`**
+
+```python
+from fasthtml.common import *
+
+def footer():
+    """Creates a consistent footer."""
+    return Footer(
+        Div(
+            P("© 2025 Bit Tools. All rights reserved.", cls="text-center text-gray-500"),
+            cls="container mx-auto px-4 py-6"
+        ),
+        cls="bg-gray-100 mt-auto"
+    )
+```
+
+This simple footer:
+- Displays copyright information
+- Uses Tailwind CSS for styling
+- Has the `mt-auto` class to ensure it stays at the bottom of the page
+
+### Page Layout Component
+
+The page layout component combines the header, footer, and page-specific content into a consistent layout.
+
+**File: `components/page_layout.py`**
+
+```python
+from fasthtml.common import *
+from .header import header
+from .footer import footer
+
+def page_layout(title, content, current_page="/"):
+    """
+    Creates a consistent page layout with header and footer.
+
+    Args:
+        title: The page title
+        content: The main content components
+        current_page: The current page path
+
+    Returns:
+        A complete HTML page
+    """
+    return Html(
+        Head(
+            Title(title),
+            Meta(charset="UTF-8"),
+            Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+            Script(src="https://cdn.tailwindcss.com"),
+            Script(defer=True, **{"data-domain": "bit-tools.com", "src": "https://an.bitdoze.com/js/script.js"}),
+        ),
+        Body(
+            Div(
+                header(current_page),
+                Main(
+                    Div(
+                        content,
+                        cls="container mx-auto px-4 py-8"
+                    ),
+                    cls="flex-grow"
+                ),
+                footer(),
+                cls="flex flex-col min-h-screen"
+            )
+        )
+    )
+```
+
+This page layout:
+- Takes a title, content, and current page path as parameters
+- Includes the header and footer components
+- Sets up the HTML document structure with appropriate meta tags
+- Includes the Tailwind CSS script for styling
+- Uses a flex column layout to ensure the footer stays at the bottom
+- Includes analytics script for tracking
+
+Let's examine the code in more detail:
+
+1. **Function Parameters** (lines 232-242):
+   ```python
+   def page_layout(title, content, current_page="/"):
+       """
+       Creates a consistent page layout with header and footer.
+
+       Args:
+           title: The page title
+           content: The main content components
+           current_page: The current page path
+       """
+   ```
+   The function takes three parameters: the page title (displayed in the browser tab), the main content components, and the current page path (used to highlight the active navigation link).
+
+2. **HTML Document Structure** (lines 244-251):
+   ```python
+   return Html(
+       Head(
+           Title(title),
+           Meta(charset="UTF-8"),
+           Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+           Script(src="https://cdn.tailwindcss.com"),
+           Script(defer=True, **{"data-domain": "bit-tools.com", "src": "https://an.bitdoze.com/js/script.js"}),
+       ),
+       Body(...)
+   )
+   ```
+   This creates a complete HTML document with proper head elements including meta tags for character encoding and responsive design, the page title, and necessary scripts.
+
+3. **Body Structure** (lines 252-265):
+   ```python
+   Body(
+       Div(
+           header(current_page),
+           Main(
+               Div(
+                   content,
+                   cls="container mx-auto px-4 py-8"
+               ),
+               cls="flex-grow"
+           ),
+           footer(),
+           cls="flex flex-col min-h-screen"
+       )
+   )
+   ```
+   The body uses a flex column layout (`flex flex-col min-h-screen`) to ensure the footer stays at the bottom of the page. The main content area has `flex-grow` to expand and fill available space.
+
+## Implementing Pages
+
+Now that we have our reusable components, let's implement the individual pages of our website.
+
+### Home Page
+
+The home page welcomes users and showcases the available tools.
+
+**File: `pages/home.py`**
+
+```python
+from fasthtml.common import *
+from fasthtml.components import NotStr
+from tools import get_all_tools
+from components.social_icons import social_icons
+
+def home():
+    """
+    Defines the home page content.
+
+    Returns:
+        Components representing the home page content
+    """
+    # Get tools for display
+    tools_list = get_all_tools()
+
+    return Div(
+        # Hero section with social icons
+        Div(
+            Div(
+                Div(
+                    H1(
+                        "Welcome to ",
+                        Span("Bit Tools",
+                             cls="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500 sm:whitespace-nowrap"),
+                        cls="text-5xl md:text-[3.50rem] font-bold leading-tighter tracking-tighter mb-4 font-heading"
+                    ),
+                    Div(
+                        P("Create engaging content with our AI-powered tools.",
+                          cls="text-xl text-gray-600 mb-8"),
+                        cls="max-w-3xl mx-auto"
+                    ),
+                    # Use the social icons component
+                    social_icons(),
+                    cls="text-center pb-10 md:pb-16"
+                ),
+                cls="py-12 md:py-20"
+            ),
+            cls="max-w-6xl mx-auto px-4 sm:px-6"
+        ),
+
+        # Tools section
+        Div(
+            H2("Our Tools", cls="text-3xl font-bold text-center mb-8"),
+            Div(
+                *[
+                    Div(
+                        Div(
+                            Div(
+                                NotStr(tool.icon),
+                                cls="text-blue-600 w-12 h-12 mr-4"
+                            ),
+                            Div(
+                                H3(tool.name, cls="text-xl font-semibold mb-2"),
+                                P(tool.description, cls="text-gray-600"),
+                                cls="flex-1"
+                            ),
+                            cls="flex items-start"
+                        ),
+                        A("Try it now →",
+                          href=tool.route,
+                          cls="mt-4 inline-block text-blue-600 hover:text-blue-800 font-medium"),
+                        cls="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                    )
+                    for tool in tools_list
+                ],
+                cls="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12"
+            ),
+            cls="py-8 max-w-6xl mx-auto px-4 sm:px-6"
+        ),
+        cls="relative overflow-hidden"
+    )
+```
+
+The home page:
+- Fetches the list of available tools from the tool registry
+- Displays a hero section with a welcome message and social icons
+- Shows a grid of available tools with their icons, names, descriptions, and links
+- Uses responsive design with Tailwind CSS classes
+
+Let's break down the key parts of this implementation:
+
+1. **Imports and Dependencies** (lines 338-341):
+   ```python
+   from fasthtml.common import *
+   from fasthtml.components import NotStr
+   from tools import get_all_tools
+   from components.social_icons import social_icons
+   ```
+   We import the necessary FastHTML components, the `NotStr` component (which allows rendering raw HTML/SVG), the tool registry functions, and our custom social icons component.
+
+2. **Fetching Tools** (lines 350-351):
+   ```python
+   # Get tools for display
+   tools_list = get_all_tools()
+   ```
+   This retrieves all registered tools from the registry, which will be displayed on the home page.
+
+3. **Hero Section** (lines 354-376):
+   ```python
+   # Hero section with social icons
+   Div(
+       Div(
+           Div(
+               H1(
+                   "Welcome to ",
+                   Span("Bit Tools",
+                        cls="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500 sm:whitespace-nowrap"),
+                   cls="text-5xl md:text-[3.50rem] font-bold leading-tighter tracking-tighter mb-4 font-heading"
+               ),
+               # ...
+           ),
+           # ...
+       ),
+       # ...
+   )
+   ```
+   The hero section features a large heading with a gradient text effect for "Bit Tools", a subtitle, and social media icons.
+
+4. **Tools Grid** (lines 378-406):
+   ```python
+   # Tools section
+   Div(
+       H2("Our Tools", cls="text-3xl font-bold text-center mb-8"),
+       Div(
+           *[
+               # Tool card for each tool
+               Div(
+                   # ...
+               )
+               for tool in tools_list
+           ],
+           cls="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12"
+       ),
+       # ...
+   )
+   ```
+   This creates a responsive grid of tool cards. On mobile, it shows one column, and on medium screens and larger, it shows two columns. Each card displays the tool's icon, name, description, and a link to try it.
+
+### Tools System
+
+The heart of our application is the tools system, which allows us to create, register, and use various AI-powered tools. Let's explore how it works.
+
+#### Tool Registry
+
+The tool registry keeps track of all available tools and provides methods to access them.
+
+**File: `tools/registry.py`** (simplified)
+
+```python
+class ToolRegistry:
+    """Registry for all available tools."""
+
+    def __init__(self):
+        self.tools = {}
+        self.categories = {}
+
+    def register(self, tool, categories=None):
+        """Register a tool with the registry."""
+        self.tools[tool.id] = tool
+
+        # Set the tool's route
+        tool.route = f"/tools/{tool.id}"
+
+        # Register categories
+        if categories:
+            for category in categories:
+                if category not in self.categories:
+                    self.categories[category] = []
+                self.categories[category].append(tool)
+
+    def get_tool(self, tool_id):
+        """Get a tool by ID."""
+        return self.tools.get(tool_id)
+
+    def get_all_tools(self):
+        """Get all registered tools."""
+        return list(self.tools.values())
+
+    def get_tools_by_category(self, category):
+        """Get all tools in a category."""
+        return self.categories.get(category, [])
+
+    def get_categories(self):
+        """Get all categories."""
+        return list(self.categories.keys())
+
+# Create a singleton registry instance
+registry = ToolRegistry()
+```
+
+The tool registry:
+- Maintains a dictionary of tools indexed by their IDs
+- Organizes tools into categories
+- Provides methods to retrieve tools by ID or category
+- Sets the route for each tool based on its ID
+
+#### Tool Factory
+
+The tool factory creates tool classes with consistent behavior.
+
+**File: `tools/factory.py`** (simplified)
+
+```python
+from .base import BaseTool
+
+def create_text_generation_tool(name, description, icon, system_prompt,
+                               user_prompt_template, input_form_fields,
+                               post_process_func=None):
+    """
+    Factory function to create a text generation tool class.
+
+    Args:
+        name: Tool name
+        description: Tool description
+        icon: SVG icon as string
+        system_prompt: System prompt for the AI
+        user_prompt_template: Template for user prompts
+        input_form_fields: Form field definitions
+        post_process_func: Function to process AI output
+
+    Returns:
+        A tool class that can be instantiated
+    """
+
+    class TextGenerationTool(BaseTool):
+        def __init__(self):
+            super().__init__(name, description, icon)
+            self.system_prompt = system_prompt
+            self.user_prompt_template = user_prompt_template
+            self.input_form_fields = input_form_fields
+            self.post_process_func = post_process_func
+
+        async def process(self, inputs):
+            """Process user inputs and generate results."""
+            # Format the user prompt with inputs
+            user_prompt = self.user_prompt_template.format(**inputs)
+
+            # Call the AI model (simplified)
+            result = await self.call_ai_model(
+                system_prompt=self.system_prompt,
+                user_prompt=user_prompt
+            )
+
+            # Post-process the result if needed
+            if self.post_process_func:
+                result = self.post_process_func(result)
+
+            return result
+
+    return TextGenerationTool
+```
+
+The tool factory:
+- Creates a new tool class with the specified parameters
+- Handles the common behavior for text generation tools
+- Provides a consistent interface for processing user inputs
+- Supports post-processing of AI-generated results
+
+#### Tool Implementation
+
+Let's look at how a specific tool is implemented using our factory.
+
+**File: `tools/title_generator.py`** (simplified)
+
+```python
+import re
+from typing import List
+from .factory import create_text_generation_tool
+from .registry import registry
+
+# System prompt for title generation
+title_system_prompt = """
+You are a versatile content title generator specializing in catchy, platform-specific titles.
+[... detailed instructions ...]
+"""
+
+# User prompt template for title generation
+title_user_prompt_template = """
+Create 10 engaging {platform} titles for content about: {topic}. Tone: {style}.
+"""
+
+# Post-processing function for titles
+def process_titles(text: str) -> List[str]:
+    # Clean and format the titles
+    # [... processing logic ...]
+    return unique_titles[:10]
+
+# Create the title generator tool
+TitleGeneratorClass = create_text_generation_tool(
+    name="AI Title Generator",
+    description="Create engaging titles for YouTube videos, articles, or TikTok posts in various styles.",
+    icon="""<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+    </svg>""",
+    system_prompt=title_system_prompt,
+    user_prompt_template=title_user_prompt_template,
+    input_form_fields={
+        "topic": {
+            "type": "textarea",
+            "label": "What's your content about?",
+            "placeholder": "Describe your content topic in detail for better results...",
+            "required": True,
+            "rows": 3
+        },
+        "platform": {
+            "type": "select",
+            "label": "Platform",
+            "options": [
+                {"value": "YouTube", "label": "YouTube", "selected": True},
+                {"value": "Article", "label": "Article"},
+                {"value": "TikTok", "label": "TikTok"}
+            ]
+        },
+        "style": {
+            "type": "select",
+            "label": "Style",
+            "options": [
+                {"value": "Professional", "label": "Professional", "selected": True},
+                {"value": "Funny", "label": "Funny"}
+            ]
+        }
+    },
+    post_process_func=process_titles
+)
+
+# Instantiate the tool
+title_generator_tool = TitleGeneratorClass()
+
+# Register the tool with the registry
+registry.register(title_generator_tool, categories=["Content Creation"])
+```
+
+This tool implementation:
+- Defines a system prompt with detailed instructions for the AI
+- Creates a user prompt template that incorporates user inputs
+- Implements a post-processing function to clean and format the AI's output
+- Defines form fields for user input with appropriate types and options
+- Instantiates the tool and registers it with the registry
+
+### Tool Pages
+
+Now let's implement the pages that display and interact with our tools.
+
+**File: `pages/tools.py`** (simplified)
+
+```python
+from fasthtml.common import *
+from tools import get_all_tools, get_categories
+
+def tools():
+    """
+    Defines the tools listing page content.
+
+    Returns:
+        Components representing the tools page content
+    """
+    tools_by_category = {}
+    categories = get_categories()
+
+    for category in categories:
+        tools_by_category[category] = get_tools_by_category(category)
+
+    return Div(
+        H1("AI Tools", cls="text-3xl font-bold text-center mb-8"),
+
+        # Tools by category
+        *[
+            Div(
+                H2(category, cls="text-2xl font-bold mb-4"),
+                Div(
+                    *[
+                        Div(
+                            Div(
+                                Div(
+                                    NotStr(tool.icon),
+                                    cls="text-blue-600 w-12 h-12 mr-4"
+                                ),
+                                Div(
+                                    H3(tool.name, cls="text-xl font-semibold mb-2"),
+                                    P(tool.description, cls="text-gray-600"),
+                                    cls="flex-1"
+                                ),
+                                cls="flex items-start"
+                            ),
+                            A("Try it now →",
+                              href=tool.route,
+                              cls="mt-4 inline-block text-blue-600 hover:text-blue-800 font-medium"),
+                            cls="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                        )
+                        for tool in tools_by_category[category]
+                    ],
+                    cls="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12"
+                ),
+                cls="mb-8"
+            )
+            for category in categories
+        ],
+
+        cls="max-w-6xl mx-auto"
+    )
+```
+
+**File: `pages/tool_pages.py`** (simplified)
+
+```python
+from fasthtml.common import *
+from tools import get_tool_by_id
+
+def tool_page(tool_id):
+    """
+    Defines the individual tool page content.
+
+    Args:
+        tool_id: The ID of the tool to display
+
+    Returns:
+        Components representing the tool page content
+    """
+    tool = get_tool_by_id(tool_id)
+
+    # Create form fields based on tool's input_form_fields
+    form_fields = []
+    for field_id, field_config in tool.input_form_fields.items():
+        # Create appropriate form field based on type
+        if field_config["type"] == "textarea":
+            form_fields.append(
+                Div(
+                    Label(field_config["label"], For=field_id, cls="block text-gray-700 mb-1"),
+                    Textarea(
+                        id=field_id,
+                        name=field_id,
+                        placeholder=field_config.get("placeholder", ""),
+                        rows=field_config.get("rows", 3),
+                        required=field_config.get("required", False),
+                        cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
+                    ),
+                    cls="mb-4"
+                )
+            )
+        elif field_config["type"] == "select":
+            options = []
+            for option in field_config["options"]:
+                options.append(
+                    Option(
+                        option["label"],
+                        value=option["value"],
+                        selected=option.get("selected", False)
+                    )
+                )
+
+            form_fields.append(
+                Div(
+                    Label(field_config["label"], For=field_id, cls="block text-gray-700 mb-1"),
+                    Select(
+                        *options,
+                        id=field_id,
+                        name=field_id,
+                        required=field_config.get("required", False),
+                        cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
+                    ),
+                    cls="mb-4"
+                )
+            )
+
+    return Div(
+        Div(
+            # Tool header
+            Div(
+                Div(
+                    NotStr(tool.icon),
+                    cls="text-blue-600 w-16 h-16 mr-4"
+                ),
+                Div(
+                    H1(tool.name, cls="text-3xl font-bold mb-2"),
+                    P(tool.description, cls="text-gray-600"),
+                    cls="flex-1"
+                ),
+                cls="flex items-start mb-8"
+            ),
+
+            # Tool form
+            Form(
+                *form_fields,
+                Button(
+                    "Generate",
+                    type="submit",
+                    cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                ),
+                action=f"/tools/{tool_id}/process",
+                method="post",
+                cls="bg-white p-6 rounded-lg shadow-md"
+            ),
+
+            cls="max-w-2xl mx-auto"
+        ),
+        cls="container mx-auto px-4 py-8"
+    )
+
+def tool_results_page(tool_id, results):
+    """
+    Defines the tool results page content.
+
+    Args:
+        tool_id: The ID of the tool
+        results: The results to display
+
+    Returns:
+        Components representing the results page content
+    """
+    tool = get_tool_by_id(tool_id)
+
+    # Format results based on tool type
+    if isinstance(results, list):
+        # For list results (like titles)
+        result_items = [
+            Li(
+                P(item, cls="mb-2"),
+                cls="mb-4 p-4 bg-gray-50 rounded-lg"
+            )
+            for item in results
+        ]
+
+        results_display = Div(
+            H2("Generated Results", cls="text-2xl font-bold mb-4"),
+            Ul(
+                *result_items,
+                cls="list-none p-0"
+            ),
+            cls="bg-white p-6 rounded-lg shadow-md"
+        )
+    else:
+        # For text results
+        results_display = Div(
+            H2("Generated Results", cls="text-2xl font-bold mb-4"),
+            Div(
+                P(results, cls="whitespace-pre-wrap"),
+                cls="p-4 bg-gray-50 rounded-lg"
+            ),
+            cls="bg-white p-6 rounded-lg shadow-md"
+        )
+
+    return Div(
+        Div(
+            # Tool header
+            Div(
+                Div(
+                    NotStr(tool.icon),
+                    cls="text-blue-600 w-16 h-16 mr-4"
+                ),
+                Div(
+                    H1(f"{tool.name} Results", cls="text-3xl font-bold mb-2"),
+                    P(tool.description, cls="text-gray-600"),
+                    cls="flex-1"
+                ),
+                cls="flex items-start mb-8"
+            ),
+
+            # Results
+            results_display,
+
+            # Back button
+            Div(
+                A("← Try Again",
+                  href=f"/tools/{tool_id}",
+                  cls="inline-block mt-6 text-blue-600 hover:text-blue-800 font-medium"),
+                cls="mt-4"
+            ),
+
+            cls="max-w-2xl mx-auto"
+        ),
+        cls="container mx-auto px-4 py-8"
+    )
+```
+
+These tool pages:
+- Display a list of tools organized by category
+- Generate form fields dynamically based on each tool's configuration
+- Process form submissions and display results
+- Format results appropriately based on their type (list or text)
+- Provide navigation between tool pages and results
+
+## Main Application
+
+Finally, let's implement the main application file that ties everything together.
+
+**File: `main.py`**
+
+```python
+from fasthtml.common import *
+
+# Import page content from the pages directory
+from pages.home import home as home_page
+from pages.about import about as about_page
+from pages.contact import contact as contact_page
+from pages.tools import tools as tools_page
+from pages.tool_pages import tool_page, tool_results_page
+
+# Import the tools registry
+from tools import get_all_tools, get_tool_by_id
+
+# Import the page layout component
+from components.page_layout import page_layout
+
+# Initialize the FastHTML application
+app = FastHTML()
+
+@app.get("/")
+def home():
+    """Handler for the home page route."""
+    return page_layout(
+        title="Home - Bit Tools",
+        content=home_page(),
+        current_page="/"
+    )
+
+@app.get("/about")
+def about():
+    return page_layout(
+        title="About Us - Bit Tools",
+        content=about_page(),
+        current_page="/about"
+    )
+
+@app.get("/contact")
+def contact():
+    return page_layout(
+        title="Contact Us - Bit Tools",
+        content=contact_page(),
+        current_page="/contact"
+    )
+
+@app.post("/submit-contact")
+def submit_contact(name: str, email: str, message: str):
+    """Handler for contact form submission."""
+    acknowledgment = Div(
+        Div(
+            H1("Thank You!", cls="text-2xl font-bold mb-4"),
+            P(f"Hello {name}, we've received your message and will respond to {email} soon.", cls="mb-4"),
+            A("Return Home", href="/", cls="inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600")
+        , cls="bg-white p-6 rounded-lg shadow-md")
+    , cls="max-w-md mx-auto")
+
+    return page_layout(
+        title="Thank You - Bit Tools",
+        content=acknowledgment,
+        current_page="/contact"
+    )
+
+@app.get("/tools")
+def tools():
+    return page_layout(
+        title="AI Tools - Bit Tools",
+        content=tools_page(),
+        current_page="/tools"
+    )
+
+@app.get("/tools/{tool_id}")
+def tool_page_handler(tool_id: str):
+    tool = get_tool_by_id(tool_id)
+    if not tool:
+        error_content = Div(
+            Div(
+                H1("Tool Not Found", cls="text-2xl font-bold mb-4"),
+                P("Sorry, the requested tool could not be found.", cls="mb-4"),
+                A("Back to Tools", href="/tools", cls="inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600")
+            , cls="bg-white p-6 rounded-lg shadow-md")
+        , cls="max-w-md mx-auto")
+
+        return page_layout(
+            title="Tool Not Found - Bit Tools",
+            content=error_content,
+            current_page="/tools"
+        )
+
+    return page_layout(
+        title=f"{tool.name} - Bit Tools",
+        content=tool_page(tool_id),
+        current_page=f"/tools/{tool_id}"
+    )
+
+@app.get("/{path:path}")
+def not_found(path: str):
+    error_content = Div(
+        Div(
+            H1("404 - Page Not Found", cls="text-2xl font-bold mb-4"),
+            P(f"Sorry, the page '/{path}' does not exist.", cls="mb-4"),
+            A("Return Home", href="/", cls="inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600")
+        , cls="bg-white p-6 rounded-lg shadow-md")
+    , cls="max-w-md mx-auto")
+
+    return page_layout(
+        title="404 Not Found - Bit Tools",
+        content=error_content,
+        current_page="/"
+    )
+
+@app.post("/tools/{tool_id}/process")
+async def process_tool(tool_id: str, request):
+    """Handler for tool form submission."""
+    tool = get_tool_by_id(tool_id)
+    if not tool:
+        error_content = Div(
+            H1("Tool Not Found", cls="text-2xl font-bold mb-4"),
+            P("Sorry, the requested tool could not be found.", cls="mb-4"),
+            A("Back to Tools", href="/tools", cls="inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"),
+            cls="container mx-auto max-w-md bg-white p-6 rounded-lg shadow-md text-center"
+        )
+
+        return page_layout(
+            title="Tool Not Found - Bit Tools",
+            content=error_content,
+            current_page="/tools"
+        )
+
+    try:
+        form_data = await request.form()
+        inputs = {key: value for key, value in form_data.items()}
+        results = await tool.process(inputs)
+
+        return page_layout(
+            title=f"{tool.name} Results - Bit Tools",
+            content=tool_results_page(tool_id, results),
+            current_page=f"/tools/{tool_id}"
+        )
+    except Exception as e:
+        error_content = Div(
+            H1("Processing Error", cls="text-2xl font-bold mb-4"),
+            P(f"An error occurred while processing your request: {str(e)}", cls="mb-4"),
+            A("Try Again", href=f"/tools/{tool_id}", cls="inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"),
+            cls="container mx-auto max-w-md bg-white p-6 rounded-lg shadow-md text-center"
+        )
+
+        return page_layout(
+            title="Error - Bit Tools",
+            content=error_content,
+            current_page=f"/tools/{tool_id}"
+        )
+
+# Run the application
+if __name__ == "__main__":
+    serve()
+```
+
+The main application:
+- Imports all necessary components and pages
+- Defines routes for each page
+- Handles form submissions for contact and tool processing
+- Provides error handling for not found pages and processing errors
+- Starts the FastHTML server
+
+## Running the Application
+
+To run the application, simply execute the main.py file:
+
+```bash
+python main.py
+```
+
+This will start the FastHTML server, and you can access your website at `http://localhost:5001/`.
+
+## Extending the Platform
+
+One of the key advantages of our modular design is how easy it is to extend the platform. Here are some ways you can add to the Bit Tools platform:
+
+### Adding a New Tool
+
+To add a new tool:
+
+1. Create a new file in the `tools/` directory (e.g., `image_generator.py`)
+2. Use the tool factory to create your tool class
+3. Define the system prompt, user prompt template, and form fields
+4. Implement any necessary post-processing functions
+5. Instantiate and register the tool with the registry
+
+The tool will automatically appear on the home page and tools page, and will have its own dedicated page.
+
+#### Example: Creating an Email Crafting Tool
+
+Let's walk through a complete example of adding a new tool for crafting professional emails. This tool will help users create well-structured emails for different business scenarios.
+
+**File: `tools/email_crafter.py`**
+
+```python
+import re
+from typing import Dict, Any
+from .factory import create_text_generation_tool
+from .registry import registry
+
+# System prompt for email generation
+email_system_prompt = """
+You are an expert email writer who specializes in crafting professional, effective emails.
+Follow these guidelines when creating emails:
+
+1. Maintain a professional tone appropriate to the context
+2. Be clear and concise
+3. Use proper email structure (greeting, body, closing)
+4. Include all necessary information
+5. Avoid unnecessary jargon
+6. Ensure proper grammar and punctuation
+7. Adapt the style to match the purpose and recipient
+
+Your goal is to create emails that are professional, effective, and achieve the sender's objective.
+"""
+
+# User prompt template for email generation
+email_user_prompt_template = """
+Create a professional email with the following details:
+
+Purpose: {purpose}
+Recipient: {recipient}
+Key points to include:
+{key_points}
+
+Tone: {tone}
+"""
+
+# Post-processing function for emails
+def process_email(text: str) -> Dict[str, Any]:
+    """Process the generated email to extract subject and body."""
+    # Extract subject line if present
+    subject_match = re.search(r"Subject:(.+?)(?:\n|$)", text, re.IGNORECASE)
+    subject = subject_match.group(1).strip() if subject_match else "No subject extracted"
+
+    # Clean up the text
+    email_body = re.sub(r"Subject:.+?\n", "", text, flags=re.IGNORECASE)
+    email_body = email_body.strip()
+
+    return {
+        "subject": subject,
+        "body": email_body
+    }
+
+# Create the email crafter tool
+EmailCrafterClass = create_text_generation_tool(
+    name="Professional Email Crafter",
+    description="Create well-structured professional emails for various business scenarios.",
+    icon="""<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+    </svg>""",
+    system_prompt=email_system_prompt,
+    user_prompt_template=email_user_prompt_template,
+    input_form_fields={
+        "purpose": {
+            "type": "select",
+            "label": "Email Purpose",
+            "options": [
+                {"value": "Request Information", "label": "Request Information", "selected": True},
+                {"value": "Follow Up", "label": "Follow Up"},
+                {"value": "Thank You", "label": "Thank You"},
+                {"value": "Introduction", "label": "Introduction"},
+                {"value": "Proposal", "label": "Proposal"},
+                {"value": "Complaint", "label": "Complaint"}
+            ]
+        },
+        "recipient": {
+            "type": "select",
+            "label": "Recipient Type",
+            "options": [
+                {"value": "Client", "label": "Client", "selected": True},
+                {"value": "Colleague", "label": "Colleague"},
+                {"value": "Manager", "label": "Manager"},
+                {"value": "Vendor", "label": "Vendor"},
+                {"value": "Potential Customer", "label": "Potential Customer"}
+            ]
+        },
+        "key_points": {
+            "type": "textarea",
+            "label": "Key Points to Include",
+            "placeholder": "List the main points you want to include in your email...",
+            "required": True,
+            "rows": 5
+        },
+        "tone": {
+            "type": "select",
+            "label": "Email Tone",
+            "options": [
+                {"value": "Formal", "label": "Formal", "selected": True},
+                {"value": "Friendly Professional", "label": "Friendly Professional"},
+                {"value": "Urgent", "label": "Urgent"},
+                {"value": "Persuasive", "label": "Persuasive"}
+            ]
+        }
+    },
+    post_process_func=process_email
+)
+
+# Instantiate the tool
+email_crafter_tool = EmailCrafterClass()
+
+# Register the tool with the registry
+registry.register(email_crafter_tool, categories=["Communication"])
+```
+
+This email crafting tool:
+
+1. **Defines a System Prompt**: Provides detailed instructions to the AI on how to craft professional emails.
+
+2. **Creates a User Prompt Template**: Structures the user's input into a format that guides the AI to generate a well-formed email.
+
+3. **Implements Post-Processing**: Extracts the subject line and body from the generated email for better display.
+
+4. **Defines Form Fields**:
+   - **Purpose**: A dropdown to select the email's purpose
+   - **Recipient**: A dropdown to specify the type of recipient
+   - **Key Points**: A textarea for the user to list the main points to include
+   - **Tone**: A dropdown to select the desired tone of the email
+
+5. **Registers with the Registry**: Makes the tool available in the "Communication" category.
+
+To display the results, we need to enhance the `tool_results_page` function in `pages/tool_pages.py` to better handle email results:
+
+```python
+# Add this to the tool_results_page function in pages/tool_pages.py
+elif isinstance(results, dict) and "subject" in results and "body" in results:
+    # For email results
+    results_display = Div(
+        H2("Generated Email", cls="text-2xl font-bold mb-4"),
+        Div(
+            H3(f"Subject: {results['subject']}", cls="text-xl font-semibold mb-2"),
+            Div(
+                P(results['body'], cls="whitespace-pre-wrap"),
+                cls="p-4 bg-gray-50 rounded-lg"
+            ),
+            cls="bg-white p-6 rounded-lg shadow-md"
+        ),
+        cls="bg-white p-6 rounded-lg shadow-md"
+    )
+```
+
+With this implementation, users can now:
+1. Select the purpose of their email
+2. Specify the type of recipient
+3. Enter the key points they want to include
+4. Choose the tone of the email
+5. Generate a professional email with a subject line and well-structured body
+
+The tool will automatically appear on the home page and tools page, and users can access it through its dedicated page at `/tools/professional-email-crafter`.
+
+### Adding a New Page
+
+To add a new page:
+
+1. Create a new file in the `pages/` directory (e.g., `pricing.py`)
+2. Define a function that returns the page content
+3. Add a route handler in `main.py`
+4. Add a link to the page in the header component
+
+## Conclusion
+
+Congratulations! You've learned how to build a complete multi-page AI tools website with FastHTML. This project demonstrates several important concepts:
+
+1. **Modular Design**: Separating components, pages, and tools for better maintainability
+2. **Reusable Components**: Creating consistent header, footer, and layout components
+3. **Dynamic Content**: Generating pages and forms based on tool configurations
+4. **Error Handling**: Providing user-friendly error messages
+5. **Responsive Design**: Using Tailwind CSS for a responsive layout
+
+The Bit Tools platform provides a solid foundation that you can extend with additional tools and features. By following the patterns established in this project, you can create a powerful, maintainable web application that leverages AI to provide value to your users.
+
+Happy coding!
+
+## FastHTML Series
+
+Below are the articles in our FastHTML series to help you get started:
+
+- [FastHTML Get Started](https://www.bitdoze.com/fasthtml-start/)
+- [FastHTML Multiple Pages](https://www.bitdoze.com/fasthtml-multiple-pages/)
+- [FastHTML Complex AI Tools](https://www.bitdoze.com/fasthtml-complex-ai-tools/)
+- [Building a Simple AI-Powered Web App with FastHTML and Pydantic AI](https://www.bitdoze.com/fasthtml-pydenticai-tools/)
