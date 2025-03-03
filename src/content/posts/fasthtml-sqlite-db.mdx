@@ -1,0 +1,1369 @@
+---
+date: 2025-03-03T10:00:00Z
+title: "How to Add SQLite Database to Your FastHTML App"
+description: "Learn how to implement a SQLite database to store generation history in your FastHTML AI Title Generator app. This tutorial covers creating a database schema, implementing data access layers, building a history page, and adding timestamp tracking for your AI-generated content."
+image: "../../assets/images/25/03/fasthtml-sqlite-db.jpg"
+categories: ["web-development"]
+authors: ["Dragos"]
+tags: ["fasthtml"]
+canonical: "https://www.bitdoze.com/fasthtml-sqlite-db/"
+---
+
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+
+
+Welcome back to our FastHTML series! In the previous tutorial, we built a powerful [AI Title Generator using FastHTML and Pydantic AI](https://www.bitdoze.com/fasthtml-pydenticai-tools/). Today, we'll enhance our application by adding a SQLite database to track generation history, allowing users to view their past title generations.
+
+
+
+## Why Add a Database?
+
+Adding a database to our application offers several benefits:
+
+1. **Persistence**: Store generation history across application restarts
+2. **Analysis**: Track usage patterns and popular topics
+3. **User convenience**: Allow users to revisit previous generations without regenerating
+4. **Audit trail**: Maintain a record of all AI interactions
+5. **Future extensibility**: Lay the groundwork for user accounts and saved favorites
+
+SQLite is perfect for our needs because it's:
+- Lightweight (zero-configuration)
+- Requires no separate server process
+- Can be embedded directly in our application
+- Supports SQL standard for queries
+- Has excellent Python support through the built-in `sqlite3` module
+
+Let's get started enhancing our AI Title Generator with database capabilities!
+
+## Project Structure Updates
+
+We'll extend our existing project structure with new database-related files:
+
+```
+ai-title-generator/
+├── main.py                   # Updated with history routes
+├── config.py                 # Updated with DB settings
+├── ai_service.py             # Unchanged
+├── db/                       # New directory for database code
+│   ├── __init__.py
+│   ├── database.py           # Database connection & initialization
+│   └── history_dao.py        # Data access for history records
+├── components/               # Existing components directory
+│   ├── __init__.py
+│   ├── header.py             # Updated with history link
+│   ├── footer.py             # Unchanged
+│   └── page_layout.py        # Unchanged
+├── pages/                    # Existing pages directory
+│   ├── __init__.py
+│   ├── home.py               # Unchanged
+│   ├── title_generator.py    # Updated to save history
+│   └── history.py            # New history page
+├── tools/                    # Existing tools directory
+│   ├── __init__.py
+│   └── title_generator.py    # Unchanged
+└── tools.db                  # New SQLite database file
+```
+
+## How to Add SQLite Database to Your FastHTML App
+
+### Step 1: Setting Up the Database Structure
+
+Let's start by creating the database module that will handle our SQLite connection and schema initialization.
+
+First, let's create the database directory:
+
+```bash
+mkdir -p ai-title-generator/db
+touch ai-title-generator/db/__init__.py
+```
+
+Now, let's create the main database file:
+
+**File: `db/database.py`**
+
+```python
+import sqlite3
+import os
+from contextlib import contextmanager
+import config
+
+class Database:
+    """Handles database connections and initialization."""
+
+    def __init__(self, db_path=None):
+        """
+        Initialize the database connection.
+
+        Args:
+            db_path: Path to the SQLite database file (defaults to config setting)
+        """
+        # If db_path is None or empty, use a default path
+        self.db_path = db_path or config.DB_PATH
+        if not self.db_path:
+            # Set default path if DB_PATH is empty
+            self.db_path = "tools.db"
+        self._initialize_db()
+
+    def _initialize_db(self):
+        """Create database tables if they don't exist."""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+
+            # Create the title_history table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS title_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                topic TEXT NOT NULL,
+                platform TEXT NOT NULL,
+                style TEXT NOT NULL,
+                number_of_titles INTEGER NOT NULL,
+                titles TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            ''')
+
+            conn.commit()
+
+    @contextmanager
+    def get_connection(self):
+        """
+        Context manager for database connections.
+
+        Yields:
+            sqlite3.Connection: Active database connection
+        """
+        # Check if db_path has a directory component
+        db_dir = os.path.dirname(self.db_path)
+
+        # Only try to create directories if there's a directory path
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
+
+        # Connect to the database
+        conn = sqlite3.connect(self.db_path)
+
+        # Configure connection
+        conn.row_factory = sqlite3.Row  # Use dictionary-like rows
+
+        try:
+            yield conn
+        finally:
+            conn.close()
+
+# Create a singleton instance
+db = Database()
+```
+
+**Explanation**:
+- We create a `Database` class to manage our SQLite connection
+- The `_initialize_db` method creates our `title_history` table if it doesn't exist
+- We use a context manager (`get_connection`) to ensure proper connection handling
+- The `row_factory = sqlite3.Row` setting allows accessing results by column name
+- We create a singleton instance `db` that can be imported throughout the application
+- The table includes:
+  - Basic fields for the title generation parameters
+  - A `titles` field that will store the generated titles as a JSON string
+  - A `created_at` timestamp that automatically records when the entry was created
+
+Next, let's update the config file to include database settings:
+
+**File: `config.py` (Updated)**
+
+```python
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# API configuration
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+
+# Default model to use
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "openai/gpt-3.5-turbo")
+
+# Database settings
+DB_PATH = os.getenv("DB_PATH", "tools.db")
+
+# Application settings
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+APP_NAME = "AI Title Generator"
+```
+
+Now, let's create a Data Access Object (DAO) for the history table:
+
+**File: `db/history_dao.py`**
+
+```python
+import json
+from typing import List, Dict, Any, Optional
+from datetime import datetime
+from .database import db
+
+class HistoryDAO:
+    """Data Access Object for title generation history."""
+
+    @staticmethod
+    async def save_generation(
+        topic: str,
+        platform: str,
+        style: str,
+        number_of_titles: int,
+        titles: List[str]
+    ) -> int:
+        """
+        Save a title generation record to the database.
+
+        Args:
+            topic: The topic of the generation
+            platform: The platform selected
+            style: The style selected
+            number_of_titles: Number of titles requested
+            titles: List of generated titles
+
+        Returns:
+            int: ID of the new record
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            # Convert titles list to JSON string
+            titles_json = json.dumps(titles)
+
+            cursor.execute('''
+            INSERT INTO title_history
+                (topic, platform, style, number_of_titles, titles)
+            VALUES (?, ?, ?, ?, ?)
+            ''', (topic, platform, style, number_of_titles, titles_json))
+
+            conn.commit()
+            return cursor.lastrowid
+
+    @staticmethod
+    def get_all_history(limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+        """
+        Get all history records with pagination.
+
+        Args:
+            limit: Maximum number of records to return
+            offset: Number of records to skip
+
+        Returns:
+            List of history records as dictionaries
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute('''
+            SELECT id, topic, platform, style, number_of_titles, titles, created_at
+            FROM title_history
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+            ''', (limit, offset))
+
+            # Convert row objects to dictionaries
+            result = []
+            for row in cursor.fetchall():
+                record = dict(row)
+                # Parse titles from JSON string
+                record['titles'] = json.loads(record['titles'])
+                # Format timestamp for display
+                created_at = datetime.fromisoformat(record['created_at'].replace('Z', '+00:00'))
+                record['created_at_formatted'] = created_at.strftime('%Y-%m-%d %H:%M:%S')
+                result.append(record)
+
+            return result
+
+    @staticmethod
+    def get_history_by_id(record_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Get a specific history record by ID.
+
+        Args:
+            record_id: The ID of the record to retrieve
+
+        Returns:
+            Dictionary with record data or None if not found
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute('''
+            SELECT id, topic, platform, style, number_of_titles, titles, created_at
+            FROM title_history
+            WHERE id = ?
+            ''', (record_id,))
+
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            record = dict(row)
+            # Parse titles from JSON string
+            record['titles'] = json.loads(record['titles'])
+            # Format timestamp for display
+            created_at = datetime.fromisoformat(record['created_at'].replace('Z', '+00:00'))
+            record['created_at_formatted'] = created_at.strftime('%Y-%m-%d %H:%M:%S')
+
+            return record
+
+    @staticmethod
+    def delete_history(record_id: int) -> bool:
+        """
+        Delete a history record by ID.
+
+        Args:
+            record_id: The ID of the record to delete
+
+        Returns:
+            bool: True if record was deleted, False if not found
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute('''
+            DELETE FROM title_history
+            WHERE id = ?
+            ''', (record_id,))
+
+            conn.commit()
+            return cursor.rowcount > 0
+```
+
+**Explanation**:
+- We create a `HistoryDAO` class with static methods for database operations
+- The methods include:
+  - `save_generation`: Stores a new title generation record
+  - `get_all_history`: Retrieves all records with pagination support
+  - `get_history_by_id`: Retrieves a specific record by ID
+  - `delete_history`: Removes a record from the database
+- We use JSON to serialize/deserialize the title lists for storage
+- We format timestamps for display in a human-readable format
+- The `get_all_history` method returns the most recent generations first
+
+### Step 2: Updating the Header Component
+
+Let's update the header to include a link to our new history page:
+
+**File: `components/header.py` (Updated)**
+
+```python
+from fasthtml.common import *
+import config
+
+def header(current_page="/"):
+    """
+    Creates a consistent header with navigation.
+
+    Args:
+        current_page: The current page path
+
+    Returns:
+        A Header component with navigation
+    """
+    nav_items = [
+        ("Home", "/"),
+        ("Title Generator", "/title-generator"),
+        ("History", "/history")  # Added history link
+    ]
+
+    nav_links = []
+    for title, path in nav_items:
+        is_current = current_page == path
+        link_class = "text-white hover:text-gray-300 px-3 py-2"
+        if is_current:
+            link_class += " font-bold underline"
+
+        nav_links.append(
+            Li(
+                A(title, href=path, cls=link_class)
+            )
+        )
+
+    return Header(
+        Div(
+            A(config.APP_NAME, href="/", cls="text-xl font-bold text-white"),
+            Nav(
+                Ul(
+                    *nav_links,
+                    cls="flex space-x-2"
+                ),
+                cls="ml-auto"
+            ),
+            cls="container mx-auto flex items-center justify-between px-4 py-3"
+        ),
+        cls="bg-blue-600 shadow-md"
+    )
+```
+
+### Step 3: Creating the History Page
+
+Now, let's create a new page to display the generation history:
+
+**File: `pages/history.py`**
+
+```python
+from fasthtml.common import *
+from db.history_dao import HistoryDAO
+
+def history_page(page: int = 1, records_per_page: int = 10):
+    """
+    Defines the history page content.
+
+    Args:
+        page: Current page number (1-based)
+        records_per_page: Number of records per page
+
+    Returns:
+        Components representing the history page content
+    """
+    # Calculate offset for pagination
+    offset = (page - 1) * records_per_page
+
+    # Get history records
+    history_records = HistoryDAO.get_all_history(limit=records_per_page, offset=offset)
+
+    # Build history cards
+    history_cards = []
+    if not history_records:
+        history_cards.append(
+            Div(
+                P("No generation history found. Try generating some titles first!",
+                  cls="text-gray-600 italic"),
+                cls="bg-white p-6 rounded-lg shadow-md"
+            )
+        )
+    else:
+        for record in history_records:
+            # Limit displayed titles to first 3 for compactness
+            display_titles = record['titles'][:3]
+            has_more = len(record['titles']) > 3
+
+            title_items = []
+            for title in display_titles:
+                title_items.append(Li(title, cls="mb-1"))
+
+            if has_more:
+                title_items.append(
+                    Li(
+                        A(f"...and {len(record['titles']) - 3} more",
+                          href=f"/history/{record['id']}",
+                          cls="text-blue-600 hover:underline italic"),
+                        cls="mt-2"
+                    )
+                )
+
+            history_cards.append(
+                Div(
+                    # Header with date and record info
+                    Div(
+                        Div(
+                            H3(record['topic'][:50] + ("..." if len(record['topic']) > 50 else ""),
+                               cls="text-lg font-semibold"),
+                            P(f"{record['platform']} • {record['style']} • {record['number_of_titles']} titles",
+                              cls="text-sm text-gray-600"),
+                            cls="flex-grow"
+                        ),
+                        P(record['created_at_formatted'],
+                          cls="text-xs text-gray-500"),
+                        cls="flex justify-between items-start mb-3"
+                    ),
+
+                    # Title preview
+                    Div(
+                        H4("Generated Titles:", cls="font-medium mb-2"),
+                        Ul(
+                            *title_items,
+                            cls="list-disc pl-5 text-gray-700"
+                        ),
+                        cls="mb-3"
+                    ),
+
+                    # Actions
+                    Div(
+                        A("View Details",
+                          href=f"/history/{record['id']}",
+                          cls="text-blue-600 hover:underline text-sm mr-4"),
+                        A("Delete",
+                          href=f"/history/{record['id']}/delete",
+                          cls="text-red-600 hover:underline text-sm"),
+                        cls="flex justify-end"
+                    ),
+
+                    cls="bg-white p-6 rounded-lg shadow-md mb-4"
+                )
+            )
+
+    # Build pagination controls
+    current_page = page
+    # For simplicity, we'll just have prev/next buttons
+    pagination = Div(
+        Div(
+            A("← Previous",
+              href=f"/history?page={current_page - 1}" if current_page > 1 else "#",
+              cls=f"px-4 py-2 rounded {'bg-blue-600 text-white' if current_page > 1 else 'bg-gray-200 text-gray-500 cursor-default'}"),
+            Span(f"Page {current_page}",
+                 cls="px-4 py-2"),
+            A("Next →",
+              href=f"/history?page={current_page + 1}" if len(history_records) == records_per_page else "#",
+              cls=f"px-4 py-2 rounded {'bg-blue-600 text-white' if len(history_records) == records_per_page else 'bg-gray-200 text-gray-500 cursor-default'}"),
+            cls="flex items-center justify-center space-x-2"
+        ),
+        cls="mt-6"
+    )
+
+    return Div(
+        # Page header
+        H1("Generation History", cls="text-3xl font-bold text-gray-800 mb-6"),
+        P("View your previously generated titles.", cls="text-gray-600 mb-6"),
+
+        # Records container
+        Div(
+            *history_cards,
+            cls=""
+        ),
+
+        # Pagination
+        pagination,
+
+        cls="max-w-4xl mx-auto"
+    )
+
+def history_detail_page(record_id: int):
+    """
+    Defines the history detail page content.
+
+    Args:
+        record_id: ID of the history record to display
+
+    Returns:
+        Components representing the history detail page
+    """
+    # Get the history record
+    record = HistoryDAO.get_history_by_id(record_id)
+
+    if not record:
+        return Div(
+            H1("Record Not Found", cls="text-3xl font-bold text-red-600 mb-4"),
+            P("The requested history record could not be found.", cls="mb-4"),
+            A("Back to History", href="/history",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+    # Create list items for each title
+    title_items = []
+    for i, title in enumerate(record['titles']):
+        title_items.append(
+            Li(
+                Div(
+                    P(title, cls="font-medium"),
+                    Button(
+                        "Copy",
+                        type="button",
+                        onclick=f"navigator.clipboard.writeText('{title.replace("'", "\\'")}'); this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy', 2000);",
+                        cls="ml-auto text-sm bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
+                    ),
+                    cls="flex justify-between items-center"
+                ),
+                cls="p-3 border-b last:border-b-0"
+            )
+        )
+
+    return Div(
+        # Page header
+        H1("Title Generation Details", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        # Record details
+        Div(
+            # Metadata
+            Div(
+                H2("Generation Information", cls="text-xl font-semibold mb-4"),
+                Div(
+                    Div(
+                        Strong("Date & Time:"),
+                        P(record['created_at_formatted'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Topic:"),
+                        P(record['topic'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Platform:"),
+                        P(record['platform'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Style:"),
+                        P(record['style'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Number of Titles:"),
+                        P(str(record['number_of_titles']), cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    cls="bg-gray-50 p-4 rounded-lg mb-6"
+                ),
+
+                # Titles section
+                H2("Generated Titles", cls="text-xl font-semibold mb-4"),
+                P("Click 'Copy' to copy any title to your clipboard.", cls="text-gray-600 mb-3"),
+                Ul(
+                    *title_items,
+                    cls="border rounded divide-y mb-6"
+                ),
+
+                # Action buttons
+                Div(
+                    A("Generate Similar",
+                      href=f"/title-generator?topic={record['topic']}&platform={record['platform']}&style={record['style']}&number_of_titles={record['number_of_titles']}",
+                      cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-3"),
+                    A("Back to History",
+                      href="/history",
+                      cls="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded mr-3"),
+                    A("Delete Record",
+                      href=f"/history/{record_id}/delete",
+                      cls="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"),
+                    cls="flex flex-wrap gap-y-2"
+                ),
+
+                cls="bg-white p-6 rounded-lg shadow-md"
+            ),
+
+            cls="max-w-2xl mx-auto"
+        )
+    )
+
+def delete_confirm_page(record_id: int):
+    """
+    Confirmation page for deleting a history record.
+
+    Args:
+        record_id: ID of the record to delete
+
+    Returns:
+        Components representing the confirmation page
+    """
+    # Get record to show details in confirmation
+    record = HistoryDAO.get_history_by_id(record_id)
+
+    if not record:
+        return Div(
+            H1("Record Not Found", cls="text-3xl font-bold text-red-600 mb-4"),
+            P("The requested history record could not be found.", cls="mb-4"),
+            A("Back to History", href="/history",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+    return Div(
+        H1("Confirm Deletion", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        Div(
+            P("Are you sure you want to delete this history record?", cls="text-lg mb-4"),
+
+            # Record summary
+            Div(
+                P(f"Topic: {record['topic'][:100]}{'...' if len(record['topic']) > 100 else ''}",
+                  cls="mb-2"),
+                P(f"Platform: {record['platform']}", cls="mb-2"),
+                P(f"Created: {record['created_at_formatted']}", cls="mb-2"),
+                cls="bg-gray-100 p-4 rounded-lg mb-6"
+            ),
+
+            P("This action cannot be undone.", cls="text-red-600 mb-6"),
+
+            # Form with confirmation button
+            Form(
+                Div(
+                    Button("Yes, Delete Record",
+                           type="submit",
+                           cls="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-3"),
+                    A("Cancel",
+                      href=f"/history/{record_id}",
+                      cls="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"),
+                    cls="flex"
+                ),
+                method="post",
+                action=f"/history/{record_id}/delete"
+            ),
+
+            cls="bg-white p-6 rounded-lg shadow-md"
+        ),
+
+        cls="max-w-2xl mx-auto"
+    )
+```
+
+**Explanation**:
+- We create three view functions:
+  - `history_page`: Shows a paginated list of all title generation records
+  - `history_detail_page`: Shows the complete details of a specific record
+  - `delete_confirm_page`: Confirmation screen before deleting a record
+
+- The history page includes:
+  - A summary view of each generation record
+  - Preview of the first few titles from each record
+  - Pagination controls for navigating through history
+  - Links to view details or delete each record
+
+- The detail page includes:
+  - Complete metadata about the generation
+  - All titles with copy buttons
+  - A "Generate Similar" button that pre-fills the form with the same settings
+  - Back and delete buttons
+
+- The delete confirmation page:
+  - Shows a summary of the record to be deleted
+  - Requires explicit confirmation via form submission
+  - Includes warning about the action being irreversible
+
+### Step 4: Update Title Generator to Save History
+
+Now we need to modify the title generator to save history when titles are generated:
+
+**File: `pages/title_generator.py`**
+
+We don't need to change the `title_generator_form` function, but we'll add links to the history page in both functions:
+
+```python
+from fasthtml.common import *
+
+def title_generator_form():
+    """
+    Defines the title generator form page.
+
+    Returns:
+        Components representing the title generator form
+    """
+    return Div(
+        # Page header
+        H1("AI Title Generator", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        # Generator form
+        Div(
+            Form(
+                # Topic field
+                Div(
+                    Label("What's your content about?", For="topic",
+                          cls="block text-gray-700 mb-2"),
+                    Textarea(
+                        id="topic",
+                        name="topic",
+                        placeholder="Describe your content topic in detail for better results...",
+                        rows=3,
+                        required=True,
+                        cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
+                    ),
+                    cls="mb-4"
+                ),
+
+                # Platform selection
+                Div(
+                    Label("Platform:", For="platform", cls="block text-gray-700 mb-2"),
+                    Select(
+                        Option("Blog", value="Blog", selected=True),
+                        Option("YouTube", value="YouTube"),
+                        Option("Social Media", value="Social Media"),
+                        Option("Email Subject", value="Email Subject"),
+                        Option("News Article", value="News Article"),
+                        id="platform",
+                        name="platform",
+                        cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
+                    ),
+                    cls="mb-4"
+                ),
+
+                # Style selection
+                Div(
+                    Label("Style:", For="style", cls="block text-gray-700 mb-2"),
+                    Select(
+                        Option("Professional", value="Professional", selected=True),
+                        Option("Casual", value="Casual"),
+                        Option("Clickbait", value="Clickbait"),
+                        Option("Informative", value="Informative"),
+                        Option("Funny", value="Funny"),
+                        id="style",
+                        name="style",
+                        cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
+                    ),
+                    cls="mb-4"
+                ),
+
+                # Number of titles
+                Div(
+                    Label("Number of titles:", For="number_of_titles", cls="block text-gray-700 mb-2"),
+                    Select(
+                        Option("5", value="5", selected=True),
+                        Option("10", value="10"),
+                        Option("15", value="15"),
+                        id="number_of_titles",
+                        name="number_of_titles",
+                        cls="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
+                    ),
+                    cls="mb-6"
+                ),
+
+                # Submit button
+                Button(
+                    "Generate Titles",
+                    type="submit",
+                    cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                ),
+
+                action="/title-generator/generate",
+                method="post",
+                cls="bg-white p-6 rounded-lg shadow-md mb-8"
+            ),
+
+            # Tips section
+            Div(
+                H3("Tips for Better Titles", cls="text-xl font-semibold mb-2"),
+                Ul(
+                    Li("Be specific about your topic for more relevant titles", cls="mb-1"),
+                    Li("Include your target audience for better context", cls="mb-1"),
+                    Li("Mention key points you want to highlight", cls="mb-1"),
+                    Li("For YouTube, specify if it's a tutorial, review, etc.", cls="mb-1"),
+                    cls="list-disc pl-5 text-gray-600"
+                ),
+                cls="bg-blue-50 p-4 rounded-lg mt-6"
+            ),
+
+            # Add link to history
+            Div(
+                P(
+                    "Want to see your previous generations? ",
+                    A("View History", href="/history", cls="text-blue-600 hover:underline"),
+                    cls="text-sm text-gray-600 text-center mt-4"
+                ),
+            ),
+
+            cls="max-w-2xl mx-auto"
+        )
+    )
+
+def title_generator_results(topic, platform, style, titles, history_id=None):
+    """
+    Defines the title generator results page.
+
+    Args:
+        topic: The topic that was entered
+        platform: The platform that was selected
+        style: The style that was selected
+        titles: List of generated titles
+        history_id: ID of the saved history record (optional)
+
+    Returns:
+        Components representing the results page
+    """
+    # Create list items for each title
+    title_items = []
+    for i, title in enumerate(titles):
+        title_items.append(
+            Li(
+                Div(
+                    P(title, cls="font-medium"),
+                    Button(
+                        "Copy",
+                        type="button",
+                        onclick=f"navigator.clipboard.writeText('{title.replace('\'', '\\\'')}'); this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy', 2000);",
+                        cls="ml-auto text-sm bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
+                    ),
+                    cls="flex justify-between items-center"
+                ),
+                cls="p-3 border-b last:border-b-0"
+            )
+        )
+
+    # Build history link if we have a history ID
+    history_link = None
+    if history_id:
+        history_link = Div(
+            P(
+                "This generation has been saved to your history. ",
+                A("View Details", href=f"/history/{history_id}", cls="text-blue-600 hover:underline"),
+                cls="text-sm text-gray-600 mt-4"
+            ),
+            cls="mb-4"
+        )
+
+    return Div(
+        # Page header
+        H1("Generated Titles", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        # Results container
+        Div(
+            # Query summary
+            Div(
+                H2("Your Request", cls="text-xl font-semibold mb-2"),
+                P(
+                    Strong("Topic: "), Span(topic), Br(),
+                    Strong("Platform: "), Span(platform), Br(),
+                    Strong("Style: "), Span(style),
+                    cls="text-gray-600 mb-4"
+                ),
+                cls="mb-6"
+            ),
+
+            # Titles list
+            Div(
+                H2("Title Options", cls="text-xl font-semibold mb-2"),
+                P("Click 'Copy' to copy any title to your clipboard.", cls="text-gray-600 mb-3"),
+                Ul(
+                    *title_items,
+                    cls="border rounded divide-y"
+                ),
+                cls="mb-6"
+            ),
+
+            # History link
+            history_link,
+
+            # Action buttons
+            Div(
+                A("Generate More",
+                  href="/title-generator",
+                  cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-3"),
+                A("View History",
+                  href="/history",
+                  cls="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"),
+                cls="flex"
+            ),
+
+            cls="bg-white p-6 rounded-lg shadow-md mb-8 max-w-2xl mx-auto"
+        )
+    )
+```
+
+### Step 5: Update the Main Application File
+
+Finally, let's update our main application file to include the new routes and history functionality:
+
+
+**File: `main.py` (Updated)** (continued)
+
+```python
+from fasthtml.common import *
+
+# Import page content
+from pages.home import home as home_page
+from pages.title_generator import title_generator_form, title_generator_results
+from pages.history import history_page, history_detail_page, delete_confirm_page
+
+# Import the page layout component
+from components.page_layout import page_layout
+
+# Import title generator tool
+from tools.title_generator import TitleGenerator
+
+# Import history DAO
+from db.history_dao import HistoryDAO
+
+# Import config
+import config
+
+# Initialize the FastHTML application
+app = FastHTML()
+
+# Initialize title generator tool
+title_generator = TitleGenerator()
+
+@app.get("/")
+def home():
+    """Handler for the home page route."""
+    return page_layout(
+        title=f"Home - {config.APP_NAME}",
+        content=home_page(),
+        current_page="/"
+    )
+
+@app.get("/title-generator")
+def title_generator_page(topic: str = "", platform: str = "Blog", style: str = "Professional", number_of_titles: str = "5"):
+    """
+    Handler for the title generator page route.
+
+    Now supports pre-filled values from query parameters (for "Generate Similar" feature)
+    """
+    return page_layout(
+        title=f"Title Generator - {config.APP_NAME}",
+        content=title_generator_form(),
+        current_page="/title-generator"
+    )
+
+@app.post("/title-generator/generate")
+async def generate_titles(topic: str, platform: str, style: str, number_of_titles: str):
+    """
+    Handler for processing title generation requests.
+
+    Args:
+        topic: The content topic
+        platform: The target platform
+        style: The title style
+        number_of_titles: Number of titles to generate
+    """
+    try:
+        # Validate inputs
+        if not topic:
+            error_message = Div(
+                H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+                P("Please provide a topic for your titles.", cls="mb-4"),
+                A("Try Again", href="/title-generator",
+                  cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+                cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+            )
+
+            return page_layout(
+                title=f"Error - {config.APP_NAME}",
+                content=error_message,
+                current_page="/title-generator"
+            )
+
+        # Convert number_of_titles to integer
+        num_titles = int(number_of_titles)
+
+        # Generate titles
+        titles = await title_generator.generate_titles(
+            topic=topic,
+            platform=platform,
+            style=style,
+            number_of_titles=num_titles
+        )
+
+        # Save to history database
+        history_id = await HistoryDAO.save_generation(
+            topic=topic,
+            platform=platform,
+            style=style,
+            number_of_titles=num_titles,
+            titles=titles
+        )
+
+        # Return the results page
+        return page_layout(
+            title=f"Generated Titles - {config.APP_NAME}",
+            content=title_generator_results(
+                topic=topic,
+                platform=platform,
+                style=style,
+                titles=titles,
+                history_id=history_id  # Pass the history ID to the template
+            ),
+            current_page="/title-generator"
+        )
+    except Exception as e:
+        # Handle errors
+        error_message = Div(
+            H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+            P(f"An error occurred while generating titles: {str(e)}", cls="mb-4"),
+            A("Try Again", href="/title-generator",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+        return page_layout(
+            title=f"Error - {config.APP_NAME}",
+            content=error_message,
+            current_page="/title-generator"
+        )
+
+# History Routes
+@app.get("/history")
+def history(page: int = 1):
+    """
+    Handler for the history page route.
+
+    Args:
+        page: Current page number (defaults to 1)
+    """
+    # Ensure page is at least 1
+    if page < 1:
+        page = 1
+
+    return page_layout(
+        title=f"Generation History - {config.APP_NAME}",
+        content=history_page(page=page),
+        current_page="/history"
+    )
+
+@app.get("/history/{record_id:int}")
+def history_detail(record_id: int):
+    """
+    Handler for the history detail page route.
+
+    Args:
+        record_id: ID of the history record to display
+    """
+    return page_layout(
+        title=f"History Details - {config.APP_NAME}",
+        content=history_detail_page(record_id=record_id),
+        current_page="/history"
+    )
+
+@app.get("/history/{record_id:int}/delete")
+def confirm_delete(record_id: int):
+    """
+    Handler for the delete confirmation page.
+
+    Args:
+        record_id: ID of the record to delete
+    """
+    return page_layout(
+        title=f"Confirm Deletion - {config.APP_NAME}",
+        content=delete_confirm_page(record_id=record_id),
+        current_page="/history"
+    )
+
+@app.post("/history/{record_id:int}/delete")
+def delete_record(record_id: int):
+    """
+    Handler for processing record deletion.
+
+    Args:
+        record_id: ID of the record to delete
+    """
+    # Try to delete the record
+    success = HistoryDAO.delete_history(record_id)
+
+    if success:
+        # Show success message and redirect to history page
+        success_message = Div(
+            H1("Record Deleted", cls="text-3xl font-bold text-green-600 mb-4"),
+            P("The history record has been successfully deleted.", cls="mb-4"),
+            A("Back to History", href="/history",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+        return page_layout(
+            title=f"Record Deleted - {config.APP_NAME}",
+            content=success_message,
+            current_page="/history"
+        )
+    else:
+        # Show error message
+        error_message = Div(
+            H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+            P("The record could not be deleted or doesn't exist.", cls="mb-4"),
+            A("Back to History", href="/history",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+        return page_layout(
+            title=f"Error - {config.APP_NAME}",
+            content=error_message,
+            current_page="/history"
+        )
+
+@app.get("/{path:path}")
+def not_found(path: str):
+    """Handler for 404 Not Found errors."""
+    error_content = Div(
+        H1("404 - Page Not Found", cls="text-3xl font-bold text-gray-800 mb-4"),
+        P(f"Sorry, the page '/{path}' does not exist.", cls="mb-4"),
+        A("Return Home", href="/",
+          cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+        cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md text-center"
+    )
+
+    return page_layout(
+        title=f"404 Not Found - {config.APP_NAME}",
+        content=error_content,
+        current_page="/"
+    )
+
+# Run the application
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=5001, reload=True)
+```
+
+**Explanation**:
+- We've updated the main application file to include several new routes:
+  - `/history`: Shows the paginated history list
+  - `/history/{record_id}`: Shows details for a specific history record
+  - `/history/{record_id}/delete` (GET): Shows deletion confirmation
+  - `/history/{record_id}/delete` (POST): Processes deletion
+
+- We modified the title generator route to:
+  - Support pre-filled parameters from query strings (for "Generate Similar" feature)
+  - Save generated titles to the history database
+  - Pass the history ID to the results page
+
+- We added proper pagination support in the history page
+- We implemented a two-step deletion process for history records:
+  1. Show confirmation page
+  2. Process deletion and show success/error message
+
+- All routes maintain consistent layout and navigation
+
+### Step 6: Running Your Application with Database Support
+
+Now that we've added database functionality, we need to ensure our application handles database connections properly. Let's run the application:
+
+1. Make sure you've set up your `.env` file with your OpenRouter API key and database path:
+
+```bash
+echo "OPENROUTER_API_KEY=your_api_key_here" > .env
+echo "DB_PATH=tools.db" >> .env
+```
+
+2. Run the application:
+
+```bash
+python main.py
+```
+
+3. Open your browser and visit `http://localhost:5001`
+
+#### Testing the History Functionality
+
+Let's test our new features:
+
+1. **Generate some titles:**
+   - Navigate to the "Title Generator" page
+   - Fill out the form and generate some titles
+   - Notice the success message indicating your generation was saved to history
+
+2. **View your history:**
+   - Click the "History" link in the navigation
+   - You should see your recent generations listed with previews of the titles
+   - Try pagination if you've generated multiple sets of titles
+
+3. **View detailed history:**
+   - Click "View Details" on any history entry
+   - Verify that all the information is displayed correctly
+   - Try the "Copy" buttons to copy titles to your clipboard
+
+4. **Generate similar titles:**
+   - From a history detail page, click "Generate Similar"
+   - The title generator form should be pre-filled with the same parameters
+   - Generate new titles with these parameters
+
+5. **Delete a history record:**
+   - From a history detail page, click "Delete Record"
+   - Confirm the deletion on the confirmation page
+   - Verify that the record is removed from the history list
+
+## How the Database Integration Works
+
+Let's understand the key components of our database integration:
+
+1. **Database Connection Management**:
+   - We use SQLite's built-in connection handling
+   - Our context manager ensures connections are properly closed
+   - The `row_factory = sqlite3.Row` setting allows dictionary-like access to results
+
+2. **Data Access Pattern**:
+   - We use the DAO (Data Access Object) pattern to separate database logic
+   - Static methods provide a clean interface for database operations
+   - JSON serialization handles complex data types
+
+3. **Schema Design**:
+   - Single table with relevant fields for title generation
+   - Primary key for unique identification
+   - Automatic timestamp for creation date
+
+4. **Transaction Management**:
+   - We use `conn.commit()` to ensure data is saved
+   - Operations are wrapped in `try/finally` blocks via the context manager
+   - This prevents connection leaks even if errors occur
+
+5. **Data Format Handling**:
+   - Titles are stored as JSON strings in the database
+   - They're parsed back to Python lists when retrieved
+   - Timestamps are formatted for user-friendly display
+
+## Advanced Database Enhancements
+
+If you want to take your database integration further, consider these enhancements:
+
+1. **User management**:
+   - Add users table with authentication
+   - Link history records to specific users
+   - Implement login/registration system
+
+2. **Favorite titles**:
+   - Allow marking specific titles as favorites
+   - Create a favorites table with references to title history
+   - Add a favorites page in the UI
+
+3. **Tags and categories**:
+   - Allow categorizing title generations with tags
+   - Implement filtering by tag in history page
+   - Add tag-based search functionality
+
+4. **Analytics**:
+   - Track which platforms and styles are most used
+   - Create a dashboard with usage statistics
+   - Visualize trends in generation patterns
+
+5. **Database migrations**:
+   - Implement a migration system for schema changes
+   - Version your database schema
+   - Allow smooth upgrades when adding fields or tables
+
+6. **Backup and restore**:
+   - Add functionality to export/import history data
+   - Create scheduled backups of the database
+   - Implement restore functionality
+
+## Performance Considerations
+
+SQLite works well for our use case, but here are some tips as your application grows:
+
+1. **Indexes**:
+   - Add indexes on frequently queried columns
+   - For example: `CREATE INDEX idx_created_at ON title_history(created_at)`
+
+2. **Pagination**:
+   - Always use pagination for large result sets
+   - Add limit/offset to queries that could return many rows
+
+3. **Connection pooling**:
+   - For higher traffic, consider implementing connection pooling
+   - This can be done with libraries like `aiosqlite` for async support
+
+4. **Database tuning**:
+   - Configure SQLite with appropriate journal mode and synchronization settings
+   - For example: `PRAGMA journal_mode=WAL` for better concurrency
+
+5. **Query optimization**:
+   - Use `EXPLAIN QUERY PLAN` to understand query performance
+   - Optimize complex queries by restructuring them
+
+## Conclusion
+
+You've now enhanced your AI Title Generator with a robust SQLite database that stores generation history. This addition provides several benefits:
+
+1. **Persistence**: Your generations are saved across application restarts
+2. **User convenience**: Users can revisit previous generations without regenerating
+3. **Extensibility**: The foundation is laid for more advanced features
+4. **Better UX**: The application feels more like a professional tool
+5. **Insights**: You can analyze patterns in title generation over time
+
+The integration follows good software design principles:
+- **Separation of concerns**: Database logic is isolated in DAO classes
+- **Type safety**: We use proper typing for all parameters and return values
+- **Error handling**: Robust error handling is implemented throughout
+- **UX considerations**: Clear feedback is provided for all operations
+
+This database enhancement demonstrates how Python's built-in SQLite support makes it easy to add persistence to your FastHTML applications. The combination of Python's simplicity, FastHTML's declarative UI approach, and SQLite's lightweight but powerful database capabilities creates a solid foundation for building sophisticated AI-powered web applications.
+
+As you continue developing your FastHTML applications, this database pattern can be adapted for many other use cases - from storing user preferences to caching API responses for better performance.
+
+Happy coding!
+
+## FastHTML Series
+
+Below are the articles in our FastHTML series to help you get started:
+
+- [FastHTML Get Started](https://www.bitdoze.com/fasthtml-start/)
+- [FastHTML Multiple Pages](https://www.bitdoze.com/fasthtml-multiple-pages/)
+- [FastHTML Complex AI Tools](https://www.bitdoze.com/fasthtml-complex-ai-tools/)
+- [Building a Simple AI-Powered Web App with FastHTML and Pydantic AI](https://www.bitdoze.com/fasthtml-pydenticai-tools/)
+- [Adding SQLite Database History to Your FastHTML AI Title Generator](https://www.bitdoze.com/fasthtml-sqlite-db/)
