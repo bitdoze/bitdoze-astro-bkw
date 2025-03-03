@@ -1,0 +1,3486 @@
+---
+date: 2025-03-04T00:00:00Z
+title: "Adding User Authentication and Admin Controls to Your FastHTML AI Title Generator"
+description: "Learn how to implement GitHub OAuth authentication, email-based user registration, role-based access control, and user-specific history dashboards in your FastHTML AI Title Generator. This tutorial covers creating a users database, implementing multi-authentication methods, and building admin-only views."
+image: "../../assets/images/25/03/fasthtml-user-auth.jpg"
+categories: ["web-development"]
+authors: ["Dragos"]
+tags: ["fasthtml"]
+canonical: "https://www.bitdoze.com/fasthtml-user-auth/"
+---
+
+import YouTubeEmbed from "../../layouts/components/widgets/YouTubeEmbed.astro";
+
+
+Welcome to the next installment in our FastHTML series! In previous tutorials, we built an AI Title Generator and enhanced it with a SQLite database to track generation history. Today, we'll take our application to the next level by implementing:
+
+1. User authentication with GitHub OAuth
+2. Traditional email/password registration and login
+3. Role-based access control (regular users vs. admins)
+4. User-specific history dashboards
+5. Admin-only views for monitoring all user activity
+
+
+
+By the end of this tutorial, your application will have a complete user system where:
+- Users can sign up and log in with either GitHub or email/password
+- The title generator tool is protected and only available to logged-in users
+- Each user can see their own history dashboard
+- Administrators can view all users' history and manage user accounts
+
+Let's get started!
+
+
+## Overview
+
+This table provides a comprehensive overview of the authentication system implemented in our AI Title Generator application. It's designed to help beginners understand the various components, their purposes, and how they interact.
+
+| Component | Files | Functions | Description | Key Features |
+|-----------|-------|-----------|-------------|--------------|
+| **Database Layer** | `db/database.py`, `db/user_dao.py`, `db/history_dao.py` | `Database._initialize_db()`, `Database._hash_password()`, `UserDAO.create_user()`, `UserDAO.authenticate_email()`, etc. | The foundation that manages data persistence and security | **SQLite database** with user and history tables, **secure password hashing** with PBKDF2, **foreign key relationships** between users and history, **automatic admin account creation** |
+| **Authentication Services** | `auth/auth_manager.py`, `auth/email_auth.py`, `auth/github_auth.py` | `AuthManager.login_user()`, `AuthManager.is_admin()`, `EmailAuth.authenticate()`, `GitHubAuth.get_auth_url()`, etc. | Handles all authentication-related logic including verification, sessions, and permissions | **Multiple authentication methods** (email + GitHub), **session management**, **role-based access control**, **secure password validation** |
+| **UI Components** | `components/header.py`, `components/page_layout.py` | `header()`, `page_layout()` | Provides consistent, authentication-aware UI elements across pages | **Dynamic navigation** based on auth status, **admin-specific UI elements**, **context-aware highlighting** of current page, **session integration** |
+| **Public Pages** | `pages/home.py`, `pages/login.py`, `pages/register.py` | `home_page()`, `login_page()`, `register_page()` | Pages accessible without authentication | **Responsive landing page**, **login form** with error handling, **registration form** with validation, **OAuth integration buttons** |
+| **Protected User Pages** | `pages/title_generator.py`, `pages/history.py` | `title_generator_form()`, `history_page()`, `history_detail_page()` | Pages that require user authentication | **Tool access restrictions**, **user-specific history views**, **data filtering** based on user ID, **statistics and insights** for users |
+| **Admin Pages** | `pages/admin.py` | `admin_dashboard()`, `admin_users_page()`, `admin_history_page()` | Pages that require admin authentication | **User management interface**, **role assignment controls**, **global data visibility**, **administrative actions** (delete users, etc.) |
+| **Route Handlers** | `main.py` | Functions like `home()`, `email_login()`, `admin_users()`, `generate_titles()`, etc. | Connects URLs to page content and processes form submissions | **Authentication checks**, **form processing**, **response generation**, **error handling** |
+| **GitHub OAuth** | `auth/github_auth.py`, `main.py` | `github_login()`, `github_callback()`, `GitHubAuth.get_auth_url()`, `GitHubAuth.authenticate()` | Handles the GitHub OAuth authentication flow | **Authorization code exchange**, **API integration**, **user profile retrieval**, **token management** |
+| **Email Authentication** | `auth/email_auth.py`, `main.py` | `email_register()`, `email_login()`, `EmailAuth.validate_registration()`, `EmailAuth.authenticate()` | Handles traditional email/password authentication | **Secure registration**, **password validation**, **login verification**, **password hashing** |
+
+## Authentication Flow Explanation
+
+1. **Registration Flow**:
+   - User visits `/register` and fills out the form
+   - `email_register()` route handler receives the form data
+   - `EmailAuth.validate_registration()` checks format and requirements
+   - `UserDAO.create_user()` creates the user with a hashed password
+   - User is redirected to login with success message
+
+2. **Email Login Flow**:
+   - User visits `/login` and enters email/password
+   - `email_login()` route handler receives the form data
+   - `EmailAuth.authenticate()` verifies credentials
+   - `UserDAO.authenticate_email()` checks password hash
+   - `AuthManager.login_user()` sets session data
+   - User is redirected to home page
+
+3. **GitHub Login Flow**:
+   - User clicks "Sign in with GitHub" button
+   - `github_login()` route handler redirects to GitHub
+   - User authenticates on GitHub and grants permissions
+   - GitHub redirects back with an authorization code
+   - `github_callback()` route handler receives the code
+   - `GitHubAuth.authenticate()` exchanges code for access token
+   - `GitHubAuth.get_user_info()` retrieves user profile
+   - `UserDAO.find_or_create_github_user()` finds or creates user
+   - `AuthManager.login_user()` sets session data
+   - User is redirected to home page
+
+4. **Authorization Check Flow**:
+   - User attempts to access a protected route (e.g., `/title-generator`)
+   - `require_auth()` function checks session data
+   - If not authenticated, redirects to login
+   - If admin page and not admin, redirects to home
+   - Otherwise, allows access to the requested page
+
+## Session and Authentication State
+
+- Authentication state is stored in the session via `AuthManager.login_user()`
+- The session contains user ID, username, and admin status
+- Session data is cryptographically signed and secure
+- The `header()` function uses session data to show appropriate navigation
+- The `require_auth()` function uses session data to control page access
+- Session is cleared on logout via `AuthManager.logout_user()`
+
+## Role-Based Access Control
+
+- **Anonymous users** can only access public pages:
+  - Home page (with limited content)
+  - Login page
+  - Registration page
+
+- **Authenticated users** can access:
+  - Home page (with personalized content)
+  - Title generator tool
+  - Their own history records
+  - Their account settings (if implemented)
+
+- **Admin users** additionally can access:
+  - Admin dashboard
+  - User management interface
+  - All users' history records
+  - Administrative actions (make/remove admins, delete users)
+
+## Database Schema Overview
+
+### Users Table
+- `id`: Primary key
+- `username`: Display name (unique)
+- `email`: Email address (unique)
+- `password_hash`: Securely hashed password
+- `salt`: Unique salt for password hashing
+- `github_id`: GitHub user ID (for OAuth users)
+- `is_admin`: Boolean admin status flag
+- `created_at`: Account creation timestamp
+- `last_login`: Last successful login timestamp
+
+### Title History Table
+- `id`: Primary key
+- `user_id`: Foreign key to users table
+- `topic`: The title generation topic
+- `platform`: Selected platform
+- `style`: Selected style
+- `number_of_titles`: Number of titles requested
+- `titles`: JSON string of generated titles
+- `created_at`: Generation timestamp
+
+This comprehensive authentication system provides a secure, flexible foundation that can be easily extended with additional features like email verification, password reset, more OAuth providers, or team collaboration features.
+
+
+## Project Structure Updates
+
+We'll expand our existing project structure with new authentication-related files:
+
+```
+ai-title-generator/
+├── main.py                   # Updated with auth routes
+├── config.py                 # Updated with auth settings
+├── ai_service.py             # Unchanged
+├── auth/                     # New directory for authentication code
+│   ├── __init__.py
+│   ├── auth_manager.py       # Authentication logic
+│   ├── email_auth.py         # Email/password authentication
+│   └── github_auth.py        # GitHub OAuth integration
+├── db/                       # Database directory
+│   ├── __init__.py
+│   ├── database.py           # Updated for user management
+│   ├── history_dao.py        # Updated for user association
+│   └── user_dao.py           # New user data access object
+├── components/               # UI components
+│   ├── __init__.py
+│   ├── header.py             # Updated with auth links
+│   ├── footer.py             # Unchanged
+│   └── page_layout.py        # Unchanged
+├── pages/                    # Pages directory
+│   ├── __init__.py
+│   ├── home.py               # Updated with auth-aware content
+│   ├── title_generator.py    # Updated to require login
+│   ├── history.py            # Updated for user-specific history
+│   ├── login.py              # New login page
+│   ├── register.py           # New registration page
+│   └── admin.py              # New admin dashboard
+├── tools/                    # Tools directory (unchanged)
+│   ├── __init__.py
+│   └── title_generator.py    # Unchanged
+└── tools.db                  # SQLite database
+```
+## User Authentication and Admin Controls to Your FastHTML
+### Step 1: Updating the Database Structure
+
+First, we need to extend our database to support user management. Let's update our database module:
+
+**File: `db/database.py` (Updated)**
+
+```python
+import sqlite3
+import os
+from contextlib import contextmanager
+import config
+import hashlib
+import secrets
+
+class Database:
+    """Handles database connections and initialization."""
+
+    def __init__(self, db_path=None):
+        """
+        Initialize the database connection.
+
+        Args:
+            db_path: Path to the SQLite database file (defaults to config setting)
+        """
+        # If db_path is None or empty, use a default path
+        self.db_path = db_path or config.DB_PATH
+        if not self.db_path:
+            # Set default path if DB_PATH is empty
+            self.db_path = "tools.db"
+        self._initialize_db()
+
+    def _initialize_db(self):
+        """Create database tables if they don't exist."""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+
+            # Create the users table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE,
+                email TEXT UNIQUE,
+                password_hash TEXT,
+                salt TEXT,
+                github_id TEXT UNIQUE,
+                is_admin BOOLEAN DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_login TIMESTAMP
+            )
+            ''')
+
+            # Create the title_history table with user_id foreign key
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS title_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                topic TEXT NOT NULL,
+                platform TEXT NOT NULL,
+                style TEXT NOT NULL,
+                number_of_titles INTEGER NOT NULL,
+                titles TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+            ''')
+
+            # Check if we need to create an admin user
+            cursor.execute("SELECT COUNT(*) FROM users WHERE is_admin = 1")
+            if cursor.fetchone()[0] == 0 and config.ADMIN_EMAIL and config.ADMIN_PASSWORD:
+                # Create admin user if credentials are provided in config
+                salt = secrets.token_hex(16)
+                password_hash = self._hash_password(config.ADMIN_PASSWORD, salt)
+
+                cursor.execute('''
+                INSERT INTO users (username, email, password_hash, salt, is_admin)
+                VALUES (?, ?, ?, ?, 1)
+                ''', ('admin', config.ADMIN_EMAIL, password_hash, salt))
+
+            conn.commit()
+
+    @staticmethod
+    def _hash_password(password, salt):
+        """
+        Hash a password with the given salt using PBKDF2.
+
+        Args:
+            password: The plain text password
+            salt: The salt to use
+
+        Returns:
+            str: The hashed password
+        """
+        # Use PBKDF2 with SHA-256, 100,000 iterations
+        return hashlib.pbkdf2_hmac(
+            'sha256',
+            password.encode('utf-8'),
+            salt.encode('utf-8'),
+            100000
+        ).hex()
+
+    @contextmanager
+    def get_connection(self):
+        """
+        Context manager for database connections.
+
+        Yields:
+            sqlite3.Connection: Active database connection
+        """
+        # Check if db_path has a directory component
+        db_dir = os.path.dirname(self.db_path)
+
+        # Only try to create directories if there's a directory path
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
+
+        # Connect to the database
+        conn = sqlite3.connect(self.db_path)
+
+        # Configure connection
+        conn.row_factory = sqlite3.Row  # Use dictionary-like rows
+
+        try:
+            yield conn
+        finally:
+            conn.close()
+
+# Create a singleton instance
+db = Database()
+```
+
+**Explanation**:
+- We've created a new `users` table with fields for both email/password and GitHub authentication
+- We've added a `user_id` foreign key to the `title_history` table to associate records with users
+- We've implemented secure password hashing using PBKDF2 with SHA-256 and a unique salt for each user
+- We've added code to create an initial admin user if configured in settings
+
+
+**File: `components/page_layout.py` (Updated)**
+
+```python
+from fasthtml.common import *
+from .header import header
+from .footer import footer
+
+def page_layout(title, content, current_page="/", session=None):
+    """
+    Creates a consistent page layout with header and footer.
+
+    Args:
+        title: The page title
+        content: The main content components
+        current_page: The current page path
+        session: The session object for auth status
+
+    Returns:
+        A complete HTML page
+    """
+    return Html(
+        Head(
+            Title(title),
+            Meta(charset="UTF-8"),
+            Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+            # Include Tailwind CSS for styling
+            Script(src="https://cdn.tailwindcss.com"),
+        ),
+        Body(
+            Div(
+                header(current_page, session),
+                Main(
+                    Div(
+                        content,
+                        cls="container mx-auto px-4 py-8"
+                    ),
+                    cls="flex-grow"
+                ),
+                footer(),
+                cls="flex flex-col min-h-screen"
+            )
+        )
+    )
+```
+
+Next, let's create a DAO for user management:
+
+**File: `db/user_dao.py`**
+
+```python
+from typing import Optional, Dict, Any, List
+import secrets
+from datetime import datetime
+from .database import db
+
+class UserDAO:
+    """Data Access Object for user management."""
+
+    @staticmethod
+    def create_user(username: str, email: str, password: Optional[str] = None, github_id: Optional[str] = None) -> int:
+        """
+        Create a new user with email/password or GitHub authentication.
+
+        Args:
+            username: The username
+            email: The user's email
+            password: The user's password (optional)
+            github_id: GitHub user ID (optional)
+
+        Returns:
+            int: ID of the new user or 0 if creation failed
+        """
+        try:
+            with db.get_connection() as conn:
+                cursor = conn.cursor()
+
+                # Check if user already exists
+                cursor.execute(
+                    "SELECT id FROM users WHERE email = ? OR username = ? OR (github_id = ? AND github_id IS NOT NULL)",
+                    (email, username, github_id)
+                )
+
+                if cursor.fetchone():
+                    # User already exists
+                    return 0
+
+                # Prepare values for insertion
+                password_hash = None
+                salt = None
+
+                if password:
+                    # Generate salt and hash password for email auth
+                    salt = secrets.token_hex(16)
+                    password_hash = db._hash_password(password, salt)
+
+                cursor.execute('''
+                INSERT INTO users (username, email, password_hash, salt, github_id, is_admin)
+                VALUES (?, ?, ?, ?, ?, 0)
+                ''', (username, email, password_hash, salt, github_id))
+
+                conn.commit()
+                return cursor.lastrowid
+        except Exception as e:
+            print(f"Error creating user: {e}")
+            return 0
+
+    @staticmethod
+    def authenticate_email(email: str, password: str) -> Optional[Dict[str, Any]]:
+        """
+        Authenticate a user with email and password.
+
+        Args:
+            email: The user's email
+            password: The user's password
+
+        Returns:
+            Dict or None: User record if authentication succeeds, None otherwise
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            # Get user record by email
+            cursor.execute(
+                "SELECT id, username, email, password_hash, salt, is_admin FROM users WHERE email = ?",
+                (email,)
+            )
+
+            user = cursor.fetchone()
+            if not user or not user['password_hash'] or not user['salt']:
+                return None
+
+            # Hash the provided password with the stored salt
+            password_hash = db._hash_password(password, user['salt'])
+
+            # Check if password matches
+            if password_hash != user['password_hash']:
+                return None
+
+            # Update last login time
+            cursor.execute(
+                "UPDATE users SET last_login = ? WHERE id = ?",
+                (datetime.now().isoformat(), user['id'])
+            )
+            conn.commit()
+
+            # Return user info
+            return dict(user)
+
+    @staticmethod
+    def find_or_create_github_user(github_id: str, username: str, email: Optional[str]) -> Optional[Dict[str, Any]]:
+        """
+        Find existing GitHub user or create a new one.
+
+        Args:
+            github_id: GitHub user ID
+            username: The username from GitHub
+            email: The email from GitHub (may be None)
+
+        Returns:
+            Dict or None: User record if found or created, None on error
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            # Try to find user by GitHub ID
+            cursor.execute(
+                "SELECT id, username, email, is_admin FROM users WHERE github_id = ?",
+                (github_id,)
+            )
+
+            user = cursor.fetchone()
+            if user:
+                # Update last login time
+                cursor.execute(
+                    "UPDATE users SET last_login = ? WHERE id = ?",
+                    (datetime.now().isoformat(), user['id'])
+                )
+                conn.commit()
+                return dict(user)
+
+            # Create new user
+            # Use GitHub username with random suffix if email not provided
+            user_email = email or f"{username}-{secrets.token_hex(4)}@github.user"
+
+            try:
+                cursor.execute('''
+                INSERT INTO users (username, email, github_id, is_admin)
+                VALUES (?, ?, ?, 0)
+                ''', (username, user_email, github_id))
+
+                user_id = cursor.lastrowid
+                conn.commit()
+
+                # Return the new user info
+                return {
+                    'id': user_id,
+                    'username': username,
+                    'email': user_email,
+                    'is_admin': 0
+                }
+            except Exception as e:
+                print(f"Error creating GitHub user: {e}")
+                return None
+
+    @staticmethod
+    def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Get a user by ID.
+
+        Args:
+            user_id: The user ID
+
+        Returns:
+            Dict or None: User record if found, None otherwise
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "SELECT id, username, email, is_admin, created_at, last_login FROM users WHERE id = ?",
+                (user_id,)
+            )
+
+            user = cursor.fetchone()
+            return dict(user) if user else None
+
+    @staticmethod
+    def get_all_users(limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+        """
+        Get all users with pagination.
+
+        Args:
+            limit: Maximum number of users to return
+            offset: Number of users to skip
+
+        Returns:
+            List of user records
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute('''
+            SELECT id, username, email, is_admin, created_at, last_login,
+                   (github_id IS NOT NULL) as is_github_user
+            FROM users
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+            ''', (limit, offset))
+
+            return [dict(user) for user in cursor.fetchall()]
+
+    @staticmethod
+    def set_admin_status(user_id: int, is_admin: bool) -> bool:
+        """
+        Change a user's admin status.
+
+        Args:
+            user_id: The user ID
+            is_admin: True to make admin, False to remove admin status
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            with db.get_connection() as conn:
+                cursor = conn.cursor()
+
+                cursor.execute(
+                    "UPDATE users SET is_admin = ? WHERE id = ?",
+                    (1 if is_admin else 0, user_id)
+                )
+
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error setting admin status: {e}")
+            return False
+
+    @staticmethod
+    def delete_user(user_id: int) -> bool:
+        """
+        Delete a user and all their data.
+
+        Args:
+            user_id: The user ID
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            with db.get_connection() as conn:
+                cursor = conn.cursor()
+
+                # Delete user's history records
+                cursor.execute("DELETE FROM title_history WHERE user_id = ?", (user_id,))
+
+                # Delete user
+                cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error deleting user: {e}")
+            return False
+```
+
+**Explanation**:
+- We've created a comprehensive `UserDAO` with methods for:
+  - Creating new users (either with email/password or GitHub authentication)
+  - Authenticating users with email/password
+  - Finding or creating users based on GitHub information
+  - Retrieving user information
+  - Managing users (admin rights, deletion)
+- We update the `last_login` timestamp whenever a user logs in
+- We handle edge cases like GitHub users without emails
+- We include cascade deletion to remove a user's history when they're deleted
+
+Now let's update the history DAO to associate records with users:
+
+**File: `db/history_dao.py` (Updated)**
+
+```python
+import json
+from typing import List, Dict, Any, Optional
+from datetime import datetime
+from .database import db
+
+class HistoryDAO:
+    """Data Access Object for title generation history."""
+
+    @staticmethod
+    async def save_generation(
+        user_id: int,
+        topic: str,
+        platform: str,
+        style: str,
+        number_of_titles: int,
+        titles: List[str]
+    ) -> int:
+        """
+        Save a title generation record to the database.
+
+        Args:
+            user_id: ID of the user who generated the titles
+            topic: The topic of the generation
+            platform: The platform selected
+            style: The style selected
+            number_of_titles: Number of titles requested
+            titles: List of generated titles
+
+        Returns:
+            int: ID of the new record
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            # Convert titles list to JSON string
+            titles_json = json.dumps(titles)
+
+            cursor.execute('''
+            INSERT INTO title_history
+                (user_id, topic, platform, style, number_of_titles, titles)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ''', (user_id, topic, platform, style, number_of_titles, titles_json))
+
+            conn.commit()
+            return cursor.lastrowid
+
+    @staticmethod
+    def get_user_history(user_id: int, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+        """
+        Get history records for a specific user with pagination.
+
+        Args:
+            user_id: The user ID
+            limit: Maximum number of records to return
+            offset: Number of records to skip
+
+        Returns:
+            List of history records as dictionaries
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute('''
+            SELECT id, topic, platform, style, number_of_titles, titles, created_at
+            FROM title_history
+            WHERE user_id = ?
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+            ''', (user_id, limit, offset))
+
+            # Convert row objects to dictionaries
+            result = []
+            for row in cursor.fetchall():
+                record = dict(row)
+                # Parse titles from JSON string
+                record['titles'] = json.loads(record['titles'])
+                # Format timestamp for display
+                created_at = datetime.fromisoformat(record['created_at'].replace('Z', '+00:00'))
+                record['created_at_formatted'] = created_at.strftime('%Y-%m-%d %H:%M:%S')
+                result.append(record)
+
+            return result
+
+    @staticmethod
+    def get_all_history(limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+        """
+        Get all history records with pagination.
+
+        Args:
+            limit: Maximum number of records to return
+            offset: Number of records to skip
+
+        Returns:
+            List of history records as dictionaries
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute('''
+            SELECT h.id, h.user_id, u.username, h.topic, h.platform, h.style,
+                   h.number_of_titles, h.titles, h.created_at
+            FROM title_history h
+            LEFT JOIN users u ON h.user_id = u.id
+            ORDER BY h.created_at DESC
+            LIMIT ? OFFSET ?
+            ''', (limit, offset))
+
+            # Convert row objects to dictionaries
+            result = []
+            for row in cursor.fetchall():
+                record = dict(row)
+                # Parse titles from JSON string
+                record['titles'] = json.loads(record['titles'])
+                # Format timestamp for display
+                created_at = datetime.fromisoformat(record['created_at'].replace('Z', '+00:00'))
+                record['created_at_formatted'] = created_at.strftime('%Y-%m-%d %H:%M:%S')
+                result.append(record)
+
+            return result
+
+    @staticmethod
+    def get_history_by_id(record_id: int, user_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
+        """
+        Get a specific history record by ID.
+
+        Args:
+            record_id: The ID of the record to retrieve
+            user_id: Optional user ID to restrict access
+
+        Returns:
+            Dictionary with record data or None if not found or not owned by user
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            query = '''
+            SELECT h.id, h.user_id, u.username, h.topic, h.platform, h.style,
+                   h.number_of_titles, h.titles, h.created_at
+            FROM title_history h
+            LEFT JOIN users u ON h.user_id = u.id
+            WHERE h.id = ?
+            '''
+
+            params = [record_id]
+
+            # Add user filtering if specified
+            if user_id is not None:
+                query += " AND h.user_id = ?"
+                params.append(user_id)
+
+            cursor.execute(query, params)
+
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            record = dict(row)
+            # Parse titles from JSON string
+            record['titles'] = json.loads(record['titles'])
+            # Format timestamp for display
+            created_at = datetime.fromisoformat(record['created_at'].replace('Z', '+00:00'))
+            record['created_at_formatted'] = created_at.strftime('%Y-%m-%d %H:%M:%S')
+
+            return record
+
+    @staticmethod
+    def delete_history(record_id: int, user_id: Optional[int] = None) -> bool:
+        """
+        Delete a history record by ID.
+
+        Args:
+            record_id: The ID of the record to delete
+            user_id: Optional user ID to restrict deletion to user's records
+
+        Returns:
+            bool: True if record was deleted, False if not found or not owned by user
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            query = "DELETE FROM title_history WHERE id = ?"
+            params = [record_id]
+
+            # Add user filtering if specified
+            if user_id is not None:
+                query += " AND user_id = ?"
+                params.append(user_id)
+
+            cursor.execute(query, params)
+
+            conn.commit()
+            return cursor.rowcount > 0
+
+    @staticmethod
+    def get_user_stats(user_id: int) -> Dict[str, Any]:
+        """
+        Get generation statistics for a user.
+
+        Args:
+            user_id: The user ID
+
+        Returns:
+            Dictionary with statistics
+        """
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+
+            # Get total generations
+            cursor.execute(
+                "SELECT COUNT(*) FROM title_history WHERE user_id = ?",
+                (user_id,)
+            )
+            total_generations = cursor.fetchone()[0]
+
+            # Get platform breakdown
+            cursor.execute('''
+            SELECT platform, COUNT(*) as count
+            FROM title_history
+            WHERE user_id = ?
+            GROUP BY platform
+            ORDER BY count DESC
+            ''', (user_id,))
+
+            platforms = {row['platform']: row['count'] for row in cursor.fetchall()}
+
+            # Get style breakdown
+            cursor.execute('''
+            SELECT style, COUNT(*) as count
+            FROM title_history
+            WHERE user_id = ?
+            GROUP BY style
+            ORDER BY count DESC
+            ''', (user_id,))
+
+            styles = {row['style']: row['count'] for row in cursor.fetchall()}
+
+            # Get latest generation date
+            cursor.execute(
+                "SELECT MAX(created_at) FROM title_history WHERE user_id = ?",
+                (user_id,)
+            )
+            latest_date = cursor.fetchone()[0]
+
+            return {
+                'total_generations': total_generations,
+                'platforms': platforms,
+                'styles': styles,
+                'latest_date': latest_date
+            }
+```
+
+**Explanation**:
+- We've updated the `HistoryDAO` to associate records with users by adding a `user_id` parameter
+- We've added a new method `get_user_history` to get history records for a specific user
+- We've updated existing methods to optionally filter by user ID for security
+- We've joined the history and users tables to include usernames in history records
+- We've added statistics functions to gather insights about a user's generation patterns
+
+### Step 2: Setting Up Authentication
+
+Now let's set up our authentication system. First, let's update the config file:
+
+**File: `config.py` (Updated)**
+
+```python
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# API configuration
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+
+# Default model to use
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "openai/gpt-3.5-turbo")
+
+# Database settings
+DB_PATH = os.getenv("DB_PATH", "tools.db")
+
+# Authentication settings
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+
+# GitHub OAuth settings
+GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
+GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "/auth/github/callback")
+
+# Admin user (created on first run if provided)
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+
+# Session expiration (in seconds)
+SESSION_EXPIRY = int(os.getenv("SESSION_EXPIRY", "604800"))  # 7 days default
+
+# Application settings
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+APP_NAME = "AI Title Generator"
+```
+
+Now, let's implement the authentication manager:
+
+**File: `auth/auth_manager.py`**
+
+```python
+from typing import Optional, Dict, Any, Tuple
+from db.user_dao import UserDAO
+import config
+
+class AuthManager:
+    """
+    Authentication manager that handles user sessions and permissions.
+    """
+
+    @staticmethod
+    def login_user(session, user_data: Dict[str, Any]) -> None:
+        """
+        Log in a user by setting session data.
+
+        Args:
+            session: The session object
+            user_data: User data to store in session
+        """
+        # Store minimal user data in session
+        session["user_id"] = user_data["id"]
+        session["username"] = user_data["username"]
+        session["is_admin"] = bool(user_data["is_admin"])
+
+    @staticmethod
+    def logout_user(session) -> None:
+        """
+        Log out a user by clearing session data.
+
+        Args:
+            session: The session object
+        """
+        # Clear all user-related session data
+        session.pop("user_id", None)
+        session.pop("username", None)
+        session.pop("is_admin", None)
+
+    @staticmethod
+    def get_current_user(session) -> Optional[Dict[str, Any]]:
+        """
+        Get the currently logged-in user from session.
+
+        Args:
+            session: The session object
+
+        Returns:
+            Dict or None: User data if logged in, None otherwise
+        """
+        user_id = session.get("user_id")
+        if not user_id:
+            return None
+
+        # Get full user data from database
+        return UserDAO.get_user_by_id(user_id)
+
+    @staticmethod
+    def is_authenticated(session) -> bool:
+        """
+        Check if a user is authenticated.
+
+        Args:
+            session: The session object
+
+        Returns:
+            bool: True if authenticated, False otherwise
+        """
+        return "user_id" in session
+
+    @staticmethod
+    def is_admin(session) -> bool:
+        """
+        Check if the current user is an admin.
+
+        Args:
+            session: The session object
+
+        Returns:
+            bool: True if admin, False otherwise
+        """
+        return session.get("is_admin", False)
+
+    @staticmethod
+    def require_auth(session) -> Tuple[bool, Optional[str]]:
+        """
+        Check if authentication is required.
+
+        Args:
+            session: The session object
+
+        Returns:
+            Tuple[bool, Optional[str]]: (is_authorized, redirect_url)
+        """
+        if not AuthManager.is_authenticated(session):
+            return False, "/login"
+        return True, None
+
+    @staticmethod
+    def require_admin(session) -> Tuple[bool, Optional[str]]:
+        """
+        Check if admin authentication is required.
+
+        Args:
+            session: The session object
+
+        Returns:
+            Tuple[bool, Optional[str]]: (is_authorized, redirect_url)
+        """
+        if not AuthManager.is_authenticated(session):
+            return False, "/login"
+
+        if not AuthManager.is_admin(session):
+            return False, "/"
+
+        return True, None
+```
+
+**Explanation**:
+- The `AuthManager` class handles common authentication tasks:
+  - Logging users in and out
+  - Getting the current user's information
+  - Checking if a user is authenticated
+  - Checking if a user is an admin
+  - Requiring authentication for specific routes
+- We store minimal user data in the session for performance and security
+- The `require_auth` and `require_admin` methods return both a boolean and a redirect URL, making them convenient to use in route handlers
+
+Next, let's implement email authentication:
+
+**File: `auth/email_auth.py`**
+
+```python
+from typing import Dict, Any, Optional, Tuple
+from db.user_dao import UserDAO
+import re
+
+class EmailAuth:
+    """
+    Handles email/password authentication.
+    """
+
+    @staticmethod
+    def validate_registration(username: str, email: str, password: str, confirm_password: str) -> Tuple[bool, str]:
+        """
+        Validate registration input.
+
+        Args:
+            username: The username
+            email: The email address
+            password: The password
+            confirm_password: Password confirmation
+
+        Returns:
+            Tuple[bool, str]: (is_valid, error_message)
+        """
+        # Check username length
+        if len(username) < 3 or len(username) > 30:
+            return False, "Username must be between 3 and 30 characters"
+
+        # Check username format (letters, numbers, underscores, hyphens)
+        if not re.match(r'^[a-zA-Z0-9_-]+$', username):
+            return False, "Username can only contain letters, numbers, underscores, and hyphens"
+
+        # Check email format
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            return False, "Invalid email format"
+
+        # Check password length
+        if len(password) < 8:
+            return False, "Password must be at least 8 characters long"
+
+        # Check password strength (at least one uppercase, one lowercase, one digit)
+        if not (re.search(r'[A-Z]', password) and re.search(r'[a-z]', password) and re.search(r'[0-9]', password)):
+            return False, "Password must contain at least one uppercase letter, one lowercase letter, and one digit"
+
+        # Check password match
+        if password != confirm_password:
+            return False, "Passwords do not match"
+
+        return True, ""
+
+    @staticmethod
+    def register_user(username: str, email: str, password: str) -> Tuple[bool, str, Optional[int]]:
+        """
+        Register a new user with email and password.
+
+        Args:
+            username: The username
+            email: The email address
+            password: The password
+
+        Returns:
+            Tuple[bool, str, Optional[int]]: (success, message, user_id)
+        """
+        # Create user in database
+        user_id = UserDAO.create_user(username=username, email=email, password=password)
+
+        if user_id == 0:
+            return False, "Username or email already exists", None
+
+        return True, "Registration successful", user_id
+
+    @staticmethod
+    def authenticate(email: str, password: str) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+        """
+        Authenticate a user with email and password.
+
+        Args:
+            email: The email address
+            password: The password
+
+        Returns:
+            Tuple[bool, str, Optional[Dict]]: (success, message, user_data)
+        """
+        if not email or not password:
+            return False, "Email and password are required", None
+
+        user_data = UserDAO.authenticate_email(email, password)
+
+        if not user_data:
+            return False, "Invalid email or password", None
+
+        return True, "Authentication successful", user_data
+```
+
+Now let's continue with the GitHub OAuth implementation:
+
+**File: `auth/github_auth.py`**
+
+```python
+from typing import Dict, Any, Optional, Tuple
+import os
+import requests
+from db.user_dao import UserDAO
+import config
+
+class GitHubAuth:
+    """
+    Handles GitHub OAuth authentication.
+    """
+
+    @staticmethod
+    def get_auth_url(state: str = "") -> str:
+        """
+        Get the GitHub OAuth authorization URL.
+
+        Args:
+            state: Optional state parameter for CSRF protection
+
+        Returns:
+            str: The authorization URL
+        """
+        params = {
+            'client_id': config.GITHUB_CLIENT_ID,
+            'redirect_uri': config.GITHUB_REDIRECT_URI,
+            'scope': 'read:user user:email',
+            'state': state
+        }
+
+        query_string = '&'.join([f"{key}={params[key]}" for key in params])
+        return f"https://github.com/login/oauth/authorize?{query_string}"
+
+    @staticmethod
+    def get_access_token(code: str) -> Optional[str]:
+        """
+        Exchange authorization code for access token.
+
+        Args:
+            code: The authorization code from GitHub
+
+        Returns:
+            Optional[str]: The access token or None if failed
+        """
+        url = "https://github.com/login/oauth/access_token"
+
+        headers = {
+            "Accept": "application/json"
+        }
+
+        data = {
+            "client_id": config.GITHUB_CLIENT_ID,
+            "client_secret": config.GITHUB_CLIENT_SECRET,
+            "code": code,
+            "redirect_uri": config.GITHUB_REDIRECT_URI
+        }
+
+        response = requests.post(url, headers=headers, data=data)
+
+        if response.status_code != 200:
+            return None
+
+        json_response = response.json()
+        return json_response.get("access_token")
+
+    @staticmethod
+    def get_user_info(access_token: str) -> Optional[Dict[str, Any]]:
+        """
+        Get GitHub user information using access token.
+
+        Args:
+            access_token: The GitHub access token
+
+        Returns:
+            Optional[Dict]: User information or None if failed
+        """
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Accept": "application/json"
+        }
+
+        # Get user profile
+        response = requests.get("https://api.github.com/user", headers=headers)
+
+        if response.status_code != 200:
+            return None
+
+        user_data = response.json()
+
+        # Get user emails if email is not public
+        if not user_data.get("email"):
+            email_response = requests.get("https://api.github.com/user/emails", headers=headers)
+
+            if email_response.status_code == 200:
+                emails = email_response.json()
+
+                # Find primary email
+                for email in emails:
+                    if email.get("primary") and email.get("verified"):
+                        user_data["email"] = email.get("email")
+                        break
+
+        return user_data
+
+    @staticmethod
+    def authenticate(code: str) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+        """
+        Authenticate a user with GitHub OAuth code.
+
+        Args:
+            code: The authorization code from GitHub
+
+        Returns:
+            Tuple[bool, str, Optional[Dict]]: (success, message, user_data)
+        """
+        # Exchange code for access token
+        access_token = GitHubAuth.get_access_token(code)
+
+        if not access_token:
+            return False, "Failed to get access token from GitHub", None
+
+        # Get user info
+        github_user_info = GitHubAuth.get_user_info(access_token)
+
+        if not github_user_info:
+            return False, "Failed to get user information from GitHub", None
+
+        # Extract relevant info
+        github_id = str(github_user_info.get("id"))
+        username = github_user_info.get("login")
+        email = github_user_info.get("email")
+
+        # Find or create user in database
+        user_data = UserDAO.find_or_create_github_user(
+            github_id=github_id,
+            username=username,
+            email=email
+        )
+
+        if not user_data:
+            return False, "Failed to create user", None
+
+        return True, "Authentication successful", user_data
+```
+
+### Step 3: Creating Authentication Pages
+
+Now let's create the login and registration pages:
+
+**File: `pages/login.py`**
+
+```python
+from fasthtml.common import *
+
+def login_page(error_message=None, success_message=None):
+    """
+    Create the login page.
+
+    Args:
+        error_message: Optional error message to display
+        success_message: Optional success message to display
+
+    Returns:
+        Components representing the login page
+    """
+    # Create alert for error or success message
+    message_alert = None
+    if error_message:
+        message_alert = Div(
+            P(error_message, cls="text-sm"),
+            cls="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
+        )
+    elif success_message:
+        message_alert = Div(
+            P(success_message, cls="text-sm"),
+            cls="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"
+        )
+
+    return Div(
+        # Page title
+        H1("Sign In", cls="text-3xl font-bold text-center text-gray-800 mb-6"),
+
+        # Login Form
+        Div(
+            # Message alert
+            message_alert if message_alert else "",
+
+            # Email login form
+            Form(
+                H2("Sign in with Email", cls="text-xl font-semibold mb-4"),
+
+                # Email field
+                Div(
+                    Label("Email", For="email", cls="block text-sm font-medium text-gray-700 mb-1"),
+                    Input(
+                        type="email",
+                        id="email",
+                        name="email",
+                        placeholder="you@example.com",
+                        required=True,
+                        cls="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    ),
+                    cls="mb-4"
+                ),
+
+                # Password field
+                Div(
+                    Label("Password", For="password", cls="block text-sm font-medium text-gray-700 mb-1"),
+                    Input(
+                        type="password",
+                        id="password",
+                        name="password",
+                        placeholder="Your password",
+                        required=True,
+                        cls="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    ),
+                    cls="mb-6"
+                ),
+
+                # Submit button
+                Button(
+                    "Sign In",
+                    type="submit",
+                    cls="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                ),
+
+                action="/auth/email/login",
+                method="post",
+                cls="mb-6"
+            ),
+
+            # Divider
+            Div(
+                Div(cls="flex-grow border-t border-gray-300"),
+                Span("OR", cls="flex-shrink mx-4 text-gray-500"),
+                Div(cls="flex-grow border-t border-gray-300"),
+                cls="flex items-center my-6"
+            ),
+
+            # GitHub login button
+            Div(
+                A(
+                    Div(
+                        Img(src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png", alt="GitHub Logo", cls="w-5 h-5 mr-2"),
+                        Span("Sign in with GitHub"),
+                        cls="flex items-center justify-center"
+                    ),
+                    href="/auth/github/login",
+                    cls="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                ),
+                cls="mb-6"
+            ),
+
+            # Registration link
+            Div(
+                P(
+                    "Don't have an account? ",
+                    A("Register here", href="/register", cls="text-blue-600 hover:underline"),
+                    cls="text-sm text-gray-600 text-center"
+                )
+            ),
+
+            cls="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto"
+        )
+    )
+```
+
+**File: `pages/register.py`**
+
+```python
+from fasthtml.common import *
+
+def register_page(error_message=None):
+    """
+    Create the registration page.
+
+    Args:
+        error_message: Optional error message to display
+
+    Returns:
+        Components representing the registration page
+    """
+    # Create alert for error message
+    error_alert = None
+    if error_message:
+        error_alert = Div(
+            P(error_message, cls="text-sm"),
+            cls="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
+        )
+
+    return Div(
+        # Page title
+        H1("Create an Account", cls="text-3xl font-bold text-center text-gray-800 mb-6"),
+
+        # Registration Form
+        Div(
+            # Error alert
+            error_alert if error_alert else "",
+
+            Form(
+                # Username field
+                Div(
+                    Label("Username", For="username", cls="block text-sm font-medium text-gray-700 mb-1"),
+                    Input(
+                        type="text",
+                        id="username",
+                        name="username",
+                        placeholder="Choose a username",
+                        required=True,
+                        minlength=3,
+                        maxlength=30,
+                        pattern="[a-zA-Z0-9_-]+",
+                        cls="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    ),
+                    P("Only letters, numbers, underscores, and hyphens", cls="text-xs text-gray-500 mt-1"),
+                    cls="mb-4"
+                ),
+
+                # Email field
+                Div(
+                    Label("Email", For="email", cls="block text-sm font-medium text-gray-700 mb-1"),
+                    Input(
+                        type="email",
+                        id="email",
+                        name="email",
+                        placeholder="you@example.com",
+                        required=True,
+                        cls="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    ),
+                    cls="mb-4"
+                ),
+
+                # Password field
+                Div(
+                    Label("Password", For="password", cls="block text-sm font-medium text-gray-700 mb-1"),
+                    Input(
+                        type="password",
+                        id="password",
+                        name="password",
+                        placeholder="Create a password",
+                        required=True,
+                        minlength=8,
+                        cls="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    ),
+                    P("At least 8 characters with uppercase, lowercase, and number", cls="text-xs text-gray-500 mt-1"),
+                    cls="mb-4"
+                ),
+
+                # Confirm password field
+                Div(
+                    Label("Confirm Password", For="confirm_password", cls="block text-sm font-medium text-gray-700 mb-1"),
+                    Input(
+                        type="password",
+                        id="confirm_password",
+                        name="confirm_password",
+                        placeholder="Confirm your password",
+                        required=True,
+                        cls="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    ),
+                    cls="mb-6"
+                ),
+
+                # Submit button
+                Button(
+                    "Create Account",
+                    type="submit",
+                    cls="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                ),
+
+                action="/auth/email/register",
+                method="post",
+                cls="mb-6"
+            ),
+
+            # Divider
+            Div(
+                Div(cls="flex-grow border-t border-gray-300"),
+                Span("OR", cls="flex-shrink mx-4 text-gray-500"),
+                Div(cls="flex-grow border-t border-gray-300"),
+                cls="flex items-center my-6"
+            ),
+
+            # GitHub login button
+            Div(
+                A(
+                    Div(
+                        Img(src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png", alt="GitHub Logo", cls="w-5 h-5 mr-2"),
+                        Span("Sign up with GitHub"),
+                        cls="flex items-center justify-center"
+                    ),
+                    href="/auth/github/login",
+                    cls="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                ),
+                cls="mb-6"
+            ),
+
+            # Login link
+            Div(
+                P(
+                    "Already have an account? ",
+                    A("Sign in here", href="/login", cls="text-blue-600 hover:underline"),
+                    cls="text-sm text-gray-600 text-center"
+                )
+            ),
+
+            cls="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto"
+        )
+    )
+```
+
+### Step 4: Creating Admin Pages
+
+Now, let's create admin pages for managing users and viewing all history:
+
+**File: `pages/admin.py`**
+
+
+```python
+from fasthtml.common import *
+from db.user_dao import UserDAO
+from db.history_dao import HistoryDAO
+
+def admin_dashboard():
+    """
+    Create the admin dashboard page.
+
+    Returns:
+        Components representing the admin dashboard
+    """
+    return Div(
+        # Page header
+        H1("Admin Dashboard", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        # Admin menu
+        Div(
+            A(
+                Div(
+                    Div(
+                        "Users",
+                        cls="text-xl font-semibold mb-2"
+                    ),
+                    P("Manage user accounts, set admin privileges", cls="text-sm text-gray-600"),
+                    cls="p-4"
+                ),
+                href="/admin/users",
+                cls="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 mb-4"
+            ),
+
+            A(
+                Div(
+                    Div(
+                        "Title Generation History",
+                        cls="text-xl font-semibold mb-2"
+                    ),
+                    P("View all users' title generation history", cls="text-sm text-gray-600"),
+                    cls="p-4"
+                ),
+                href="/admin/history",
+                cls="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 mb-4"
+            ),
+
+            cls="max-w-2xl mx-auto"
+        )
+    )
+
+def admin_users_page(page=1, error_message=None, success_message=None):
+    """
+    Create the admin users management page.
+
+    Args:
+        page: Current page number
+        error_message: Optional error message
+        success_message: Optional success message
+
+    Returns:
+        Components representing the admin users page
+    """
+    # Get users with pagination
+    limit = 10
+    offset = (page - 1) * limit
+    users = UserDAO.get_all_users(limit=limit, offset=offset)
+
+    # Create message alert if needed
+    message_alert = None
+    if error_message:
+        message_alert = Div(
+            P(error_message, cls="text-sm"),
+            cls="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
+        )
+    elif success_message:
+        message_alert = Div(
+            P(success_message, cls="text-sm"),
+            cls="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"
+        )
+
+    # Create user rows
+    user_rows = []
+    for user in users:
+        # Format dates
+        created_at = user.get('created_at', 'N/A')
+        if created_at and created_at != 'N/A':
+            created_at = created_at.split('T')[0]  # Simple date format
+
+        last_login = user.get('last_login', 'Never')
+        if last_login and last_login != 'Never':
+            last_login = last_login.split('T')[0]  # Simple date format
+
+        # Create user row
+        user_rows.append(
+            Tr(
+                Td(user['username'], cls="px-6 py-4 whitespace-nowrap"),
+                Td(user['email'], cls="px-6 py-4 whitespace-nowrap"),
+                Td(
+                    Span(
+                        "GitHub" if user.get('is_github_user') else "Email",
+                        cls=f"px-2 py-1 text-xs rounded-full {'bg-purple-200 text-purple-800' if user.get('is_github_user') else 'bg-blue-200 text-blue-800'}"
+                    ),
+                    cls="px-6 py-4 whitespace-nowrap"
+                ),
+                Td(created_at, cls="px-6 py-4 whitespace-nowrap"),
+                Td(last_login, cls="px-6 py-4 whitespace-nowrap"),
+                Td(
+                    Span(
+                        "Admin" if user.get('is_admin') else "User",
+                        cls=f"px-2 py-1 text-xs rounded-full {'bg-red-200 text-red-800' if user.get('is_admin') else 'bg-gray-200 text-gray-800'}"
+                    ),
+                    cls="px-6 py-4 whitespace-nowrap"
+                ),
+                Td(
+                    Div(
+                        # Toggle admin status
+                        Form(
+                            Button(
+                                "Remove Admin" if user.get('is_admin') else "Make Admin",
+                                type="submit",
+                                cls=f"{'bg-gray-500 hover:bg-gray-600' if user.get('is_admin') else 'bg-blue-500 hover:bg-blue-600'} text-white text-xs py-1 px-2 rounded mr-2"
+                            ),
+                            action=f"/admin/users/{user['id']}/{'remove-admin' if user.get('is_admin') else 'make-admin'}",
+                            method="post",
+                            cls="inline"
+                        ),
+
+                        # Delete user
+                        Form(
+                            Button(
+                                "Delete",
+                                type="submit",
+                                cls="bg-red-500 hover:bg-red-600 text-white text-xs py-1 px-2 rounded"
+                            ),
+                            action=f"/admin/users/{user['id']}/delete",
+                            method="post",
+                            cls="inline"
+                        ),
+
+                        cls="flex"
+                    ),
+                    cls="px-6 py-4 whitespace-nowrap"
+                ),
+                cls="bg-white border-b"
+            )
+        )
+
+    # Build pagination controls
+    current_page = page
+    pagination = Div(
+        Div(
+            A("← Previous",
+              href=f"/admin/users?page={current_page - 1}" if current_page > 1 else "#",
+              cls=f"px-4 py-2 rounded {'bg-blue-600 text-white' if current_page > 1 else 'bg-gray-200 text-gray-500 cursor-default'}"),
+            Span(f"Page {current_page}",
+                 cls="px-4 py-2"),
+            A("Next →",
+              href=f"/admin/users?page={current_page + 1}" if len(users) == limit else "#",
+              cls=f"px-4 py-2 rounded {'bg-blue-600 text-white' if len(users) == limit else 'bg-gray-200 text-gray-500 cursor-default'}"),
+            cls="flex items-center justify-center space-x-2"
+        ),
+        cls="mt-6"
+    )
+
+    return Div(
+        # Breadcrumb navigation
+        Div(
+            A("Admin Dashboard", href="/admin", cls="text-blue-600 hover:underline"),
+            Span(" / ", cls="text-gray-500"),
+            Span("Users", cls="font-semibold"),
+            cls="mb-4 text-sm"
+        ),
+
+        # Page header
+        H1("User Management", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        # Message alert
+        message_alert if message_alert else "",
+
+        # Users table
+        Div(
+            Table(
+                Thead(
+                    Tr(
+                        Th("Username", cls="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"),
+                        Th("Email", cls="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"),
+                        Th("Auth Type", cls="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"),
+                        Th("Created", cls="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"),
+                        Th("Last Login", cls="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"),
+                        Th("Role", cls="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"),
+                        Th("Actions", cls="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"),
+                        cls="bg-gray-50"
+                    )
+                ),
+                Tbody(
+                    *user_rows if user_rows else [
+                        Tr(
+                            Td("No users found", colspan="7", cls="px-6 py-4 text-center text-gray-500 italic")
+                        )
+                    ]
+                ),
+                cls="min-w-full divide-y divide-gray-200"
+            ),
+            cls="bg-white shadow overflow-x-auto rounded-lg"
+        ),
+
+        # Pagination
+        pagination,
+
+        cls="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8"
+    )
+
+def admin_history_page(page=1):
+    """
+    Create the admin history view page.
+
+    Args:
+        page: Current page number
+
+    Returns:
+        Components representing the admin history page
+    """
+    # Get all history with pagination
+    limit = 20
+    offset = (page - 1) * limit
+    history_records = HistoryDAO.get_all_history(limit=limit, offset=offset)
+
+    # Build history cards
+    history_cards = []
+    if not history_records:
+        history_cards.append(
+            Div(
+                P("No generation history found.", cls="text-gray-600 italic"),
+                cls="bg-white p-6 rounded-lg shadow-md"
+            )
+        )
+    else:
+        for record in history_records:
+            # Limit displayed titles to first 3 for compactness
+            display_titles = record['titles'][:3]
+            has_more = len(record['titles']) > 3
+
+            title_items = []
+            for title in display_titles:
+                title_items.append(Li(title, cls="mb-1"))
+
+            if has_more:
+                title_items.append(
+                    Li(
+                        A(f"...and {len(record['titles']) - 3} more",
+                          href=f"/admin/history/{record['id']}",
+                          cls="text-blue-600 hover:underline italic"),
+                        cls="mt-2"
+                    )
+                )
+
+            history_cards.append(
+                Div(
+                    # Header with date and record info
+                    Div(
+                        Div(
+                            H3(record['topic'][:50] + ("..." if len(record['topic']) > 50 else ""),
+                               cls="text-lg font-semibold"),
+                            P(f"{record['platform']} • {record['style']} • {record['number_of_titles']} titles",
+                              cls="text-sm text-gray-600"),
+                            cls="flex-grow"
+                        ),
+                        Div(
+                            Span(f"User: {record['username'] or 'Unknown'}",
+                                 cls="text-sm text-gray-700 mr-3"),
+                            P(record['created_at_formatted'],
+                              cls="text-xs text-gray-500"),
+                            cls="text-right"
+                        ),
+                        cls="flex justify-between items-start mb-3"
+                    ),
+
+                    # Title preview
+                    Div(
+                        H4("Generated Titles:", cls="font-medium mb-2"),
+                        Ul(
+                            *title_items,
+                            cls="list-disc pl-5 text-gray-700"
+                        ),
+                        cls="mb-3"
+                    ),
+
+                    # Actions
+                    Div(
+                        A("View Details",
+                          href=f"/admin/history/{record['id']}",
+                          cls="text-blue-600 hover:underline text-sm mr-4"),
+                        Form(
+                            Button(
+                                "Delete",
+                                type="submit",
+                                cls="text-red-600 hover:underline text-sm"
+                            ),
+                            action=f"/admin/history/{record['id']}/delete",
+                            method="post",
+                            cls="inline"
+                        ),
+                        cls="flex justify-end"
+                    ),
+
+                    cls="bg-white p-6 rounded-lg shadow-md mb-4"
+                )
+            )
+
+    # Build pagination controls
+    current_page = page
+    pagination = Div(
+        Div(
+            A("← Previous",
+              href=f"/admin/history?page={current_page - 1}" if current_page > 1 else "#",
+              cls=f"px-4 py-2 rounded {'bg-blue-600 text-white' if current_page > 1 else 'bg-gray-200 text-gray-500 cursor-default'}"),
+            Span(f"Page {current_page}",
+                 cls="px-4 py-2"),
+            A("Next →",
+              href=f"/admin/history?page={current_page + 1}" if len(history_records) == limit else "#",
+              cls=f"px-4 py-2 rounded {'bg-blue-600 text-white' if len(history_records) == limit else 'bg-gray-200 text-gray-500 cursor-default'}"),
+            cls="flex items-center justify-center space-x-2"
+        ),
+        cls="mt-6"
+    )
+
+    return Div(
+        # Breadcrumb navigation
+        Div(
+            A("Admin Dashboard", href="/admin", cls="text-blue-600 hover:underline"),
+            Span(" / ", cls="text-gray-500"),
+            Span("History", cls="font-semibold"),
+            cls="mb-4 text-sm"
+        ),
+
+        # Page header
+        H1("All Title Generation History", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        # History records
+        Div(
+            *history_cards,
+            cls=""
+        ),
+
+        # Pagination
+        pagination,
+
+        cls="max-w-4xl mx-auto"
+    )
+
+def admin_history_detail(record_id: int):
+    """
+    Admin view for a specific history record.
+
+    Args:
+        record_id: ID of the history record
+
+    Returns:
+        Components representing the history detail
+    """
+    # Get the history record (no user_id filter for admin)
+    record = HistoryDAO.get_history_by_id(record_id)
+
+    if not record:
+        return Div(
+            H1("Record Not Found", cls="text-3xl font-bold text-red-600 mb-4"),
+            P("The requested history record could not be found.", cls="mb-4"),
+            A("Back to History", href="/admin/history",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+    # Create list items for each title
+    title_items = []
+    for i, title in enumerate(record['titles']):
+        title_items.append(
+            Li(
+                Div(
+                    P(title, cls="font-medium"),
+                    Button(
+                        "Copy",
+                        type="button",
+                        onclick=f"navigator.clipboard.writeText('{title.replace('\'', '\\\'')}'); this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy', 2000);",
+                        cls="ml-auto text-sm bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
+                    ),
+                    cls="flex justify-between items-center"
+                ),
+                cls="p-3 border-b last:border-b-0"
+            )
+        )
+
+    return Div(
+        # Breadcrumb navigation
+        Div(
+            A("Admin Dashboard", href="/admin", cls="text-blue-600 hover:underline"),
+            Span(" / ", cls="text-gray-500"),
+            A("History", href="/admin/history", cls="text-blue-600 hover:underline"),
+            Span(" / ", cls="text-gray-500"),
+            Span("Record Details", cls="font-semibold"),
+            cls="mb-4 text-sm"
+        ),
+
+        # Page header
+        H1("Title Generation Details", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        # Record details
+        Div(
+            # Metadata
+            Div(
+                H2("Generation Information", cls="text-xl font-semibold mb-4"),
+                Div(
+                    Div(
+                        Strong("User:"),
+                        P(record['username'] or "Unknown", cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Date & Time:"),
+                        P(record['created_at_formatted'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Topic:"),
+                        P(record['topic'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Platform:"),
+                        P(record['platform'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Style:"),
+                        P(record['style'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Number of Titles:"),
+                        P(str(record['number_of_titles']), cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    cls="bg-gray-50 p-4 rounded-lg mb-6"
+                ),
+
+                # Titles section
+                H2("Generated Titles", cls="text-xl font-semibold mb-4"),
+                P("Click 'Copy' to copy any title to your clipboard.", cls="text-gray-600 mb-3"),
+                Ul(
+                    *title_items,
+                    cls="border rounded divide-y mb-6"
+                ),
+
+                # Action buttons
+                Div(
+                    A("Back to History",
+                      href="/admin/history",
+                      cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-3"),
+                    Form(
+                        Button(
+                            "Delete Record",
+                            type="submit",
+                            cls="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                        ),
+                        action=f"/admin/history/{record_id}/delete",
+                        method="post"
+                    ),
+                    cls="flex"
+                ),
+
+                cls="bg-white p-6 rounded-lg shadow-md"
+            ),
+
+            cls="max-w-2xl mx-auto"
+        )
+    )
+```
+
+Now let's continue with updating the header and home page to support authentication:
+
+### Step 5: Updating UI Components for Authentication
+
+Let's update the header to include authentication-related links:
+
+**File: `components/header.py` (Updated)**
+
+```python
+from fasthtml.common import *
+import config
+from auth.auth_manager import AuthManager
+
+def header(current_page="/", session=None):
+    """
+    Creates a consistent header with navigation.
+
+    Args:
+        current_page: The current page path
+        session: The session object for auth status
+
+    Returns:
+        A Header component with navigation
+    """
+    # Get authentication status
+    is_authenticated = AuthManager.is_authenticated(session) if session else False
+    is_admin = AuthManager.is_admin(session) if session else False
+    username = session.get("username", "") if session else ""
+
+    # Define navigation items based on auth status
+    nav_items = [
+        ("Home", "/", True)  # Always show home
+    ]
+
+    # Add auth-required items if authenticated
+    if is_authenticated:
+        nav_items.append(("Title Generator", "/title-generator", True))
+        nav_items.append(("My History", "/history", True))
+
+        # Add admin link if admin
+        if is_admin:
+            nav_items.append(("Admin", "/admin", False))
+
+    # Build navigation links
+    nav_links = []
+    for title, path, show_mobile in nav_items:
+        is_current = current_page == path
+        link_class = "text-white hover:text-gray-300 px-3 py-2"
+        if is_current:
+            link_class += " font-bold underline"
+
+        # Add responsive visibility classes
+        if not show_mobile:
+            link_class += " hidden md:block"  # Hide on mobile
+
+        nav_links.append(
+            Li(
+                A(title, href=path, cls=link_class)
+            )
+        )
+
+    # Build auth links based on authentication status
+    auth_links = []
+    if is_authenticated:
+        # User dropdown menu
+        auth_links.append(
+            Div(
+                # Username display
+                Span(f"Hello, {username}", cls="text-white mr-2 hidden md:inline-block"),
+
+                # Logout link
+                A("Logout", href="/auth/logout", cls="text-white hover:text-gray-300 bg-red-600 hover:bg-red-700 px-3 py-2 rounded"),
+                cls="flex items-center"
+            )
+        )
+    else:
+        # Login/Register links
+        auth_links.append(
+            Div(
+                A("Login", href="/login", cls="text-white hover:text-gray-300 px-3 py-2 mr-2"),
+                A("Register", href="/register", cls="text-white hover:text-gray-300 bg-blue-700 hover:bg-blue-800 px-3 py-2 rounded"),
+                cls="flex items-center"
+            )
+        )
+
+    return Header(
+        Div(
+            # Logo and app name
+            A(config.APP_NAME, href="/", cls="text-xl font-bold text-white"),
+
+            # Mobile menu button (simplified - no JS toggle)
+            Button(
+                Span("☰", cls="text-2xl"),
+                cls="md:hidden text-white focus:outline-none"
+            ),
+
+            # Main navigation
+            Nav(
+                Ul(
+                    *nav_links,
+                    cls="flex space-x-2"
+                ),
+                cls="hidden md:flex"  # Hide on mobile
+            ),
+
+            # Auth links
+            Div(
+                *auth_links,
+                cls="ml-auto"
+            ),
+
+            cls="container mx-auto flex items-center justify-between px-4 py-3"
+        ),
+        cls="bg-blue-600 shadow-md"
+    )
+```
+
+Now let's update the home page to display different content based on authentication status:
+
+**File: `pages/home.py` (Updated)**
+
+```python
+from fasthtml.common import *
+import config
+from auth.auth_manager import AuthManager
+
+def home(session=None):
+    """
+    Defines the home page content.
+
+    Args:
+        session: The session object for auth status
+
+    Returns:
+        Components representing the home page content
+    """
+    # Check if user is authenticated
+    is_authenticated = AuthManager.is_authenticated(session) if session else False
+    is_admin = AuthManager.is_admin(session) if session else False
+    username = session.get("username", "") if session else ""
+
+    # Hero content varies based on authentication
+    if is_authenticated:
+        hero_content = Div(
+            H1(f"Welcome back, {username}!",
+               cls="text-4xl font-bold text-center text-gray-800 mb-4"),
+            P("Continue creating engaging titles for your content with AI assistance.",
+              cls="text-xl text-center text-gray-600 mb-6"),
+            Div(
+                A("Generate New Titles",
+                  href="/title-generator",
+                  cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-3"),
+                A("View My History",
+                  href="/history",
+                  cls="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"),
+                *([A("Admin Dashboard",
+                     href="/admin",
+                     cls="ml-3 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded")] if is_admin else []),
+                cls="flex justify-center flex-wrap gap-y-2"
+            ),
+            cls="py-12"
+        )
+    else:
+        hero_content = Div(
+            H1(config.APP_NAME,
+               cls="text-4xl font-bold text-center text-gray-800 mb-4"),
+            P("Create engaging titles for your content with AI assistance.",
+              cls="text-xl text-center text-gray-600 mb-6"),
+            Div(
+                A("Sign In",
+                  href="/login",
+                  cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-3"),
+                A("Register",
+                  href="/register",
+                  cls="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"),
+                cls="flex justify-center"
+            ),
+            cls="py-12"
+        )
+
+    return Div(
+        # Hero section with conditional content
+        hero_content,
+
+        # Features section
+        Div(
+            H2("Features", cls="text-3xl font-bold text-center mb-8"),
+            Div(
+                # Feature 1
+                Div(
+                    H3("Platform-Specific", cls="text-xl font-semibold mb-2"),
+                    P("Generate titles optimized for blogs, YouTube, social media, and more.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                # Feature 2
+                Div(
+                    H3("Multiple Styles", cls="text-xl font-semibold mb-2"),
+                    P("Choose from professional, casual, clickbait, or informative styles.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                # Feature 3
+                Div(
+                    H3("AI-Powered", cls="text-xl font-semibold mb-2"),
+                    P("Utilizes advanced AI models to craft engaging, relevant titles.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                cls="grid grid-cols-1 md:grid-cols-3 gap-6"
+            ),
+            cls="py-8"
+        ),
+
+        # How it works section
+        Div(
+            H2("How It Works", cls="text-3xl font-bold text-center mb-8"),
+            Div(
+                # Step 1
+                Div(
+                    Div(
+                        "1",
+                        cls="flex items-center justify-center bg-blue-600 text-white text-xl font-bold rounded-full w-10 h-10 mb-4"
+                    ),
+                    H3("Enter Your Topic", cls="text-xl font-semibold mb-2"),
+                    P("Describe what your content is about in detail.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                # Step 2
+                Div(
+                    Div(
+                        "2",
+                        cls="flex items-center justify-center bg-blue-600 text-white text-xl font-bold rounded-full w-10 h-10 mb-4"
+                    ),
+                    H3("Choose Settings", cls="text-xl font-semibold mb-2"),
+                    P("Select the platform and style that matches your needs.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                # Step 3
+                Div(
+                    Div(
+                        "3",
+                        cls="flex items-center justify-center bg-blue-600 text-white text-xl font-bold rounded-full w-10 h-10 mb-4"
+                    ),
+                    H3("Get Results", cls="text-xl font-semibold mb-2"),
+                    P("Review multiple title options and choose your favorite.",
+                      cls="text-gray-600"),
+                    cls="bg-white p-6 rounded-lg shadow-md"
+                ),
+                cls="grid grid-cols-1 md:grid-cols-3 gap-6"
+            ),
+            cls="py-8"
+        )
+    )
+```
+
+
+### Step 6: Update History Page for User-Specific Views
+
+**File: `pages/history.py` (Updated)** (continued)
+
+```python
+from fasthtml.common import *
+from db.history_dao import HistoryDAO
+from auth.auth_manager import AuthManager
+
+def history_page(session, page: int = 1, records_per_page: int = 10):
+    """
+    Defines the history page content for the current user.
+
+    Args:
+        session: The session object containing user info
+        page: Current page number (1-based)
+        records_per_page: Number of records per page
+
+    Returns:
+        Components representing the history page content
+    """
+    # Get current user ID
+    user_id = session.get("user_id")
+    if not user_id:
+        return Div(
+            H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+            P("User not authenticated", cls="mb-4"),
+            A("Login", href="/login",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+    # Get user stats
+    stats = HistoryDAO.get_user_stats(user_id)
+
+    # Calculate offset for pagination
+    offset = (page - 1) * records_per_page
+
+    # Get history records for this user
+    history_records = HistoryDAO.get_user_history(
+        user_id=user_id,
+        limit=records_per_page,
+        offset=offset
+    )
+
+    # Build history cards
+    history_cards = []
+    if not history_records:
+        history_cards.append(
+            Div(
+                P("No generation history found. Try generating some titles first!",
+                  cls="text-gray-600 italic"),
+                cls="bg-white p-6 rounded-lg shadow-md"
+            )
+        )
+    else:
+        for record in history_records:
+            # Limit displayed titles to first 3 for compactness
+            display_titles = record['titles'][:3]
+            has_more = len(record['titles']) > 3
+
+            title_items = []
+            for title in display_titles:
+                title_items.append(Li(title, cls="mb-1"))
+
+            if has_more:
+                title_items.append(
+                    Li(
+                        A(f"...and {len(record['titles']) - 3} more",
+                          href=f"/history/{record['id']}",
+                          cls="text-blue-600 hover:underline italic"),
+                        cls="mt-2"
+                    )
+                )
+
+            history_cards.append(
+                Div(
+                    # Header with date and record info
+                    Div(
+                        Div(
+                            H3(record['topic'][:50] + ("..." if len(record['topic']) > 50 else ""),
+                               cls="text-lg font-semibold"),
+                            P(f"{record['platform']} • {record['style']} • {record['number_of_titles']} titles",
+                              cls="text-sm text-gray-600"),
+                            cls="flex-grow"
+                        ),
+                        P(record['created_at_formatted'],
+                          cls="text-xs text-gray-500"),
+                        cls="flex justify-between items-start mb-3"
+                    ),
+
+                    # Title preview
+                    Div(
+                        H4("Generated Titles:", cls="font-medium mb-2"),
+                        Ul(
+                            *title_items,
+                            cls="list-disc pl-5 text-gray-700"
+                        ),
+                        cls="mb-3"
+                    ),
+
+                    # Actions
+                    Div(
+                        A("View Details",
+                          href=f"/history/{record['id']}",
+                          cls="text-blue-600 hover:underline text-sm mr-4"),
+                        A("Delete",
+                          href=f"/history/{record['id']}/delete",
+                          cls="text-red-600 hover:underline text-sm"),
+                        cls="flex justify-end"
+                    ),
+
+                    cls="bg-white p-6 rounded-lg shadow-md mb-4"
+                )
+            )
+
+    # Build pagination controls
+    current_page = page
+    # For simplicity, we'll just have prev/next buttons
+    pagination = Div(
+        Div(
+            A("← Previous",
+              href=f"/history?page={current_page - 1}" if current_page > 1 else "#",
+              cls=f"px-4 py-2 rounded {'bg-blue-600 text-white' if current_page > 1 else 'bg-gray-200 text-gray-500 cursor-default'}"),
+            Span(f"Page {current_page}",
+                 cls="px-4 py-2"),
+            A("Next →",
+              href=f"/history?page={current_page + 1}" if len(history_records) == records_per_page else "#",
+              cls=f"px-4 py-2 rounded {'bg-blue-600 text-white' if len(history_records) == records_per_page else 'bg-gray-200 text-gray-500 cursor-default'}"),
+            cls="flex items-center justify-center space-x-2"
+        ),
+        cls="mt-6"
+    )
+
+    # Create stats summary
+    stats_summary = None
+    if stats['total_generations'] > 0:
+        # Get top platform and style
+        top_platform = next(iter(stats['platforms'])) if stats['platforms'] else "None"
+        top_style = next(iter(stats['styles'])) if stats['styles'] else "None"
+
+        stats_summary = Div(
+            H2("Your Statistics", cls="text-xl font-semibold mb-4"),
+            Div(
+                Div(
+                    H3("Total Generations", cls="text-sm font-medium text-gray-500"),
+                    P(str(stats['total_generations']), cls="text-2xl font-bold"),
+                    cls="text-center p-4 bg-white rounded-lg shadow"
+                ),
+                Div(
+                    H3("Top Platform", cls="text-sm font-medium text-gray-500"),
+                    P(top_platform, cls="text-2xl font-bold"),
+                    cls="text-center p-4 bg-white rounded-lg shadow"
+                ),
+                Div(
+                    H3("Top Style", cls="text-sm font-medium text-gray-500"),
+                    P(top_style, cls="text-2xl font-bold"),
+                    cls="text-center p-4 bg-white rounded-lg shadow"
+                ),
+                cls="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+            ),
+            cls="mb-8"
+        )
+
+    return Div(
+        # Page header
+        H1("Your Generation History", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        # Stats summary
+        stats_summary if stats_summary else "",
+
+        # Call to action if no history
+        Div(
+            A("Generate New Titles",
+              href="/title-generator",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="mb-6 text-center"
+        ) if not history_records else "",
+
+        # Records container
+        Div(
+            *history_cards,
+            cls=""
+        ),
+
+        # Pagination
+        pagination if history_records else "",
+
+        cls="max-w-4xl mx-auto"
+    )
+
+def history_detail_page(record_id: int, session):
+    """
+    Defines the history detail page content for a specific record.
+
+    Args:
+        record_id: ID of the history record to display
+        session: The session object containing user info
+
+    Returns:
+        Components representing the history detail page
+    """
+    # Get current user ID
+    user_id = session.get("user_id")
+    if not user_id:
+        return Div(
+            H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+            P("User not authenticated", cls="mb-4"),
+            A("Login", href="/login",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+    # Check if user is admin
+    is_admin = AuthManager.is_admin(session)
+
+    # Get the history record
+    # For admin, don't filter by user_id
+    if is_admin:
+        record = HistoryDAO.get_history_by_id(record_id)
+    else:
+        record = HistoryDAO.get_history_by_id(record_id, user_id=user_id)
+
+    if not record:
+        return Div(
+            H1("Record Not Found", cls="text-3xl font-bold text-red-600 mb-4"),
+            P("The requested history record could not be found or you don't have permission to view it.", cls="mb-4"),
+            A("Back to History", href="/history",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+    # Create list items for each title
+    title_items = []
+    for i, title in enumerate(record['titles']):
+        title_items.append(
+            Li(
+                Div(
+                    P(title, cls="font-medium"),
+                    Button(
+                        "Copy",
+                        type="button",
+                        onclick=f"navigator.clipboard.writeText('{title.replace('\'', '\\\'')}'); this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy', 2000);",
+                        cls="ml-auto text-sm bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
+                    ),
+                    cls="flex justify-between items-center"
+                ),
+                cls="p-3 border-b last:border-b-0"
+            )
+        )
+
+    return Div(
+        # Page header
+        H1("Title Generation Details", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        # Record details
+        Div(
+            # Metadata
+            Div(
+                H2("Generation Information", cls="text-xl font-semibold mb-4"),
+                Div(
+                    Div(
+                        Strong("Date & Time:"),
+                        P(record['created_at_formatted'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Topic:"),
+                        P(record['topic'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Platform:"),
+                        P(record['platform'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Style:"),
+                        P(record['style'], cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    Div(
+                        Strong("Number of Titles:"),
+                        P(str(record['number_of_titles']), cls="text-gray-700 mb-2"),
+                        cls="mb-3"
+                    ),
+                    cls="bg-gray-50 p-4 rounded-lg mb-6"
+                ),
+
+                # Titles section
+                H2("Generated Titles", cls="text-xl font-semibold mb-4"),
+                P("Click 'Copy' to copy any title to your clipboard.", cls="text-gray-600 mb-3"),
+                Ul(
+                    *title_items,
+                    cls="border rounded divide-y mb-6"
+                ),
+
+                # Action buttons
+                Div(
+                    A("Generate Similar",
+                      href=f"/title-generator?topic={record['topic']}&platform={record['platform']}&style={record['style']}&number_of_titles={record['number_of_titles']}",
+                      cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-3"),
+                    A("Back to History",
+                      href="/history",
+                      cls="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded mr-3"),
+                    A("Delete Record",
+                      href=f"/history/{record_id}/delete",
+                      cls="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"),
+                    cls="flex flex-wrap gap-y-2"
+                ),
+
+                cls="bg-white p-6 rounded-lg shadow-md"
+            ),
+
+            cls="max-w-2xl mx-auto"
+        )
+    )
+
+def delete_confirm_page(record_id: int, session):
+    """
+    Confirmation page for deleting a history record.
+
+    Args:
+        record_id: ID of the record to delete
+        session: The session object containing user info
+
+    Returns:
+        Components representing the confirmation page
+    """
+    # Get current user ID
+    user_id = session.get("user_id")
+    if not user_id:
+        return Div(
+            H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+            P("User not authenticated", cls="mb-4"),
+            A("Login", href="/login",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+    # Check if user is admin
+    is_admin = AuthManager.is_admin(session)
+
+    # Get record to show details in confirmation
+    # For admin, don't filter by user_id
+    if is_admin:
+        record = HistoryDAO.get_history_by_id(record_id)
+    else:
+        record = HistoryDAO.get_history_by_id(record_id, user_id=user_id)
+
+    if not record:
+        return Div(
+            H1("Record Not Found", cls="text-3xl font-bold text-red-600 mb-4"),
+            P("The requested history record could not be found or you don't have permission to delete it.", cls="mb-4"),
+            A("Back to History", href="/history",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+    return Div(
+        H1("Confirm Deletion", cls="text-3xl font-bold text-gray-800 mb-6"),
+
+        Div(
+            P("Are you sure you want to delete this history record?", cls="text-lg mb-4"),
+
+            # Record summary
+            Div(
+                P(f"Topic: {record['topic'][:100]}{'...' if len(record['topic']) > 100 else ''}",
+                  cls="mb-2"),
+                P(f"Platform: {record['platform']}", cls="mb-2"),
+                P(f"Created: {record['created_at_formatted']}", cls="mb-2"),
+                cls="bg-gray-100 p-4 rounded-lg mb-6"
+            ),
+
+            P("This action cannot be undone.", cls="text-red-600 mb-6"),
+
+            # Form with confirmation button
+            Form(
+                Div(
+                    Button("Yes, Delete Record",
+                           type="submit",
+                           cls="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-3"),
+                    A("Cancel",
+                      href=f"/history/{record_id}" if not is_admin else f"/admin/history/{record_id}",
+                      cls="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"),
+                    cls="flex"
+                ),
+                method="post",
+                action=f"/history/{record_id}/delete" if not is_admin else f"/admin/history/{record_id}/delete"
+            ),
+
+            cls="bg-white p-6 rounded-lg shadow-md"
+        ),
+
+        cls="max-w-2xl mx-auto"
+    )
+```
+
+### Step 7: Update the Main Application File
+
+Finally, let's update our main application file to include the authentication and user management features:
+
+**File: `main.py` (Updated)**
+
+```python
+from fasthtml.common import *
+from fasthtml.oauth import GitHubAppClient
+import os
+
+# Import configuration
+import config
+
+# Import page content
+from pages.home import home as home_page
+from pages.title_generator import title_generator_form, title_generator_results
+from pages.history import history_page, history_detail_page, delete_confirm_page
+from pages.login import login_page
+from pages.register import register_page
+from pages.admin import admin_dashboard, admin_users_page, admin_history_page, admin_history_detail
+
+# Import the page layout component
+from components.page_layout import page_layout
+from components.header import header
+
+# Import authentication services
+from auth.auth_manager import AuthManager
+from auth.email_auth import EmailAuth
+from auth.github_auth import GitHubAuth
+
+# Import DAO classes
+from db.history_dao import HistoryDAO
+from db.user_dao import UserDAO
+
+# Import title generator tool
+from tools.title_generator import TitleGenerator
+
+# Initialize the FastHTML application
+app = FastHTML()
+
+# Initialize title generator tool
+title_generator = TitleGenerator()
+
+# Initialize GitHub OAuth client
+github_client = GitHubAppClient(
+    client_id=config.GITHUB_CLIENT_ID,
+    client_secret=config.GITHUB_CLIENT_SECRET
+)
+
+# Helper function to check auth and redirect if needed
+def require_auth(session, admin_required=False):
+    """
+    Check if user is authenticated and has required permissions.
+
+    Args:
+        session: The session object
+        admin_required: Whether admin access is required
+
+    Returns:
+        Redirect response or None if authenticated with correct permissions
+    """
+    if not AuthManager.is_authenticated(session):
+        return RedirectResponse('/login', status_code=303)
+
+    if admin_required and not AuthManager.is_admin(session):
+        return RedirectResponse('/', status_code=303)
+
+    return None
+
+# Public Pages
+
+@app.get("/")
+def home(session=None):
+    """Handler for the home page route."""
+    return page_layout(
+        title=f"Home - {config.APP_NAME}",
+        content=home_page(session),
+        current_page="/",
+        session=session
+    )
+
+@app.get("/login")
+def login(error_message: str = None, success_message: str = None):
+    """Handler for the login page route."""
+    return page_layout(
+        title=f"Sign In - {config.APP_NAME}",
+        content=login_page(error_message, success_message),
+        current_page="/login"
+    )
+
+@app.get("/register")
+def register(error_message: str = None):
+    """Handler for the registration page route."""
+    return page_layout(
+        title=f"Register - {config.APP_NAME}",
+        content=register_page(error_message),
+        current_page="/register"
+    )
+
+# Authentication Routes
+
+@app.post("/auth/email/register")
+def email_register(
+    username: str,
+    email: str,
+    password: str,
+    confirm_password: str
+):
+    """Handler for email registration."""
+    # Validate registration input
+    is_valid, error_message = EmailAuth.validate_registration(
+        username=username,
+        email=email,
+        password=password,
+        confirm_password=confirm_password
+    )
+
+    if not is_valid:
+        return page_layout(
+            title=f"Register - {config.APP_NAME}",
+            content=register_page(error_message),
+            current_page="/register"
+        )
+
+    # Create user
+    success, message, user_id = EmailAuth.register_user(
+        username=username,
+        email=email,
+        password=password
+    )
+
+    if not success:
+        return page_layout(
+            title=f"Register - {config.APP_NAME}",
+            content=register_page(message),
+            current_page="/register"
+        )
+
+    # Redirect to login with success message
+    return page_layout(
+        title=f"Sign In - {config.APP_NAME}",
+        content=login_page(success_message="Registration successful! Please sign in."),
+        current_page="/login"
+    )
+
+@app.post("/auth/email/login")
+def email_login(email: str, password: str, session):
+    """Handler for email login."""
+    # Authenticate user
+    success, message, user_data = EmailAuth.authenticate(
+        email=email,
+        password=password
+    )
+
+    if not success:
+        return page_layout(
+            title=f"Sign In - {config.APP_NAME}",
+            content=login_page(error_message=message),
+            current_page="/login"
+        )
+
+    # Log in user by setting session data
+    AuthManager.login_user(session, user_data)
+
+    # Redirect to home page
+    return RedirectResponse('/', status_code=303)
+
+@app.get("/auth/github/login")
+def github_login():
+    """Handler for GitHub login."""
+    # Redirect to GitHub OAuth authorization URL
+    auth_url = GitHubAuth.get_auth_url()
+    return RedirectResponse(auth_url, status_code=303)
+
+@app.get("/auth/github/callback")
+def github_callback(code: str, session, state: str = None):
+    """Handler for GitHub OAuth callback."""
+    # Authenticate with GitHub
+    success, message, user_data = GitHubAuth.authenticate(code)
+
+    if not success:
+        return page_layout(
+            title=f"Sign In - {config.APP_NAME}",
+            content=login_page(error_message=message),
+            current_page="/login"
+        )
+
+    # Log in user by setting session data
+    AuthManager.login_user(session, user_data)
+
+    # Redirect to home page
+    return RedirectResponse('/', status_code=303)
+
+@app.get("/auth/logout")
+def logout(session):
+    """Handler for logout."""
+    # Clear session data
+    AuthManager.logout_user(session)
+
+    # Redirect to login page
+    return RedirectResponse('/login', status_code=303)
+
+# Protected Routes - Title Generator
+
+@app.get("/title-generator")
+def title_generator_page(
+    session,
+    topic: str = "",
+    platform: str = "Blog",
+    style: str = "Professional",
+    number_of_titles: str = "5"
+):
+    """Handler for the title generator page route."""
+    # Check authentication
+    auth_redirect = require_auth(session)
+    if auth_redirect:
+        return auth_redirect
+
+    return page_layout(
+        title=f"Title Generator - {config.APP_NAME}",
+        content=title_generator_form(),
+        current_page="/title-generator",
+        session=session
+    )
+
+@app.post("/title-generator/generate")
+async def generate_titles(
+    session,
+    topic: str,
+    platform: str,
+    style: str,
+    number_of_titles: str
+):
+    """
+    Handler for processing title generation requests.
+    """
+    # Check authentication
+    auth_redirect = require_auth(session)
+    if auth_redirect:
+        return auth_redirect
+
+    # Get user ID from session
+    user_id = session.get("user_id")
+
+    try:
+        # Validate inputs
+        if not topic:
+            error_message = Div(
+                H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+                P("Please provide a topic for your titles.", cls="mb-4"),
+                A("Try Again", href="/title-generator",
+                  cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+                cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+            )
+
+            return page_layout(
+                title=f"Error - {config.APP_NAME}",
+                content=error_message,
+                current_page="/title-generator",
+                session=session
+            )
+
+        # Convert number_of_titles to integer
+        num_titles = int(number_of_titles)
+
+        # Generate titles
+        titles = await title_generator.generate_titles(
+            topic=topic,
+            platform=platform,
+            style=style,
+            number_of_titles=num_titles
+        )
+
+        # Save to history database with user ID
+        history_id = await HistoryDAO.save_generation(
+            user_id=user_id,
+            topic=topic,
+            platform=platform,
+            style=style,
+            number_of_titles=num_titles,
+            titles=titles
+        )
+
+        # Return the results page
+        return page_layout(
+            title=f"Generated Titles - {config.APP_NAME}",
+            content=title_generator_results(
+                topic=topic,
+                platform=platform,
+                style=style,
+                titles=titles,
+                history_id=history_id
+            ),
+            current_page="/title-generator",
+            session=session
+        )
+    except Exception as e:
+        # Handle errors
+        error_message = Div(
+            H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+            P(f"An error occurred while generating titles: {str(e)}", cls="mb-4"),
+            A("Try Again", href="/title-generator",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+        return page_layout(
+            title=f"Error - {config.APP_NAME}",
+            content=error_message,
+            current_page="/title-generator",
+            session=session
+        )
+
+# Protected Routes - User History
+
+@app.get("/history")
+def history(session, page: int = 1):
+    """Handler for the user history page route."""
+    # Check authentication
+    auth_redirect = require_auth(session)
+    if auth_redirect:
+        return auth_redirect
+
+    return page_layout(
+        title=f"Your History - {config.APP_NAME}",
+        content=history_page(session, page=page),
+        current_page="/history",
+        session=session
+    )
+
+@app.get("/history/{record_id:int}")
+def history_detail(record_id: int, session):
+    """Handler for the history detail page route."""
+    # Check authentication
+    auth_redirect = require_auth(session)
+    if auth_redirect:
+        return auth_redirect
+
+    return page_layout(
+        title=f"History Details - {config.APP_NAME}",
+        content=history_detail_page(record_id=record_id, session=session),
+        current_page="/history",
+        session=session
+    )
+
+@app.get("/history/{record_id:int}/delete")
+def confirm_delete(record_id: int, session):
+    """Handler for the delete confirmation page."""
+    # Check authentication
+    auth_redirect = require_auth(session)
+    if auth_redirect:
+        return auth_redirect
+
+    return page_layout(
+        title=f"Confirm Deletion - {config.APP_NAME}",
+        content=delete_confirm_page(record_id=record_id, session=session),
+        current_page="/history",
+        session=session
+    )
+
+@app.post("/history/{record_id:int}/delete")
+def delete_record(record_id: int, session):
+    """Handler for processing record deletion."""
+    # Check authentication
+    auth_redirect = require_auth(session)
+    if auth_redirect:
+        return auth_redirect
+
+    # Get user ID from session
+    user_id = session.get("user_id")
+    is_admin = AuthManager.is_admin(session)
+
+    # Try to delete the record (for admin, don't filter by user_id)
+    if is_admin:
+        success = HistoryDAO.delete_history(record_id)
+    else:
+        success = HistoryDAO.delete_history(record_id, user_id=user_id)
+
+    if success:
+        # Show success message and redirect to history page
+        success_message = Div(
+            H1("Record Deleted", cls="text-3xl font-bold text-green-600 mb-4"),
+            P("The history record has been successfully deleted.", cls="mb-4"),
+            A("Back to History", href="/history",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+        return page_layout(
+            title=f"Record Deleted - {config.APP_NAME}",
+            content=success_message,
+            current_page="/history",
+            session=session
+        )
+    else:
+        # Show error message
+        error_message = Div(
+            H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+            P("The record could not be deleted or doesn't exist.", cls="mb-4"),
+            A("Back to History", href="/history",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+        return page_layout(
+            title=f"Error - {config.APP_NAME}",
+            content=error_message,
+            current_page="/history",
+            session=session
+        )
+
+# Protected Routes - Admin
+
+@app.get("/admin")
+def admin(session):
+    """Handler for the admin dashboard page route."""
+    # Check admin authentication
+    auth_redirect = require_auth(session, admin_required=True)
+    if auth_redirect:
+        return auth_redirect
+
+    return page_layout(
+        title=f"Admin Dashboard - {config.APP_NAME}",
+        content=admin_dashboard(),
+        current_page="/admin",
+        session=session
+    )
+
+@app.get("/admin/users")
+def admin_users(session, page: int = 1, error_message: str = None, success_message: str = None):
+    """Handler for the admin users page route."""
+    # Check admin authentication
+    auth_redirect = require_auth(session, admin_required=True)
+    if auth_redirect:
+        return auth_redirect
+
+    return page_layout(
+        title=f"User Management - {config.APP_NAME}",
+        content=admin_users_page(page, error_message, success_message),
+        current_page="/admin",
+        session=session
+    )
+
+@app.post("/admin/users/{user_id:int}/make-admin")
+def make_admin(user_id: int, session):
+    """Handler for making a user an admin."""
+    # Check admin authentication
+    auth_redirect = require_auth(session, admin_required=True)
+    if auth_redirect:
+        return auth_redirect
+
+    # Set admin status
+    success = UserDAO.set_admin_status(user_id, True)
+
+    if success:
+        return page_layout(
+            title=f"User Management - {config.APP_NAME}",
+            content=admin_users_page(success_message="User successfully made admin"),
+            current_page="/admin",
+            session=session
+        )
+    else:
+        return page_layout(
+            title=f"User Management - {config.APP_NAME}",
+            content=admin_users_page(error_message="Failed to update user status"),
+            current_page="/admin",
+            session=session
+        )
+
+@app.post("/admin/users/{user_id:int}/remove-admin")
+def remove_admin(user_id: int, session):
+    """Handler for removing admin status from a user."""
+    # Check admin authentication
+    auth_redirect = require_auth(session, admin_required=True)
+    if auth_redirect:
+        return auth_redirect
+
+    # Prevent removing admin status from the current user
+    if session.get("user_id") == user_id:
+        return page_layout(
+            title=f"User Management - {config.APP_NAME}",
+            content=admin_users_page(error_message="You cannot remove your own admin status"),
+            current_page="/admin",
+            session=session
+        )
+
+    # Set admin status
+    success = UserDAO.set_admin_status(user_id, False)
+
+    if success:
+        return page_layout(
+            title=f"User Management - {config.APP_NAME}",
+            content=admin_users_page(success_message="Admin status successfully removed"),
+            current_page="/admin",
+            session=session
+        )
+    else:
+        return page_layout(
+            title=f"User Management - {config.APP_NAME}",
+            content=admin_users_page(error_message="Failed to update user status"),
+            current_page="/admin",
+            session=session
+        )
+
+@app.post("/admin/users/{user_id:int}/delete")
+def admin_delete_user(user_id: int, session):
+    """Handler for deleting a user."""
+    # Check admin authentication
+    auth_redirect = require_auth(session, admin_required=True)
+    if auth_redirect:
+        return auth_redirect
+
+    # Prevent deleting the current user
+    if session.get("user_id") == user_id:
+        return page_layout(
+            title=f"User Management - {config.APP_NAME}",
+            content=admin_users_page(error_message="You cannot delete your own account"),
+            current_page="/admin",
+            session=session
+        )
+
+    # Delete user
+    success = UserDAO.delete_user(user_id)
+
+    if success:
+        return page_layout(
+            title=f"User Management - {config.APP_NAME}",
+            content=admin_users_page(success_message="User successfully deleted"),
+            current_page="/admin",
+            session=session
+        )
+    else:
+        return page_layout(
+            title=f"User Management - {config.APP_NAME}",
+            content=admin_users_page(error_message="Failed to delete user"),
+            current_page="/admin",
+            session=session
+        )
+
+@app.get("/admin/history")
+def admin_history(session, page: int = 1):
+    """Handler for the admin history page route."""
+    # Check admin authentication
+    auth_redirect = require_auth(session, admin_required=True)
+    if auth_redirect:
+        return auth_redirect
+
+    return page_layout(
+        title=f"All History - {config.APP_NAME}",
+        content=admin_history_page(page=page),
+        current_page="/admin",
+        session=session
+    )
+
+@app.get("/admin/history/{record_id:int}")
+def admin_view_history(record_id: int, session):
+    """Handler for the admin history detail page route."""
+    # Check admin authentication
+    auth_redirect = require_auth(session, admin_required=True)
+    if auth_redirect:
+        return auth_redirect
+
+    return page_layout(
+        title=f"History Details - {config.APP_NAME}",
+        content=admin_history_detail(record_id=record_id),
+        current_page="/admin",
+        session=session
+    )
+
+@app.post("/admin/history/{record_id:int}/delete")
+def admin_delete_history(record_id: int, session):
+    """Handler for admin deleting a history record."""
+    # Check admin authentication
+    auth_redirect = require_auth(session, admin_required=True)
+    if auth_redirect:
+        return auth_redirect
+
+    # Delete the record (no user_id filter for admin)
+    success = HistoryDAO.delete_history(record_id)
+
+    if success:
+        # Show success message and redirect to admin history page
+        success_message = Div(
+            H1("Record Deleted", cls="text-3xl font-bold text-green-600 mb-4"),
+            P("The history record has been successfully deleted.", cls="mb-4"),
+            A("Back to History", href="/admin/history",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+        return page_layout(
+            title=f"Record Deleted - {config.APP_NAME}",
+            content=success_message,
+            current_page="/admin",
+            session=session
+        )
+    else:
+        # Show error message
+        error_message = Div(
+            H1("Error", cls="text-3xl font-bold text-red-600 mb-4"),
+            P("The record could not be deleted or doesn't exist.", cls="mb-4"),
+            A("Back to History", href="/admin/history",
+              cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+            cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+        )
+
+        return page_layout(
+            title=f"Error - {config.APP_NAME}",
+            content=error_message,
+            current_page="/admin",
+            session=session
+        )
+
+# Error Handling
+
+@app.get("/{path:path}")
+def not_found(path: str, session=None):
+    """Handler for 404 Not Found errors."""
+    error_content = Div(
+        H1("404 - Page Not Found", cls="text-3xl font-bold text-gray-800 mb-4"),
+        P(f"Sorry, the page '/{path}' does not exist.", cls="mb-4"),
+        A("Return Home", href="/",
+          cls="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"),
+        cls="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md text-center"
+    )
+
+    return page_layout(
+        title=f"404 Not Found - {config.APP_NAME}",
+        content=error_content,
+        current_page="/",
+        session=session
+    )
+
+# Run the application
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=5001, reload=True)
+```
+
+### Step 8: Setting Up Environment Variables
+
+Before running your application, you'll need to set up environment variables for GitHub OAuth and other settings. Create or update your `.env` file:
+
+**File: `.env`**
+
+```
+# API keys
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+
+# Database
+DB_PATH=tools.db
+
+# Authentication
+SECRET_KEY=your_secure_random_secret_key
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+GITHUB_REDIRECT_URI=/auth/github/callback
+
+# Admin account (created on first run)
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=your_secure_admin_password
+
+# App settings
+DEBUG=True
+```
+
+Replace placeholder values with your actual GitHub OAuth credentials and other settings.
+
+### Step 9: Setting Up GitHub OAuth
+
+To set up GitHub OAuth authentication:
+
+1. Go to your GitHub account settings and navigate to "Developer settings" > "OAuth Apps"
+2. Click "New OAuth App" or select an existing app to modify
+3. Fill in the required information:
+   - **Application name**: Your app name (e.g., "AI Title Generator")
+   - **Homepage URL**: Your app's URL (e.g., "http://localhost:5001" for development)
+   - **Application description**: Brief description of your app
+   - **Authorization callback URL**: Your callback URL with full domain (e.g., "http://localhost:5001/auth/github/callback")
+4. Click "Register application"
+5. After registration, you'll see your Client ID and you can generate a Client Secret
+6. Add these credentials to your `.env` file
+
+### Step 10: Running Your Enhanced Application
+
+Now you can run your enhanced application:
+
+```bash
+python main.py
+```
+
+Open your browser and visit http://localhost:5001. You should see:
+
+1. The option to register or log in
+2. After logging in, access to the title generator tool
+3. A personal history dashboard showing your generations
+4. For admin users, access to the admin dashboard
+
+### Testing User Registration and Login
+
+1. **Register a new user**:
+   - Go to the registration page
+   - Fill in the required information
+   - Submit the form
+   - You should be redirected to the login page with a success message
+
+2. **Log in with the registered user**:
+   - Enter your email and password
+   - You should be redirected to the home page
+   - The navigation should show "Title Generator" and "My History" links
+
+3. **Test GitHub login**:
+   - Click "Sign in with GitHub"
+   - Authorize your application on GitHub
+   - You should be redirected back to your app and logged in
+
+### Testing Admin Features
+
+1. **Log in with the admin account**:
+   - Use the admin credentials you set in the `.env` file
+   - The navigation should include an "Admin" link
+
+2. **Explore admin features**:
+   - View and manage all users
+   - Change user roles (make/remove admin)
+   - View all users' title generation history
+   - Delete user accounts or history records
+
+## Conclusion
+
+Congratulations! You've successfully enhanced your AI Title Generator application with:
+
+1. **User authentication system** that supports both:
+   - Traditional email/password authentication
+   - GitHub OAuth integration
+
+2. **Role-based access control** with:
+   - Regular user accounts that can only access their own content
+   - Admin accounts with advanced management capabilities
+
+3. **User-specific history dashboards** that:
+   - Show only the logged-in user's history
+   - Provide statistics and insights on generation patterns
+   - Allow users to manage their own history
+
+4. **Admin management interface** that provides:
+   - User management with role assignment
+   - Global history monitoring across all users
+   - Data management capabilities
+
+The architecture follows best practices for web applications:
+
+- **Separation of concerns**: Each module has a specific responsibility
+- **Security**: Authentication and authorization are properly implemented
+- **Data isolation**: Users can only access their own data
+- **Maintainability**: Code is well-organized and modular
+
+You now have a fully-featured AI Title Generator web application with user management capabilities, which you can further enhance with additional features such as:
+
+- Email verification for new accounts
+- Password reset functionality
+- User profile customization
+- Advanced analytics for admin users
+- Favorite/bookmark feature for generated titles
+- Team collaboration features
+
+This authentication system provides a solid foundation for building more complex AI-powered tools
